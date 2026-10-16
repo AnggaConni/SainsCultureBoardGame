@@ -17,6 +17,18 @@
   const sun=new THREE.DirectionalLight(0xffe3ad,2.2);sun.position.set(80,160,60);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-190;sun.shadow.camera.right=190;sun.shadow.camera.top=190;sun.shadow.camera.bottom=-190;scene.add(sun);
   const fill=new THREE.DirectionalLight(0x6bc6d1,.65);fill.position.set(-100,70,-100);scene.add(fill);
   const ground=new THREE.Mesh(new THREE.PlaneGeometry(500,500),new THREE.MeshStandardMaterial({color:0x17382d,roughness:1}));ground.rotation.x=-Math.PI/2;ground.position.y=-2.6;ground.receiveShadow=true;scene.add(ground);
+  // Four subtle annular terrain bands correspond to the four tile zones.
+  const terrainBands=[
+    {inner:98,outer:130,color:0x8e7048},
+    {inner:70,outer:98,color:0x17647a},
+    {inner:43,outer:70,color:0x2b643d},
+    {inner:13,outer:43,color:0x6b6047}
+  ];
+  terrainBands.forEach(band=>{
+    const mesh=new THREE.Mesh(new THREE.RingGeometry(band.inner,band.outer,128),
+      new THREE.MeshBasicMaterial({color:band.color,transparent:true,opacity:.31,side:THREE.DoubleSide,depthWrite:false}));
+    mesh.rotation.x=-Math.PI/2;mesh.position.y=-2.51;mesh.renderOrder=1;scene.add(mesh);
+  });
   // Subtle procedural ground flecks keep the scene alive before final environment art.
   const fleckGeo=new THREE.BufferGeometry(),flecks=[];
   for(let i=0;i<750;i++){const a=Math.random()*Math.PI*2,r=25+Math.random()*205;flecks.push(Math.cos(a)*r,-2.47,Math.sin(a)*r)}
@@ -64,7 +76,7 @@
     const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthWrite:false}));
     sprite.scale.set(25,7.8,1);return sprite;
   }
-  const plaquePositions=[{x:-70,z:-68},{x:68,z:-75},{x:75,z:72},{x:-78,z:72}];
+  const plaquePositions=[{x:20,z:-137},{x:101,z:18},{x:-75,z:12},{x:2,z:-51}];
   zones.forEach((z,i)=>{const p=makePlaque(z.name,z.subtitle,"#"+new THREE.Color(z.color).getHexString());p.position.set(plaquePositions[i].x,8,plaquePositions[i].z);scene.add(p);plaques.push(p)});
   // Low-cost procedural landmarks stand in until final environment GLBs are chosen.
   const landmarkGroup=new THREE.Group();scene.add(landmarkGroup);
@@ -77,19 +89,19 @@
     const spire=new THREE.Mesh(new THREE.ConeGeometry(.65,2.2,8),stone);spire.position.set(pos.x,7.8,pos.z);landmarkGroup.add(spire);
   }
   const gltfLoader=typeof THREE.GLTFLoader==="function"?new THREE.GLTFLoader():null;
-  const templeFallback=new THREE.Group();createTemplePlaceholder(new THREE.Vector3(-52,.2,-18));
+  const templeFallback=new THREE.Group();createTemplePlaceholder(new THREE.Vector3(0,.2,-111));
   if(gltfLoader){
     gltfLoader.load("assets/temples/borobudur_temple.glb",gltf=>{
       const model=gltf.scene;model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});
       const box=new THREE.Box3().setFromObject(model),size=box.getSize(new THREE.Vector3()),center=box.getCenter(new THREE.Vector3());
       const max=Math.max(size.x,size.y,size.z)||1;model.scale.setScalar(18/max);
-      model.position.set(-52-center.x*model.scale.x,-box.min.y*model.scale.y,-18-center.z*model.scale.z);
+      model.position.set(-center.x*model.scale.x,-box.min.y*model.scale.y,-111-center.z*model.scale.z);
       scene.add(model);landmarkGroup.visible=false;
     },undefined,err=>console.warn("Borobudur GLB fallback remains active",err));
   }
   // Coastal lagoon in the marine zone.
   const lagoon=new THREE.Mesh(new THREE.CircleGeometry(19,64),new THREE.MeshStandardMaterial({color:0x147d9b,roughness:.25,metalness:.15,transparent:true,opacity:.9}));
-  lagoon.rotation.x=-Math.PI/2;lagoon.position.set(47,-1.1,20);scene.add(lagoon);
+  lagoon.rotation.x=-Math.PI/2;lagoon.position.set(0,-1.8,-91);scene.add(lagoon);
   // Tree clusters add scale and theme while keeping paths visible.
   const trunkMat=new THREE.MeshStandardMaterial({color:0x674b31,roughness:1}),leafMats=[0x3a7544,0x4d8850,0x6b9854].map(color=>new THREE.MeshStandardMaterial({color,roughness:1}));
   for(let i=0;i<100;i++){
@@ -163,9 +175,9 @@
     },undefined,err=>console.warn("Asset fallback:",path,err));
   }
   // Use the beach environment in the ocean section and a school as a science/education landmark.
-  loadLandmark("assets/ocean/the_beach.glb",new THREE.Vector3(53,-1.7,-30),48,Math.PI*.12);
-  loadLandmark("assets/environment/low_poly__school_building.glb",new THREE.Vector3(-35,-1.8,50),15,-Math.PI*.35);
-  loadLandmark("assets/environment/african hut.glb",new THREE.Vector3(63,-1.8,55),15,Math.PI*.6);
+  loadLandmark("assets/ocean/the_beach.glb",new THREE.Vector3(68,-1.7,49),38,Math.PI*.12);
+  loadLandmark("assets/environment/low_poly__school_building.glb",new THREE.Vector3(-20,-1.8,-27),15,-Math.PI*.35);
+  loadLandmark("assets/environment/african hut.glb",new THREE.Vector3(-54,-1.8,18),15,Math.PI*.6);
   const api={
     TOTAL_TILES:TOTAL,points,players,zones,scene,camera,renderer,controls,tileMeshes,
     zoneForTile:id=>zoneOf(id).name,
