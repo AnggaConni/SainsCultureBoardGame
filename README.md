@@ -1,51 +1,50 @@
-# Sains & Culture Board Game
+# Sains & Culture 3D Adventure Board Game
 
-Browser-based educational adventure board game prototype. This milestone focuses on a 500-tile winding route, modular quiz data, placeholder player tokens, and a separate HTML mini-game that sends results back to the main game.
+An immersive, browser-based educational adventure board game with a winding 500-tile 3D route. The interface is designed as a full-screen Three.js world with lightweight HUD overlays rather than a side command center.
 
-## Run locally
+## Open the game
 
-Open `index.html` in a modern browser. For reliable local testing, run a static server from the repository root (for example, `python -m http.server 8000`) and visit `http://localhost:8000`.
+After GitHub Pages deploys the repository, open:
+https://anggaconni.github.io/SainsCultureBoardGame/
 
-## Current prototype
+You can also run it locally from the repository root using a static server, for example `python -m http.server 8000`, and open `http://localhost:8000`.
 
-- 500 numbered square placeholder tiles sampled along a winding SVG path.
-- Two local players, dice, turn switching, progress and reset.
-- A starter Borobudur quiz, also stored in `data/quizzes/borobudur.json`.
-- Separate `minigames/data-test.html` embedded in a modal iframe.
-- Mini-game result payload uses `window.parent.postMessage`; parent checks origin and applies a three-tile penalty to the loser.
-- Zones and folders prepared for future 3D assets.
+## Prototype features
 
-## Structure
+- Full-screen Three.js 3D scene, perspective camera, orbit and zoom controls.
+- 500 individually numbered tile meshes arranged along a spiral route.
+- Four themed zones: Ancient Civilization, Ocean World, Jungle Expedition, and Science Frontier.
+- GLB asset loading for Borobudur, beach/education environments, and player tokens, with simple fallback geometry for characters and the temple.
+- Tile hover/click information.
+- Two-player local turn-based dice game.
+- Borobudur quiz and a separate HTML mini-game connected using `postMessage`.
+- On a valid mini-game result, the losing player moves back three tiles.
+
+## Main files
 
 ```text
-index.html
-css/                 # Main and mini-game styles
-js/                  # Board, game and mini-game logic
-data/
-  board-config.json
-  quizzes/borobudur.json
-minigames/data-test.html
-assets/
-  temples/            # Borobudur, temples, stupas, reliefs
-  players/            # Avatars and player tokens
-  ocean/              # Ocean and marine-life assets
-  nature/             # Jungle, plants and wildlife
-  environment/        # Science environments and props
-  ui/                 # Icons and interface graphics
-  audio/              # Sound and music
-  placeholders/       # Temporary visual assets
+index.html                    Full-screen game shell and HUD
+css/style.css                 Immersive overlay styling
+js/board.js                   Three.js scene, 500 tiles, GLB assets, camera
+js/game.js                    Turns, dice, quiz, mini-game handshake
+minigames/data-test.html      Standalone mini-game test
+js/minigame-data-test.js      Mini-game scoring and result messaging
+data/board-config.json        Board and zone metadata
+data/quizzes/borobudur.json   Starter quiz bank
+assets/temples/               Borobudur and temple GLB assets
+assets/players/               Player GLB assets
+assets/ocean/                 Ocean and beach assets
+assets/nature/                Nature assets
+assets/environment/           Environment assets
+assets/ui/                    UI assets
+assets/audio/                 Audio assets
+assets/placeholders/          Temporary assets
 ```
 
-## Asset conventions
+## Interaction
 
-Prefer GLB/GLTF for 3D models and WebP/PNG for previews and textures. Record source URL, creator, license and attribution requirements in the relevant folder README before shipping assets. No 3D models are bundled yet.
+Drag to rotate the camera, scroll to zoom, and click a tile to inspect its zone. Roll the dice to move. Quiz tiles appear on the route; meeting the other player can launch the mini-game duel.
 
-## Next milestones
+## Notes
 
-1. Approve route shape and tile spacing.
-2. Replace temporary tile trigger rules with explicit tile metadata.
-3. Improve movement animation and detection when players meet.
-4. Expand quiz banks for science, education and culture.
-5. Integrate 3D assets only after the base board is stable.
-
-This is an early prototype for local same-device multiplayer, not online synchronized multiplayer.
+This is an early prototype and has not yet been browser-tested end-to-end after the current full-screen 3D update. GLB model scale/orientation and the detailed terrain transitions will need visual tuning. No online multiplayer synchronization is included yet.
