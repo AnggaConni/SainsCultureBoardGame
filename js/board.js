@@ -177,7 +177,6 @@
       const p=players.find(x=>x.id===id);if(!p)return;
       p.position=Math.max(1,Math.min(TOTAL,Math.round(pos)));
       const target=points[p.position-1].clone();target.y+=1.15;p.mesh.position.copy(target);
-      p.mesh.position.y+=1;
     }
   };
   window.BoardGameBoard=api;
