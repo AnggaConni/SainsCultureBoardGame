@@ -1,0 +1,2 @@
+# Temple assets
+Reserved for Borobudur, temple architecture, stupas, reliefs, and cultural-heritage models. Suggested formats: GLB/GLTF for 3D and WebP/PNG for previews and textures. Record source, creator, license and attribution. No models bundled yet.
