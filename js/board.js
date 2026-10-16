@@ -101,29 +101,22 @@
     {id:"P2",name:"Player 2",position:1,color:0x78cbef,asset:"assets/players/statue_of_bastet.glb",mesh:null}
   ];
   const gltfLoader=typeof THREE.GLTFLoader==="function"?new THREE.GLTFLoader():null;
-  const fallbackPlayer=(pl)=>{
-    const g=new THREE.Group(),m=new THREE.MeshStandardMaterial({color:pl.color,roughness:.55});
-    const body=new THREE.Mesh(new THREE.CapsuleGeometry(.72,1.4,4,8),m);body.position.y=1.3;
-    const head=new THREE.Mesh(new THREE.SphereGeometry(.62,16,12),m);head.position.y=2.65;g.add(body,head);
-    g.traverse(o=>{if(o.isMesh)o.castShadow=true});return g;
-  };
-  function placePlayer(pl,instant=false){
-    const target=points[pl.position-1].clone();target.y+=1.15;
-    if(instant||!pl.mesh)pl.mesh.position.copy(target);
-    else pl.mesh.position.copy(target);
+  const fallbackPlayer=(pl)=>{const g=new THREE.Group(),m=new THREE.MeshStandardMaterial({color:pl.color,roughness:.55});const body=new THREE.Mesh(new THREE.CapsuleGeometry(.72,1.4,4,8),m);body.position.y=1.3;const head=new THREE.Mesh(new THREE.SphereGeometry(.62,16,12),m);head.position.y=2.65;g.add(body,head);g.traverse(o=>{if(o.isMesh)o.castShadow=true});return g};
+  function setPlayerPosition(pl){
+    if(!pl.mesh)return;
+    const p=points[pl.position-1];pl.mesh.position.set(p.x,p.y+1.15,p.z);
   }
   players.forEach(pl=>{
-    pl.mesh=fallbackPlayer(pl);scene.add(pl.mesh);placePlayer(pl,true);
-    if(gltfLoader){
-      gltfLoader.load(pl.asset,gltf=>{
-        const old=pl.mesh,model=gltf.scene;
-        const box=new THREE.Box3().setFromObject(model),size=box.getSize(new THREE.Vector3()),max=Math.max(size.x,size.y,size.z)||1;
-        model.scale.setScalar(3.2/max);
-        const center=box.getCenter(new THREE.Vector3());model.position.set(-center.x*model.scale.x,-box.min.y*model.scale.y,-center.z*model.scale.z);
-        model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});
-        scene.add(model);pl.mesh=model;placePlayer(pl,true);scene.remove(old);
-      },undefined,err=>console.warn("Player asset fallback:",pl.asset,err));
-    }
+    pl.mesh=fallbackPlayer(pl);scene.add(pl.mesh);setPlayerPosition(pl);
+    if(gltfLoader)gltfLoader.load(pl.asset,gltf=>{
+      const old=pl.mesh,model=gltf.scene,box=new THREE.Box3().setFromObject(gltf.scene),size=box.getSize(new THREE.Vector3()),center=box.getCenter(new THREE.Vector3()),max=Math.max(size.x,size.y,size.z)||1;
+      model.scale.setScalar(3.2/max);
+      model.position.set(0,0,0);model.updateMatrixWorld(true);
+      const scaledBox=new THREE.Box3().setFromObject(model),scaledCenter=scaledBox.getCenter(new THREE.Vector3());
+      model.position.set(-scaledCenter.x,-scaledBox.min.y,-scaledCenter.z);
+      model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});
+      const wrapper=new THREE.Group();wrapper.add(model);scene.add(wrapper);pl.mesh=wrapper;setPlayerPosition(pl);scene.remove(old);
+    },undefined,err=>console.warn("Player asset fallback:",pl.asset,err));
   });
   const raycaster=new THREE.Raycaster(),mouse=new THREE.Vector2();
   function showTileInfo(data){
