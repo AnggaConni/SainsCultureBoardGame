@@ -101,7 +101,7 @@
     {id:"P2",name:"Player 2",position:1,color:0x78cbef,asset:"assets/players/statue_of_bastet.glb",mesh:null}
   ];
   const gltfLoader=typeof THREE.GLTFLoader==="function"?new THREE.GLTFLoader():null;
-  const fallbackPlayer=(pl)=>{const g=new THREE.Group(),m=new THREE.MeshStandardMaterial({color:pl.color,roughness:.55});const body=new THREE.Mesh(new THREE.CapsuleGeometry(.72,1.4,4,8),m);body.position.y=1.3;const head=new THREE.Mesh(new THREE.SphereGeometry(.62,16,12),m);head.position.y=2.65;g.add(body,head);g.traverse(o=>{if(o.isMesh)o.castShadow=true});return g};
+  const fallbackPlayer=(pl)=>{const g=new THREE.Group(),m=new THREE.MeshStandardMaterial({color:pl.color,roughness:.55});const body=new THREE.Mesh(new THREE.CylinderGeometry(.68,.8,2.2,10),m);body.position.y=1.3;const head=new THREE.Mesh(new THREE.SphereGeometry(.62,16,12),m);head.position.y=2.65;g.add(body,head);g.traverse(o=>{if(o.isMesh)o.castShadow=true});return g};
   function setPlayerPosition(pl){
     if(!pl.mesh)return;
     const p=points[pl.position-1];pl.mesh.position.set(p.x,p.y+1.15,p.z);
