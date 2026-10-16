@@ -24,9 +24,10 @@ function closeModal(){$("quizModal").hidden=true}
 function resetModalStyle(){$("quizModal").classList.remove("minigame-modal");$("quizTitle").textContent="Borobudur Heritage Quiz"}
 function checkAfterMove(id){
  if(state.positions[id]===board.TOTAL_TILES){$("diceStatus").textContent="EXPEDITION COMPLETE";setMessage((id==="P1"?"Player 1":"Player 2")+" reached the final tile!");toast("EXPEDITION COMPLETE — "+id+" wins!");return}
- if(state.positions[id]%31===0){setTimeout(openQuiz,220);return}
  const other=id==="P1"?"P2":"P1";
- if(state.positions[id]===state.positions[other]||state.positions[id]%37===0){setTimeout(openMinigame,220);return}
+ if(state.positions[id]===state.positions[other]){setTimeout(openMinigame,220);return}
+ if(state.positions[id]%31===0){setTimeout(openQuiz,220);return}
+ if(state.positions[id]%37===0){setTimeout(openMinigame,220);return}
  switchTurn();
 }
 function roll(){
