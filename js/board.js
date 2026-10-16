@@ -135,7 +135,7 @@
     const rect=renderer.domElement.getBoundingClientRect();mouse.x=((e.clientX-rect.left)/rect.width)*2-1;mouse.y=-((e.clientY-rect.top)/rect.height)*2+1;
     raycaster.setFromCamera(mouse,camera);const hit=raycaster.intersectObjects(tileMeshes,false)[0];
     renderer.domElement.style.cursor=hit?"pointer":"grab";
-    if(hit){const id=hit.object.userData.tileId;showTileInfo(hit.object.userData)}
+    if(hit){showTileInfo(hit.object.userData)}else{const info=document.getElementById("tileInfo");if(info)info.hidden=true;}
   });
   renderer.domElement.addEventListener("pointerleave",()=>{renderer.domElement.style.cursor="grab"});
   renderer.domElement.addEventListener("click",e=>{
