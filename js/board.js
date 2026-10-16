@@ -154,6 +154,27 @@
   let animationId;
   function animate(){animationId=requestAnimationFrame(animate);controls.update();renderer.render(scene,camera)}
   animate();
+  // Give each section its own terrain accent, and distribute authored assets within their zones.
+  const oceanMat=new THREE.MeshStandardMaterial({color:0x116d91,roughness:.3,metalness:.1,transparent:true,opacity:.92});
+  const oceanPlane=new THREE.Mesh(new THREE.CircleGeometry(33,80),oceanMat);
+  oceanPlane.rotation.x=-Math.PI/2;oceanPlane.position.set(55,-1.8,-30);scene.add(oceanPlane);
+  const GLBLoader=gltfLoader;
+  function loadLandmark(path,position,scale,rotationY=0){
+    if(!GLBLoader)return;
+    GLBLoader.load(path,gltf=>{
+      const model=gltf.scene;
+      model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});
+      const box=new THREE.Box3().setFromObject(model),size=box.getSize(new THREE.Vector3()),center=box.getCenter(new THREE.Vector3());
+      const max=Math.max(size.x,size.y,size.z)||1;
+      model.scale.setScalar(scale/max);
+      model.position.set(position.x-center.x*model.scale.x,position.y-box.min.y*model.scale.y,position.z-center.z*model.scale.z);
+      model.rotation.y=rotationY;scene.add(model);
+    },undefined,err=>console.warn("Asset fallback:",path,err));
+  }
+  // Use the beach environment in the ocean section and a school as a science/education landmark.
+  loadLandmark("assets/ocean/the_beach.glb",new THREE.Vector3(53,-1.7,-30),48,Math.PI*.12);
+  loadLandmark("assets/environment/low_poly__school_building.glb",new THREE.Vector3(-35,-1.8,50),15,-Math.PI*.35);
+  loadLandmark("assets/environment/african hut.glb",new THREE.Vector3(63,-1.8,55),15,Math.PI*.6);
   const api={
     TOTAL_TILES:TOTAL,points,players,zones,scene,camera,renderer,controls,tileMeshes,
     zoneForTile:id=>zoneOf(id).name,
