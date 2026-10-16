@@ -2,9 +2,9 @@
   const TOTAL=500, host=document.getElementById("scene3d");
   const scene=new THREE.Scene();
   scene.background=new THREE.Color(0x091b19);
-  scene.fog=new THREE.FogExp2(0x091b19,0.0028);
+  scene.fog=new THREE.FogExp2(0x091b19,0.0018);
   const camera=new THREE.PerspectiveCamera(48,1,0.1,1800);
-  camera.position.set(0,190,205);
+  camera.position.set(0,275,310);
   const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false});
   renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.7));
   renderer.shadowMap.enabled=true;
@@ -12,23 +12,11 @@
   renderer.outputEncoding=THREE.sRGBEncoding;
   host.appendChild(renderer.domElement);
   const controls=new THREE.OrbitControls(camera,renderer.domElement);
-  controls.enableDamping=true;controls.dampingFactor=.06;controls.maxPolarAngle=Math.PI*.485;controls.minDistance=35;controls.maxDistance=360;controls.target.set(0,0,0);
+  controls.enableDamping=true;controls.dampingFactor=.06;controls.maxPolarAngle=Math.PI*.485;controls.minDistance=35;controls.maxDistance=520;controls.target.set(0,0,0);
   scene.add(new THREE.HemisphereLight(0xc7e5ff,0x41301d,1.25));
   const sun=new THREE.DirectionalLight(0xffe3ad,2.2);sun.position.set(80,160,60);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-190;sun.shadow.camera.right=190;sun.shadow.camera.top=190;sun.shadow.camera.bottom=-190;scene.add(sun);
   const fill=new THREE.DirectionalLight(0x6bc6d1,.65);fill.position.set(-100,70,-100);scene.add(fill);
-  const ground=new THREE.Mesh(new THREE.PlaneGeometry(500,500),new THREE.MeshStandardMaterial({color:0x17382d,roughness:1}));ground.rotation.x=-Math.PI/2;ground.position.y=-2.6;ground.receiveShadow=true;scene.add(ground);
-  // Four subtle annular terrain bands correspond to the four tile zones.
-  const terrainBands=[
-    {inner:98,outer:130,color:0x8e7048},
-    {inner:70,outer:98,color:0x17647a},
-    {inner:43,outer:70,color:0x2b643d},
-    {inner:13,outer:43,color:0x6b6047}
-  ];
-  terrainBands.forEach(band=>{
-    const mesh=new THREE.Mesh(new THREE.RingGeometry(band.inner,band.outer,128),
-      new THREE.MeshBasicMaterial({color:band.color,transparent:true,opacity:.31,side:THREE.DoubleSide,depthWrite:false}));
-    mesh.rotation.x=-Math.PI/2;mesh.position.y=-2.51;mesh.renderOrder=1;scene.add(mesh);
-  });
+  const ground=new THREE.Mesh(new THREE.PlaneGeometry(650,650),new THREE.MeshStandardMaterial({color:0x17382d,roughness:1}));ground.rotation.x=-Math.PI/2;ground.position.y=-2.6;ground.receiveShadow=true;scene.add(ground);
   // Subtle procedural ground flecks keep the scene alive before final environment art.
   const fleckGeo=new THREE.BufferGeometry(),flecks=[];
   for(let i=0;i<750;i++){const a=Math.random()*Math.PI*2,r=25+Math.random()*205;flecks.push(Math.cos(a)*r,-2.47,Math.sin(a)*r)}
@@ -42,27 +30,65 @@
   ];
   const zoneOf=id=>zones.find(z=>id>=z.start&&id<=z.end)||zones[0];
   // Spiral creates one continuous, navigable game route; tiles are individually clickable.
-  const points=[],turns=5.4,rMin=16,rMax=125;
-  for(let i=0;i<TOTAL;i++){
-    const t=i/(TOTAL-1),angle=t*turns*Math.PI*2+Math.PI*.15;
-    const radius=rMax-t*(rMax-rMin);
-    points.push(new THREE.Vector3(Math.cos(angle)*radius,1.05+Math.sin(t*11)*.13,Math.sin(angle)*radius));
+  // Authored serpentine course: broad loops and S-curves around a central landmark,
+  // rather than a concentric spiral. Arc-length sampling keeps all 500 cells evenly spaced.
+  const controlRoute=[
+    [-116,122],[-100,101],[-76,91],[-49,101],[-20,114],[11,106],[38,91],[55,72],
+    [61,51],[51,35],[29,31],[7,39],[-14,52],[-39,57],[-62,48],[-78,31],
+    [-82,12],[-72,-4],[-53,-15],[-34,-18],[-20,-7],[-19,12],[-30,29],
+    [-22,43],[1,48],[24,39],[42,22],[53,2],[61,-15],[57,-33],[42,-46],
+    [22,-48],[3,-38],[-17,-31],[-37,-38],[-51,-53],[-56,-72],[-44,-89],
+    [-22,-98],[1,-92],[24,-81],[44,-82],[62,-96],[82,-105]
+  ].map(([x,z])=>new THREE.Vector3(x*1.45,0,z*1.45));
+  const pathCurve=new THREE.CatmullRomCurve3(controlRoute,false,"centripetal");
+  const routeLength=pathCurve.getLength();
+  const tileSpacing=routeLength/(TOTAL-1);
+  const points=Array.from({length:TOTAL},(_,i)=>pathCurve.getPointAt(i/(TOTAL-1)));
+  function pointBesideTile(tileNumber,offset=15,y=0,side=1){
+    const index=Math.max(0,Math.min(TOTAL-1,tileNumber-1));
+    const point=points[index],tangent=pathCurve.getTangentAt(index/(TOTAL-1));
+    return new THREE.Vector3(point.x+tangent.z*offset*side,y,point.z-tangent.x*offset*side);
   }
   const tileGroup=new THREE.Group();scene.add(tileGroup);
   const tileMeshes=[],tileData={};
-  const pathCurve=new THREE.CatmullRomCurve3(points);
-  const pathGeo=new THREE.TubeGeometry(pathCurve,Math.max(1800,TOTAL*5),2.85,8,false);
-  const pathMat=new THREE.MeshStandardMaterial({color:0x6f5a3b,roughness:.92});
-  const routeMesh=new THREE.Mesh(pathGeo,pathMat);routeMesh.position.y=.05;routeMesh.receiveShadow=true;scene.add(routeMesh);
-  const tileGeo=new THREE.BoxGeometry(3.05,.9,4.1);
+  const pathGeo=new THREE.TubeGeometry(pathCurve,Math.max(2200,TOTAL*6),2.15,8,false);
+  const pathMat=new THREE.MeshStandardMaterial({color:0x746043,roughness:.98});
+  const routeMesh=new THREE.Mesh(pathGeo,pathMat);routeMesh.position.y=-1.8;routeMesh.receiveShadow=true;scene.add(routeMesh);
+  // A set-back tile length and dark sides make each of the 500 squares readable.
+  const tileLength=Math.max(1.9,Math.min(3.8,tileSpacing*.91));
+  const tileWidth=4.3;
+  const tileGeo=new THREE.BoxGeometry(tileWidth,.72,tileLength);
+  const tileBottomMaterial=new THREE.MeshStandardMaterial({color:0x473b29,roughness:1});
+  const tileMaterialsCache=new Map();
+  function tileKind(id){return id===1?"START":id===TOTAL?"FINISH":id%31===0?"QUIZ":id%37===0?"DUEL":"NORMAL"}
+  function materialsForTile(id,zone){
+    const kind=tileKind(id),key=zone.id+"-"+kind+"-"+(id%2);
+    if(tileMaterialsCache.has(key))return tileMaterialsCache.get(key);
+    const colors={"ancient-civilization":0xd7bf91,"ocean-world":0x75c5cf,"jungle-expedition":0x8ebd72,"science-frontier":0xdac68b};
+    let top=new THREE.Color(colors[zone.id]||zone.color);
+    if(kind==="START")top.set(0x7ee0a4);
+    else if(kind==="FINISH")top.set(0xf17b68);
+    else if(kind==="QUIZ")top.set(0xf2c45c);
+    else if(kind==="DUEL")top.set(0x7cc9f1);
+    else if(id%2===0)top.multiplyScalar(.89);
+    const side=top.clone().multiplyScalar(.53);
+    const mats=[
+      new THREE.MeshStandardMaterial({color:side,roughness:.9}),
+      new THREE.MeshStandardMaterial({color:side,roughness:.9}),
+      new THREE.MeshStandardMaterial({color:top,roughness:.72,metalness:.015}),
+      tileBottomMaterial,
+      new THREE.MeshStandardMaterial({color:side,roughness:.9}),
+      new THREE.MeshStandardMaterial({color:side,roughness:.9})
+    ];
+    tileMaterialsCache.set(key,mats);return mats;
+  }
   for(let i=0;i<TOTAL;i++){
-    const id=i+1,z=zoneOf(id),base=new THREE.Color(z.color);
-    let tint=base.clone();
-    if(id===1)tint.set(0x5dd58a);else if(id===TOTAL)tint.set(0xf07967);else if(id%31===0)tint.set(0xf4c75e);else if(id%37===0)tint.set(0x78bce9);
-    const mat=new THREE.MeshStandardMaterial({color:tint,roughness:.76,metalness:.03});
-    const mesh=new THREE.Mesh(tileGeo,mat);mesh.position.copy(points[i]);mesh.position.y+=.45;
+    const id=i+1,z=zoneOf(id),kind=tileKind(id);
+    const mesh=new THREE.Mesh(tileGeo,materialsForTile(id,z));
+    mesh.position.copy(points[i]);mesh.position.y=.36;
     const tangent=pathCurve.getTangentAt(i/(TOTAL-1));mesh.rotation.y=Math.atan2(tangent.x,tangent.z);
-    mesh.castShadow=true;mesh.receiveShadow=true;mesh.userData={tileId:id,zoneId:z.id,zoneName:z.name,subtitle:z.subtitle,type:id===1?"START":id===TOTAL?"FINISH":id%31===0?"QUIZ":id%37===0?"DUEL":"NORMAL"};
+    mesh.castShadow=true;mesh.receiveShadow=true;
+    mesh.userData={tileId:id,zoneId:z.id,zoneName:z.name,subtitle:z.subtitle,type:kind};
     tileGroup.add(mesh);tileMeshes.push(mesh);tileData[id]=mesh;
   }
   // Zone plaques, placed around the route to make the themed stretches legible.
@@ -76,8 +102,12 @@
     const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthWrite:false}));
     sprite.scale.set(25,7.8,1);return sprite;
   }
-  const plaquePositions=[{x:20,z:-137},{x:101,z:18},{x:-75,z:12},{x:2,z:-51}];
-  zones.forEach((z,i)=>{const p=makePlaque(z.name,z.subtitle,"#"+new THREE.Color(z.color).getHexString());p.position.set(plaquePositions[i].x,8,plaquePositions[i].z);scene.add(p);plaques.push(p)});
+  const zoneMidTiles=[63,188,313,438];
+  zones.forEach((z,i)=>{
+    const p=makePlaque(z.name,z.subtitle,"#"+new THREE.Color(z.color).getHexString());
+    p.position.copy(pointBesideTile(zoneMidTiles[i],17,8,i%2===0?1:-1));
+    scene.add(p);plaques.push(p);
+  });
   // Low-cost procedural landmarks stand in until final environment GLBs are chosen.
   const landmarkGroup=new THREE.Group();scene.add(landmarkGroup);
   // Load the actual Borobudur GLB uploaded to this repository; use procedural fallback if unavailable.
@@ -89,23 +119,24 @@
     const spire=new THREE.Mesh(new THREE.ConeGeometry(.65,2.2,8),stone);spire.position.set(pos.x,7.8,pos.z);landmarkGroup.add(spire);
   }
   const gltfLoader=typeof THREE.GLTFLoader==="function"?new THREE.GLTFLoader():null;
-  const templeFallback=new THREE.Group();createTemplePlaceholder(new THREE.Vector3(0,.2,-111));
+  const templeAnchor=pointBesideTile(63,18,.15,1);
+  createTemplePlaceholder(templeAnchor);
   if(gltfLoader){
     gltfLoader.load("assets/temples/borobudur_temple.glb",gltf=>{
       const model=gltf.scene;model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});
       const box=new THREE.Box3().setFromObject(model),size=box.getSize(new THREE.Vector3()),center=box.getCenter(new THREE.Vector3());
       const max=Math.max(size.x,size.y,size.z)||1;model.scale.setScalar(18/max);
-      model.position.set(-center.x*model.scale.x,-box.min.y*model.scale.y,-111-center.z*model.scale.z);
+      model.position.set(templeAnchor.x-center.x*model.scale.x,-box.min.y*model.scale.y,templeAnchor.z-center.z*model.scale.z);
       scene.add(model);landmarkGroup.visible=false;
     },undefined,err=>console.warn("Borobudur GLB fallback remains active",err));
   }
   // Coastal lagoon in the marine zone.
   const lagoon=new THREE.Mesh(new THREE.CircleGeometry(19,64),new THREE.MeshStandardMaterial({color:0x147d9b,roughness:.25,metalness:.15,transparent:true,opacity:.9}));
-  lagoon.rotation.x=-Math.PI/2;lagoon.position.set(0,-1.8,-91);scene.add(lagoon);
+  lagoon.rotation.x=-Math.PI/2;lagoon.position.copy(pointBesideTile(188,11,-1.8,-1));scene.add(lagoon);
   // Tree clusters add scale and theme while keeping paths visible.
   const trunkMat=new THREE.MeshStandardMaterial({color:0x674b31,roughness:1}),leafMats=[0x3a7544,0x4d8850,0x6b9854].map(color=>new THREE.MeshStandardMaterial({color,roughness:1}));
   for(let i=0;i<100;i++){
-    const a=Math.random()*Math.PI*2,r=143+Math.random()*42,x=Math.cos(a)*r,z=Math.sin(a)*r;
+    const a=Math.random()*Math.PI*2,r=220+Math.random()*48,x=Math.cos(a)*r,z=Math.sin(a)*r;
     const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.35,.6,4+Math.random()*3,6),trunkMat);trunk.position.set(x,1.5,z);trunk.castShadow=true;scene.add(trunk);
     const leaves=new THREE.Mesh(new THREE.ConeGeometry(2.4+Math.random()*2,6+Math.random()*3,7),leafMats[i%leafMats.length]);leaves.position.set(x,5.5,z);leaves.castShadow=true;scene.add(leaves);
   }
@@ -175,9 +206,9 @@
     },undefined,err=>console.warn("Asset fallback:",path,err));
   }
   // Use the beach environment in the ocean section and a school as a science/education landmark.
-  loadLandmark("assets/ocean/the_beach.glb",new THREE.Vector3(68,-1.7,49),38,Math.PI*.12);
-  loadLandmark("assets/environment/low_poly__school_building.glb",new THREE.Vector3(-20,-1.8,-27),15,-Math.PI*.35);
-  loadLandmark("assets/environment/african hut.glb",new THREE.Vector3(-54,-1.8,18),15,Math.PI*.6);
+  loadLandmark("assets/ocean/the_beach.glb",pointBesideTile(188,19,-1.7,-1),38,Math.PI*.12);
+  loadLandmark("assets/environment/low_poly__school_building.glb",pointBesideTile(438,18,-1.8,1),15,-Math.PI*.35);
+  loadLandmark("assets/environment/african hut.glb",pointBesideTile(313,18,-1.8,-1),15,Math.PI*.6);
   const api={
     TOTAL_TILES:TOTAL,points,players,zones,scene,camera,renderer,controls,tileMeshes,
     zoneForTile:id=>zoneOf(id).name,
