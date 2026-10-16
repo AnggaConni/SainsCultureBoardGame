@@ -12,7 +12,7 @@ You can also run it locally from the repository root using a static server, for 
 ## Prototype features
 
 - Full-screen Three.js 3D scene, perspective camera, orbit and zoom controls.
-- 500 individually numbered tile meshes arranged along a spiral route.
+- 500 individually numbered tile meshes sampled evenly along a designed serpentine route, with visible gaps and a central rocky clearing.
 - Four themed zones: Ancient Civilization, Ocean World, Jungle Expedition, and Science Frontier.
 - GLB asset loading for Borobudur, beach/education environments, and player tokens, with simple fallback geometry for characters and the temple.
 - Tile hover/click information.
