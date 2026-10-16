@@ -76,6 +76,7 @@
     const stupa=new THREE.Mesh(new THREE.SphereGeometry(1.35,16,12),new THREE.MeshStandardMaterial({color:0xd2bb8b}));stupa.position.set(pos.x,6.2,pos.z);landmarkGroup.add(stupa);
     const spire=new THREE.Mesh(new THREE.ConeGeometry(.65,2.2,8),stone);spire.position.set(pos.x,7.8,pos.z);landmarkGroup.add(spire);
   }
+  const gltfLoader=typeof THREE.GLTFLoader==="function"?new THREE.GLTFLoader():null;
   const templeFallback=new THREE.Group();createTemplePlaceholder(new THREE.Vector3(-52,.2,-18));
   if(gltfLoader){
     gltfLoader.load("assets/temples/borobudur_temple.glb",gltf=>{
@@ -100,7 +101,6 @@
     {id:"P1",name:"Player 1",position:1,color:0xf4c45f,asset:"assets/players/artifact.glb",mesh:null},
     {id:"P2",name:"Player 2",position:1,color:0x78cbef,asset:"assets/players/statue_of_bastet.glb",mesh:null}
   ];
-  const gltfLoader=typeof THREE.GLTFLoader==="function"?new THREE.GLTFLoader():null;
   const fallbackPlayer=(pl)=>{const g=new THREE.Group(),m=new THREE.MeshStandardMaterial({color:pl.color,roughness:.55});const body=new THREE.Mesh(new THREE.CylinderGeometry(.68,.8,2.2,10),m);body.position.y=1.3;const head=new THREE.Mesh(new THREE.SphereGeometry(.62,16,12),m);head.position.y=2.65;g.add(body,head);g.traverse(o=>{if(o.isMesh)o.castShadow=true});return g};
   function setPlayerPosition(pl){
     if(!pl.mesh)return;
