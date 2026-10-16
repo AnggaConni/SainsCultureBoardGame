@@ -51,12 +51,12 @@
   }
   const tileGroup=new THREE.Group();scene.add(tileGroup);
   const tileMeshes=[],tileData={};
-  const pathGeo=new THREE.TubeGeometry(pathCurve,Math.max(2200,TOTAL*6),2.15,8,false);
+  // Keep each slab close to square while leaving a narrow gap between consecutive tiles.
+  const tileLength=Math.max(1.8,Math.min(4.0,tileSpacing*.91));
+  const tileWidth=Math.max(2.5,Math.min(4.2,tileSpacing*1.18));
+  const pathGeo=new THREE.TubeGeometry(pathCurve,Math.max(2200,TOTAL*6),tileWidth*.52,8,false);
   const pathMat=new THREE.MeshStandardMaterial({color:0x746043,roughness:.98});
-  const routeMesh=new THREE.Mesh(pathGeo,pathMat);routeMesh.position.y=-1.8;routeMesh.receiveShadow=true;scene.add(routeMesh);
-  // A set-back tile length and dark sides make each of the 500 squares readable.
-  const tileLength=Math.max(1.9,Math.min(3.8,tileSpacing*.91));
-  const tileWidth=4.3;
+  const routeMesh=new THREE.Mesh(pathGeo,pathMat);routeMesh.position.y=-1.45;routeMesh.receiveShadow=true;scene.add(routeMesh);
   const tileGeo=new THREE.BoxGeometry(tileWidth,.72,tileLength);
   const tileBottomMaterial=new THREE.MeshStandardMaterial({color:0x473b29,roughness:1});
   const tileMaterialsCache=new Map();
@@ -136,7 +136,7 @@
   // Tree clusters add scale and theme while keeping paths visible.
   const trunkMat=new THREE.MeshStandardMaterial({color:0x674b31,roughness:1}),leafMats=[0x3a7544,0x4d8850,0x6b9854].map(color=>new THREE.MeshStandardMaterial({color,roughness:1}));
   for(let i=0;i<100;i++){
-    const a=Math.random()*Math.PI*2,r=220+Math.random()*48,x=Math.cos(a)*r,z=Math.sin(a)*r;
+    const a=Math.random()*Math.PI*2,r=278+Math.random()*35,x=Math.cos(a)*r,z=Math.sin(a)*r;
     const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.35,.6,4+Math.random()*3,6),trunkMat);trunk.position.set(x,1.5,z);trunk.castShadow=true;scene.add(trunk);
     const leaves=new THREE.Mesh(new THREE.ConeGeometry(2.4+Math.random()*2,6+Math.random()*3,7),leafMats[i%leafMats.length]);leaves.position.set(x,5.5,z);leaves.castShadow=true;scene.add(leaves);
   }
