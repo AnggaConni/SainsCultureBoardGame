@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "borobudur-intro",
+  "title": "Kuis Warisan Budaya: Borobudur",
+  "language": "id",
+  "category": "culture-heritage",
+  "questions": [
+    {"id":"borobudur-001","question":"Candi Borobudur dikenal sebagai salah satu monumen Buddha terbesar di dunia. Bentuk bangunan utamanya secara umum tersusun atas bagian apa?","options":["Kamadhatu, Rupadhatu, dan Arupadhatu","Garbhagriha, mandapa, dan gopuram","Alun-alun, pendopo, dan keraton","Stupa utama, menara lonceng, dan menara jam"],"correctIndex":0,"explanation":"Borobudur memiliki tiga ranah simbolis: Kamadhatu, Rupadhatu, dan Arupadhatu."},
+    {"id":"borobudur-002","question":"Unsur visual yang banyak dijumpai pada dinding bertingkat Candi Borobudur adalah…","options":["Relief batu yang menggambarkan kisah dan ajaran","Lukisan minyak pada kanvas","Panel kaca patri berwarna","Mozaik porselen modern"],"correctIndex":0,"explanation":"Relief batu Borobudur menyampaikan narasi dan ajaran melalui rangkaian gambar yang dipahat."},
+    {"id":"borobudur-003","question":"Candi Borobudur berada di provinsi mana di Indonesia?","options":["Jawa Tengah","Jawa Barat","Daerah Istimewa Yogyakarta","Jawa Timur"],"correctIndex":0,"explanation":"Borobudur terletak di Kabupaten Magelang, Provinsi Jawa Tengah."}
+  ]
+}
