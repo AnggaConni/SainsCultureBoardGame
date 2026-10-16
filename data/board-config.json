@@ -3,7 +3,7 @@
   "gameId":"sains-culture-board-game",
   "title":"Sains & Culture Board Game",
   "totalTiles":500,
-  "route":{"type":"svg-cubic-path","geometrySource":"js/board.js","tileShape":"square-placeholder","tileNumbering":"start-to-finish"},
+  "route":{"type":"threejs-serpentine-spline","geometrySource":"js/board.js","tileShape":"individual-3d-slabs-with-visible-gaps","tileNumbering":"start-to-finish"},
   "zones":[
     {"id":"ancient-civilization","label":"Ancient Civilization","startTile":1,"endTile":125,"theme":"culture-heritage","assetFolder":"assets/temples/"},
     {"id":"ocean-world","label":"Ocean World","startTile":126,"endTile":250,"theme":"marine-science","assetFolder":"assets/ocean/"},
