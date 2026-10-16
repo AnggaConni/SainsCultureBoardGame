@@ -109,13 +109,11 @@
   players.forEach(pl=>{
     pl.mesh=fallbackPlayer(pl);scene.add(pl.mesh);setPlayerPosition(pl);
     if(gltfLoader)gltfLoader.load(pl.asset,gltf=>{
-      const old=pl.mesh,model=gltf.scene,box=new THREE.Box3().setFromObject(gltf.scene),size=box.getSize(new THREE.Vector3()),center=box.getCenter(new THREE.Vector3()),max=Math.max(size.x,size.y,size.z)||1;
-      model.scale.setScalar(3.2/max);
-      model.position.set(0,0,0);model.updateMatrixWorld(true);
-      const scaledBox=new THREE.Box3().setFromObject(model),scaledCenter=scaledBox.getCenter(new THREE.Vector3());
-      model.position.set(-scaledCenter.x,-scaledBox.min.y,-scaledCenter.z);
+      const old=pl.mesh,model=gltf.scene,box=new THREE.Box3().setFromObject(gltf.scene),size=box.getSize(new THREE.Vector3()),max=Math.max(size.x,size.y,size.z)||1;
+      const wrapper=new THREE.Group();wrapper.add(model);model.scale.setScalar(3.2/max);model.position.set(0,0,0);model.updateMatrixWorld(true);
+      const scaledBox=new THREE.Box3().setFromObject(model),scaledCenter=scaledBox.getCenter(new THREE.Vector3());model.position.set(-scaledCenter.x,-scaledBox.min.y,-scaledCenter.z);
       model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});
-      const wrapper=new THREE.Group();wrapper.add(model);scene.add(wrapper);pl.mesh=wrapper;setPlayerPosition(pl);scene.remove(old);
+      scene.add(wrapper);pl.mesh=wrapper;setPlayerPosition(pl);scene.remove(old);
     },undefined,err=>console.warn("Player asset fallback:",pl.asset,err));
   });
   const raycaster=new THREE.Raycaster(),mouse=new THREE.Vector2();
