@@ -33,12 +33,12 @@
   // Authored serpentine course: broad loops and S-curves around a central landmark,
   // rather than a concentric spiral. Arc-length sampling keeps all 500 cells evenly spaced.
   const controlRoute=[
-    [-116,122],[-100,101],[-76,91],[-49,101],[-20,114],[11,106],[38,91],[55,72],
-    [61,51],[51,35],[29,31],[7,39],[-14,52],[-39,57],[-62,48],[-78,31],
-    [-82,12],[-72,-4],[-53,-15],[-34,-18],[-20,-7],[-19,12],[-30,29],
-    [-22,43],[1,48],[24,39],[42,22],[53,2],[61,-15],[57,-33],[42,-46],
-    [22,-48],[3,-38],[-17,-31],[-37,-38],[-51,-53],[-56,-72],[-44,-89],
-    [-22,-98],[1,-92],[24,-81],[44,-82],[62,-96],[82,-105]
+    [-105,-100],[-105,-75],[-90,-62],[-65,-58],[-35,-64],[-5,-75],[25,-80],[55,-77],
+    [82,-66],[100,-50],[100,-34],[84,-23],[60,-22],[32,-30],[2,-38],[-28,-40],
+    [-58,-36],[-82,-26],[-98,-10],[-96,7],[-78,17],[-52,17],[-23,10],[8,4],
+    [38,4],[65,13],[88,28],[100,47],[92,63],[72,70],[45,65],[18,54],
+    [-10,48],[-38,48],[-62,55],[-80,69],[-79,84],[-60,94],[-34,95],[-5,87],
+    [24,81],[50,82],[76,94],[97,108]
   ].map(([x,z])=>new THREE.Vector3(x*1.45,0,z*1.45));
   const pathCurve=new THREE.CatmullRomCurve3(controlRoute,false,"centripetal");
   const routeLength=pathCurve.getLength();
@@ -49,6 +49,22 @@
     const point=points[index],tangent=pathCurve.getTangentAt(index/(TOTAL-1));
     return new THREE.Vector3(point.x+tangent.z*offset*side,y,point.z-tangent.x*offset*side);
   }
+  // Central rocky clearing inspired by the reference board; procedural until a dedicated GLB is selected.
+  const clearing=new THREE.Mesh(new THREE.CircleGeometry(18,64),new THREE.MeshStandardMaterial({color:0x53664a,roughness:1}));
+  clearing.rotation.x=-Math.PI/2;clearing.position.set(0,-2.48,31);scene.add(clearing);
+  const rockMaterials=[
+    new THREE.MeshStandardMaterial({color:0x625f53,roughness:1}),
+    new THREE.MeshStandardMaterial({color:0x777160,roughness:1}),
+    new THREE.MeshStandardMaterial({color:0x435d3e,roughness:1})
+  ];
+  [
+    [-7,2,28,7,5,6,0],[-1,3,35,8,6,7,1],[7,1.7,29,6,4.5,5,0],
+    [2,1.8,23,5,4,4,2],[-10,1.4,35,4.5,3.5,5,2],[11,1.2,36,4,3,4,1]
+  ].forEach(([x,y,z,sx,sy,sz,mi])=>{
+    const rock=new THREE.Mesh(new THREE.DodecahedronGeometry(1,1),rockMaterials[mi]);
+    rock.position.set(x,y,z);rock.scale.set(sx,sy,sz);rock.rotation.set(.1*x,.12*z,.08*y);
+    rock.castShadow=true;rock.receiveShadow=true;scene.add(rock);
+  });
   const tileGroup=new THREE.Group();scene.add(tileGroup);
   const tileMeshes=[],tileData={};
   // Keep each slab close to square while leaving a narrow gap between consecutive tiles.
