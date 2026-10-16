@@ -68,6 +68,7 @@
   zones.forEach((z,i)=>{const p=makePlaque(z.name,z.subtitle,"#"+new THREE.Color(z.color).getHexString());p.position.set(plaquePositions[i].x,8,plaquePositions[i].z);scene.add(p);plaques.push(p)});
   // Low-cost procedural landmarks stand in until final environment GLBs are chosen.
   const landmarkGroup=new THREE.Group();scene.add(landmarkGroup);
+  // Load the actual Borobudur GLB uploaded to this repository; use procedural fallback if unavailable.
   function createTemplePlaceholder(pos){
     const stone=new THREE.MeshStandardMaterial({color:0x9e8563,roughness:1});
     const base=new THREE.Mesh(new THREE.BoxGeometry(13,1.4,11),stone);base.position.copy(pos);base.position.y=.1;base.castShadow=true;base.receiveShadow=true;landmarkGroup.add(base);
@@ -75,7 +76,16 @@
     const stupa=new THREE.Mesh(new THREE.SphereGeometry(1.35,16,12),new THREE.MeshStandardMaterial({color:0xd2bb8b}));stupa.position.set(pos.x,6.2,pos.z);landmarkGroup.add(stupa);
     const spire=new THREE.Mesh(new THREE.ConeGeometry(.65,2.2,8),stone);spire.position.set(pos.x,7.8,pos.z);landmarkGroup.add(spire);
   }
-  createTemplePlaceholder(new THREE.Vector3(-52,.2,-18));
+  const templeFallback=new THREE.Group();createTemplePlaceholder(new THREE.Vector3(-52,.2,-18));
+  if(gltfLoader){
+    gltfLoader.load("assets/temples/borobudur_temple.glb",gltf=>{
+      const model=gltf.scene;model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});
+      const box=new THREE.Box3().setFromObject(model),size=box.getSize(new THREE.Vector3()),center=box.getCenter(new THREE.Vector3());
+      const max=Math.max(size.x,size.y,size.z)||1;model.scale.setScalar(18/max);
+      model.position.set(-52-center.x*model.scale.x,-box.min.y*model.scale.y,-18-center.z*model.scale.z);
+      scene.add(model);landmarkGroup.visible=false;
+    },undefined,err=>console.warn("Borobudur GLB fallback remains active",err));
+  }
   // Coastal lagoon in the marine zone.
   const lagoon=new THREE.Mesh(new THREE.CircleGeometry(19,64),new THREE.MeshStandardMaterial({color:0x147d9b,roughness:.25,metalness:.15,transparent:true,opacity:.9}));
   lagoon.rotation.x=-Math.PI/2;lagoon.position.set(47,-1.1,20);scene.add(lagoon);
