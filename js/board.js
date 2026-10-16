@@ -163,7 +163,7 @@
   const fallbackPlayer=(pl)=>{const g=new THREE.Group(),m=new THREE.MeshStandardMaterial({color:pl.color,roughness:.55});const body=new THREE.Mesh(new THREE.CylinderGeometry(.68,.8,2.2,10),m);body.position.y=1.3;const head=new THREE.Mesh(new THREE.SphereGeometry(.62,16,12),m);head.position.y=2.65;g.add(body,head);g.traverse(o=>{if(o.isMesh)o.castShadow=true});return g};
   function setPlayerPosition(pl){
     if(!pl.mesh)return;
-    const p=points[pl.position-1];pl.mesh.position.set(p.x,p.y+1.15,p.z);
+    const p=points[pl.position-1];pl.mesh.position.set(p.x,p.y+.75,p.z);
   }
   players.forEach(pl=>{
     pl.mesh=fallbackPlayer(pl);scene.add(pl.mesh);setPlayerPosition(pl);
@@ -233,7 +233,7 @@
     setPosition:(id,pos)=>{
       const p=players.find(x=>x.id===id);if(!p)return;
       p.position=Math.max(1,Math.min(TOTAL,Math.round(pos)));
-      const target=points[p.position-1].clone();target.y+=1.15;p.mesh.position.copy(target);
+      const target=points[p.position-1].clone();target.y+=.75;p.mesh.position.copy(target);
     }
   };
   window.BoardGameBoard=api;
