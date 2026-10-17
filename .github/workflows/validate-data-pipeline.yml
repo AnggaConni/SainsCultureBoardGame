@@ -46,6 +46,31 @@ jobs:
           python scripts/test_update_data.py
           python scripts/test_audit_assets.py
           python scripts/audit_assets.py --force
+      - name: Validate runtime GLB containers
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          state = json.loads(Path("data/asset_audit_state.json").read_text(encoding="utf-8"))
+          required = [
+              "assets/models/borobudur_temple.glb",
+              "assets/models/prambanan_temple.glb",
+              "assets/models/komodo_dragon.glb",
+          ]
+          failed = False
+          for path in required:
+              item = state.get("assets", {}).get(path)
+              if not item:
+                  print(f"FAIL: file is missing from audit inventory: {path}")
+                  failed = True
+                  continue
+              print(f"{'PASS' if item.get('validGlb') else 'FAIL'}: {path} ({item.get('sizeBytes')} bytes)")
+              for issue in item.get("issues", []):
+                  print(f"  - {issue}")
+              failed = failed or not item.get("validGlb")
+          if failed:
+              raise SystemExit("One or more runtime GLB files are not structurally valid.")
+          PY
       - name: Validate JSON and available model paths
         run: |
           python - <<'PY'
