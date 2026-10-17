@@ -40,3 +40,10 @@ Serve the repository root over HTTP (e.g. `python -m http.server 8000`) and open
 - Explicitly disables Cesium's default ion-backed base layer and adds OpenStreetMap raster tiles, so the map does not depend on Google Maps or a Google key.
 - Site marker clicks and site-card clicks animate to an oblique close-up; drag rotates, right-drag tilts, and the wheel zooms.
 - This is a 3D globe/camera exploration with a 2D OSM basemap, **not** photogrammetric 3D buildings or detailed elevation. For true site-specific 3D models, use properly licensed GLB assets or a non-Google 3D tiles/terrain source in a later step.
+
+
+## Map readability patch
+- Hides every site-name label by default to prevent long UNESCO site names overlapping at regional zoom levels.
+- Reveals only the selected site's label, with a readable dark label background; highlights the selected map marker.
+- Reduces the dark overlay over the base map so the raster map labels and geographic context remain easier to read.
+- Turns off atmospheric fog that can soften map imagery.
