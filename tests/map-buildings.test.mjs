@@ -60,3 +60,12 @@ test("Pages deployment injects the GitHub secret only into the generated artifac
   assert.match(deployWorkflow, /actions\/deploy-pages@v4/);
   assert.match(deployWorkflow, /value will not be printed/);
 });
+
+test("Cesium OSM Buildings is paired with Cesium World Terrain", () => {
+  assert.match(app, /terrain:worldTerrain/);
+  assert.match(app, /Cesium\.Terrain\.fromWorldTerrain\(\{requestVertexNormals:true\}\)/);
+  assert.match(app, /worldTerrain\.errorEvent\.addEventListener/);
+  assert.match(app, /v\.scene\.globe\.getHeight\(cartographic\)/);
+  assert.match(app, /LOCAL_MODEL_GROUND_CLEARANCE_METERS=1\.2/);
+  assert.doesNotMatch(app, /model\.pivot\.position\.y=model\.basePivotY\+Math\.sin\(time\*1\.15\)\*0\.11/);
+});
