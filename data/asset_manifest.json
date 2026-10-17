@@ -159,16 +159,18 @@
       "label": "Prambanan / Candi Siwa",
       "path": "assets/models/prambanan_temple.glb",
       "group": "unesco_site",
-      "requirement": "planned",
-      "requiredForRuntime": false,
+      "requirement": "runtime",
+      "requiredForRuntime": true,
       "referencedBy": [
+        "js/app.js",
         "js/sites.js",
         "data/sites.json"
       ],
       "creator": "PixForge",
       "license": "CC BY; verify current terms; AI-generated illustrative model, optimize before web deployment",
       "sourceUrl": "https://sketchfab.com/3d-models/candi-siwa-prambanan-d7d633ba14be4ba7aeef1500f32e13f0",
-      "notes": "Planned model; not yet uploaded."
+      "notes": "Planned model; not yet uploaded.",
+      "status": "available"
     },
     {
       "id": "komodo_dragon",

@@ -178,7 +178,7 @@
           "file": "assets/models/prambanan_temple.glb",
           "format": "glb",
           "placement": "globe",
-          "status": "planned",
+          "status": "available",
           "scale": 1,
           "targetSizeMeters": {
             "width": null,
@@ -196,7 +196,7 @@
           "creator": "PixForge (AI-generated illustrative model)",
           "license": "CC BY; review exact terms and add attribution",
           "sourceUrl": "https://sketchfab.com/3d-models/candi-siwa-prambanan-d7d633ba14be4ba7aeef1500f32e13f0",
-          "notes": "Optimise high polygon count before web deployment."
+          "notes": "Uploaded local GLB. Automatically loaded as a map-anchored 3D model when the site is in view."
         }
       ],
       "editorial": {
