@@ -1,5 +1,5 @@
 (() => {"use strict";
-const $=s=>document.querySelector(s),SITE_INTEL_API_URL="https://heritage-site-intelligence.conniezz-cool.workers.dev/site-intel",state={filter:"all",search:"",listLimit:60,selected:null,visited:new Set(),xp:0,answered:new Set(),viewer:null,entities:new Map(),globeModelEntities:new Map(),catalog:null,registryMeta:null,hovered:null,globeOverlay:null,globeOverlayReady:false,globeOverlayCleanup:null,komodoOverlay:null,komodoOverlayCleanup:null,explorationZones:new Map(),activeZoneId:null,siteIntelCache:new Map(),siteIntelPending:new Map(),siteIntelTab:"overview",toastTimer:null,local3d:null,local3dFrame:null,local3dModel:null},KEY="world-heritage-atlas-progress-v1",cat={culture:"CULTURE",nature:"NATURE",mixed:"MIXED"};
+const $=s=>document.querySelector(s),SITE_INTEL_API_URL="https://heritage-site-intelligence.conniezz-cool.workers.dev/site-intel",state={filter:"all",search:"",listLimit:60,selected:null,visited:new Set(),xp:0,answered:new Set(),viewer:null,entities:new Map(),globeModelEntities:new Map(),catalog:null,registryMeta:null,hovered:null,globeOverlay:null,globeOverlays:new Map(),globeOverlayReady:false,globeOverlayCleanup:null,globeOverlayCleanups:[],komodoOverlay:null,komodoOverlayCleanup:null,explorationZones:new Map(),activeZoneId:null,siteIntelCache:new Map(),siteIntelPending:new Map(),siteIntelTab:"overview",toastTimer:null,local3d:null,local3dFrame:null,local3dModel:null},KEY="world-heritage-atlas-progress-v1",cat={culture:"CULTURE",nature:"NATURE",mixed:"MIXED"};
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function toast(t){const e=$("#toast");e.textContent=t;e.classList.add("show");clearTimeout(state.toastTimer);state.toastTimer=setTimeout(()=>e.classList.remove("show"),2500)}
 function save(){try{localStorage.setItem(KEY,JSON.stringify({visited:[...state.visited],answered:[...state.answered],xp:state.xp}));$("#saveStatus").textContent="PROGRESS SAVED LOCALLY"}catch(e){$("#saveStatus").textContent="LOCAL SAVE UNAVAILABLE"}}
@@ -37,7 +37,7 @@ function renderSites(){
 }
 function progress(){const n=state.xp%500;$("#xpValue").textContent=state.xp;$("#xpBar").style.width=n/500*100+"%";$("#levelValue").textContent=String(Math.floor(state.xp/500)+1).padStart(2,"0");$("#discoveriesValue").textContent=state.visited.size+" "+(state.visited.size===1?"discovery":"discoveries");$("#badgeValue").textContent=state.visited.size>=6?"Heritage Guardian":state.visited.size>=3?"Curious Cartographer":state.visited.size?"Field Observer":"First steps";const yes=state.visited.size>0;$("#missionProgressBar").style.width=yes?"100%":"0%";$("#missionProgressText").textContent=yes?"1 / 1 completed":"0 / 1 completed";$("#missionTitle").textContent=yes?"Field notes updated":"The curious traveller";$("#missionDescription").textContent=yes?"Your first discovery is recorded. Pick another site to continue.":"Visit a designated site and complete its knowledge check.";renderSites()}
 function fly(s){if(!state.viewer||!hasCoordinates(s)){toast("This record does not yet have a reliable map coordinate.");return}const ranges={borobudur:9000,prambanan:9000,"bali-cultural-landscape":20000,komodo:32000,sangiran:10000,lorentz:70000};const target=state.entities.get(s.id);const range=Number(s.mapRange)||ranges[s.id]||(s.programmeKey==="global_geopark"||s.programmeKey==="biosphere_reserve"?65000:14000);if(target){state.viewer.flyTo(target,{duration:2.0,offset:new Cesium.HeadingPitchRange(Cesium.Math.toRadians(24),Cesium.Math.toRadians(-38),range)})}else{const [lon,lat]=s.coordinates;state.viewer.camera.flyTo({destination:Cesium.Cartesian3.fromDegrees(lon,lat,range),orientation:{heading:Cesium.Math.toRadians(24),pitch:Cesium.Math.toRadians(-65),roll:0},duration:2.0})}$("#coordReadout").textContent=s.coordinates[1].toFixed(3)+"°, "+s.coordinates[0].toFixed(3)+"°";$("#mapStatus").textContent="EXPLORING · "+s.name.toUpperCase()}
-function setSelectedMarker(id){state.entities.forEach((entity,key)=>{const active=key===id,hovered=key===state.hovered,coveredByModel=!!((state.globeOverlay&&state.globeOverlay.loaded&&state.globeOverlay.site.id===key)||(state.komodoOverlay&&state.komodoOverlay.loaded&&state.komodoOverlay.site.id===key));if(entity.label)entity.label.show=(active||hovered)&&!coveredByModel;if(entity.point){entity.point.pixelSize=active?17:hovered?14:8;entity.point.outlineWidth=active?3:hovered?2.5:1.5;entity.point.outlineColor=active||hovered?Cesium.Color.fromCssColorString("#ffffff"):Cesium.Color.fromCssColorString("#dcece7")}})}
+function setSelectedMarker(id){state.entities.forEach((entity,key)=>{const active=key===id,hovered=key===state.hovered,coveredByModel=!!(((state.globeOverlays&&state.globeOverlays.get(key)&&state.globeOverlays.get(key).loaded)||(state.globeOverlay&&state.globeOverlay.loaded&&state.globeOverlay.site.id===key)||(state.komodoOverlay&&state.komodoOverlay.loaded&&state.komodoOverlay.site.id===key)));if(entity.label)entity.label.show=(active||hovered)&&!coveredByModel;if(entity.point){entity.point.pixelSize=active?17:hovered?14:8;entity.point.outlineWidth=active?3:hovered?2.5:1.5;entity.point.outlineColor=active||hovered?Cesium.Color.fromCssColorString("#ffffff"):Cesium.Color.fromCssColorString("#dcece7")}})}
 function markers(){
  HERITAGE_SITES.forEach(s=>{
   if(!hasCoordinates(s))return;
@@ -47,87 +47,89 @@ function markers(){
  });
  console.info("[Heritage Atlas] rendered",state.entities.size,"georeferenced markers from",HERITAGE_SITES.length,"UNESCO designation records");
 }
-function hideGlobeOverlay(){const el=$("#globeModelOverlay");if(el)el.hidden=true}
+function hideGlobeOverlay(model){
+ if(model){if(model.wrapper)model.wrapper.hidden=true;return}
+ if(state.globeOverlays&&state.globeOverlays.size){state.globeOverlays.forEach(item=>{if(item.wrapper)item.wrapper.hidden=true});return}
+ const el=$("#globeModelOverlay");if(el)el.hidden=true
+}
 function initGlobeModelOverlay(){
- const site=HERITAGE_SITES.find(s=>s.globeModel);
- if(!site||!site.globeModel||!window.THREE||!THREE.GLTFLoader){console.info("[Heritage Atlas] No on-globe GLB configured or Three.js unavailable.");return}
- const host=$("#globeModelCanvasHost"),wrapper=$("#globeModelOverlay");
- if(!host||!wrapper)return;
+ const sites=HERITAGE_SITES.filter(site=>site.id!=="komodo"&&site.globeModel&&site.globeModel.path);
+ if(!sites.length||!window.THREE||!THREE.GLTFLoader){console.info("[Heritage Atlas] No available on-globe GLB sites or Three.js unavailable.");return}
+ const stage=$(".map-stage");
+ if(!stage)return;
+ state.globeOverlays=new Map();
+ state.globeOverlayCleanups=[];
+ state.globeOverlay=null;
+ sites.forEach(site=>{
+  let wrapper,host;
+  if(site.id==="borobudur"){
+   wrapper=$("#globeModelOverlay");host=$("#globeModelCanvasHost");
+  }else{
+   const overlayId="globeModelOverlay-"+site.id;
+   wrapper=$("#"+overlayId);
+   if(!wrapper){
+    wrapper=document.createElement("div");wrapper.id=overlayId;wrapper.className="globe-model-overlay site-model-overlay";wrapper.hidden=true;
+    host=document.createElement("div");host.id="globeModelCanvasHost-"+site.id;wrapper.appendChild(host);stage.appendChild(wrapper);
+   }else host=wrapper.firstElementChild;
+  }
+  if(!wrapper||!host){console.warn("[Heritage Atlas] Model overlay host missing for",site.id);return}
+  initGlobeModelForSite(site,wrapper,host);
+ });
+ state.globeOverlayCleanup=()=>{state.globeOverlayCleanups.forEach(cleanup=>{try{cleanup()}catch(_){}});state.globeOverlayCleanups=[];if(state.globeOverlays)state.globeOverlays.clear();state.globeOverlay=null;state.globeOverlayReady=false};
+}
+function initGlobeModelForSite(site,wrapper,host){
+ const asset=site.globeModel;
  wrapper.hidden=true;
- const scene=new THREE.Scene();
- scene.background=null;
- scene.add(new THREE.HemisphereLight(0xfff4dc,0x334b51,2.0));
- const keyLight=new THREE.DirectionalLight(0xffffff,2.4);keyLight.position.set(5,8,6);scene.add(keyLight);
- const fillLight=new THREE.DirectionalLight(0x9bd9ce,0.9);fillLight.position.set(-5,4,-5);scene.add(fillLight);
- const renderer=new THREE.WebGLRenderer({alpha:true,antialias:true,powerPreference:"low-power"});
- renderer.setPixelRatio(1);
- renderer.setClearColor(0x000000,0);
- renderer.outputEncoding=THREE.sRGBEncoding;
- renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.08;
- host.innerHTML="";host.appendChild(renderer.domElement);
- const camera=new THREE.PerspectiveCamera(35,2,0.01,1000);
- const modelState={site,asset:site.globeModel,scene,renderer,camera,host,wrapper,loaded:false,basePixel:new THREE.Vector2(),targetHeight:35,aspect:2,pivot:null,basePivotY:0.08};
- state.globeOverlay=modelState;
- wrapper.setAttribute("role","button");
- wrapper.setAttribute("tabindex","0");
- wrapper.setAttribute("aria-label","Toggle the indicative exploration zone around "+site.name);
- wrapper.title="Click the 3D temple to show or hide the indicative exploration zone";
+ wrapper.setAttribute("role","button");wrapper.setAttribute("tabindex","0");
+ wrapper.setAttribute("aria-label",site.id==="borobudur"?"Click the Borobudur model to show or hide the indicative exploration zone":"Explore the "+site.name+" 3D model");
+ wrapper.title=site.id==="borobudur"?"Click to show or hide the indicative exploration zone":"Click to open "+site.name;
  if(!wrapper.dataset.interactionBound){
-  wrapper.addEventListener("click",event=>{event.preventDefault();event.stopPropagation();toggleExplorationZone(site,true)});
-  wrapper.addEventListener("keydown",event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();toggleExplorationZone(site,true)}});
+  const activate=event=>{event.preventDefault();event.stopPropagation();if(site.id==="borobudur")toggleExplorationZone(site,true);else openSite(site.id,true)};
+  wrapper.addEventListener("click",activate);
+  wrapper.addEventListener("keydown",event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();activate(event)}});
   wrapper.dataset.interactionBound="true";
  }
+ const scene=new THREE.Scene();scene.background=null;
+ scene.add(new THREE.HemisphereLight(0xfff4dc,0x334b51,2.0));
+ const keyLight=new THREE.DirectionalLight(0xffffff,2.4);keyLight.position.set(5,8,6);scene.add(keyLight);
+ const fillLight=new THREE.DirectionalLight(0x9bd9ce,.9);fillLight.position.set(-5,4,-5);scene.add(fillLight);
+ const renderer=new THREE.WebGLRenderer({alpha:true,antialias:true,powerPreference:"low-power"});
+ renderer.setPixelRatio(1);renderer.setClearColor(0x000000,0);renderer.outputEncoding=THREE.sRGBEncoding;
+ renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.08;
+ host.innerHTML="";host.appendChild(renderer.domElement);
+ const canvasWidth=768,canvasHeight=768;renderer.setSize(canvasWidth,canvasHeight,false);
+ const camera=new THREE.PerspectiveCamera(35,1,.01,1000);
+ const targetHeight=Number(asset.targetSizeMeters&&asset.targetSizeMeters.height)||35;
+ const modelState={site,asset,scene,renderer,camera,host,wrapper,loaded:false,basePixel:new THREE.Vector2(),targetHeight,aspect:1,pivot:null,basePivotY:.08,canvasWidth,canvasHeight,renderedHeight:180};
+ state.globeOverlays.set(site.id,modelState);
+ if(site.id==="borobudur"||!state.globeOverlay)state.globeOverlay=modelState;
  const loader=new THREE.GLTFLoader();
- loader.load(modelState.asset.path,gltf=>{
+ loader.load(asset.path,gltf=>{
   try{
-   const model=gltf.scene;
-   const bounds=new THREE.Box3().setFromObject(model);
-   const size=bounds.getSize(new THREE.Vector3());
-   const center=bounds.getCenter(new THREE.Vector3());
+   const model=gltf.scene,bounds=new THREE.Box3().setFromObject(model),size=bounds.getSize(new THREE.Vector3()),center=bounds.getCenter(new THREE.Vector3());
    if(!Number.isFinite(size.y)||size.y<=0||!Number.isFinite(size.x)||!Number.isFinite(size.z))throw new Error("GLB has invalid or empty bounding dimensions");
-   const normalizedHeight=4.2;
-   const modelScale=normalizedHeight/size.y;
+   const normalizedHeight=4.2,modelScale=normalizedHeight/size.y;
    model.scale.setScalar(modelScale);
-   const pivot=new THREE.Group();
    model.position.set(-center.x*modelScale,-bounds.min.y*modelScale,-center.z*modelScale);
-   pivot.add(model);
-   pivot.position.y=0.08;
-   scene.add(pivot);
-   modelState.pivot=pivot;
-   modelState.basePivotY=0.08;
-   // Use a square transparent canvas and fit the full mesh bounds into the camera.
-   // A wide aspect canvas cropped the temple's bases in the previous preview.
-   modelState.aspect=1;
-   const canvasHeight=768,canvasWidth=768;
-   renderer.setSize(canvasWidth,canvasHeight,false);
-   camera.aspect=1;camera.fov=35;camera.near=0.01;camera.far=1000;camera.updateProjectionMatrix();
-   const fitBounds=new THREE.Box3().setFromObject(pivot),fitSphere=new THREE.Sphere();
-   fitBounds.getBoundingSphere(fitSphere);
-   const lookAt=new THREE.Vector3(0,normalizedHeight*0.48,0);
-   const verticalFov=THREE.MathUtils.degToRad(camera.fov);
-   const horizontalFov=2*Math.atan(Math.tan(verticalFov/2)*camera.aspect);
-   const fitDistance=Math.max(3,fitSphere.radius*1.34/Math.sin(Math.min(verticalFov,horizontalFov)/2));
-   const viewDirection=new THREE.Vector3(0.68,0.46,1).normalize();
-   camera.position.copy(lookAt).addScaledVector(viewDirection,fitDistance);
-   camera.lookAt(lookAt);camera.updateProjectionMatrix();
-   renderer.render(scene,camera);
-   const baseWorld=pivot.localToWorld(new THREE.Vector3(0,0,0));
-   const baseProjected=baseWorld.clone().project(camera);
-   modelState.basePixel.set((baseProjected.x+1)*0.5*canvasWidth,(1-baseProjected.y)*0.5*canvasHeight);
-   const topWorld=pivot.localToWorld(new THREE.Vector3(0,normalizedHeight,0));
-   const topProjected=topWorld.clone().project(camera);
-   modelState.renderedHeight=Math.abs(modelState.basePixel.y-(1-topProjected.y)*0.5*canvasHeight);
-   modelState.canvasWidth=canvasWidth;modelState.canvasHeight=canvasHeight;modelState.normalizedHeight=normalizedHeight;
-   modelState.loaded=true;
-   wrapper.hidden=false;
-   setSelectedMarker(state.selected);
-   console.info("[Heritage Atlas] GLB loaded for geospatial overlay",site.name,{sourceBounds:{width:size.x,depth:size.z,height:size.y},targetHeightMeters:modelState.targetHeight,asset:modelState.asset.path});
-   updateGlobeModelOverlay();
-  }catch(error){console.error("[Heritage Atlas] Could not prepare GLB overlay",error);hideGlobeOverlay()}
- },undefined,error=>{console.error("[Heritage Atlas] GLB overlay failed to load",modelState.asset.path,error);hideGlobeOverlay()});
- const onPostRender=()=>{try{updateGlobeModelOverlay()}catch(error){console.error("[Heritage Atlas] 3D overlay update failed; hiding overlay to keep the globe running.",error);hideGlobeOverlay()}};
+   const pivot=new THREE.Group();pivot.add(model);pivot.position.y=modelState.basePivotY;scene.add(pivot);modelState.pivot=pivot;
+   const fitBounds=new THREE.Box3().setFromObject(pivot),fitSphere=new THREE.Sphere();fitBounds.getBoundingSphere(fitSphere);
+   const lookAt=new THREE.Vector3(0,normalizedHeight*.48,0),vfov=THREE.MathUtils.degToRad(camera.fov);
+   const hfov=2*Math.atan(Math.tan(vfov/2)*camera.aspect);
+   const fitDistance=Math.max(3,fitSphere.radius*1.34/Math.sin(Math.min(vfov,hfov)/2));
+   camera.position.copy(lookAt).addScaledVector(new THREE.Vector3(.68,.46,1).normalize(),fitDistance);
+   camera.lookAt(lookAt);camera.updateProjectionMatrix();renderer.render(scene,camera);
+   const baseWorld=pivot.localToWorld(new THREE.Vector3(0,0,0)),baseProjected=baseWorld.clone().project(camera);
+   modelState.basePixel.set((baseProjected.x+1)*canvasWidth*.5,(1-baseProjected.y)*canvasHeight*.5);
+   const topWorld=pivot.localToWorld(new THREE.Vector3(0,normalizedHeight,0)),topProjected=topWorld.clone().project(camera);
+   modelState.renderedHeight=Math.max(1,Math.abs(modelState.basePixel.y-(1-topProjected.y)*canvasHeight*.5));
+   modelState.loaded=true;wrapper.hidden=false;setSelectedMarker(state.selected);
+   console.info("[Heritage Atlas] GLB loaded for geospatial overlay",site.name,{asset:asset.path,sourceBounds:{width:size.x,depth:size.z,height:size.y},targetHeightMeters:targetHeight});
+   updateGlobeModelOverlay(modelState);
+  }catch(error){console.error("[Heritage Atlas] Could not prepare GLB overlay",site.name,asset.path,error);hideGlobeOverlay(modelState)}
+ },undefined,error=>{console.error("[Heritage Atlas] GLB overlay failed to load",site.name,asset.path,error);hideGlobeOverlay(modelState)});
+ const onPostRender=()=>{try{updateGlobeModelOverlay(modelState)}catch(error){console.error("[Heritage Atlas] 3D overlay update failed",site.name,error);hideGlobeOverlay(modelState)}};
  state.viewer.scene.postRender.addEventListener(onPostRender);
- state.globeOverlayCleanup=()=>{try{state.viewer&&state.viewer.scene.postRender.removeEventListener(onPostRender)}catch(_){};renderer.dispose();state.globeOverlay=null;state.globeOverlayReady=false};
+ state.globeOverlayCleanups.push(()=>{try{state.viewer&&state.viewer.scene.postRender.removeEventListener(onPostRender)}catch(_){};try{renderer.dispose()}catch(_){}});
 }
 function refreshZoneButton(siteId){
  const button=$("#zoneToggleBtn");if(!button)return;
@@ -182,8 +184,8 @@ function projectWorldToWindow(scene,position){
  try{return fn.call(transforms,scene,position,new Cesium.Cartesian2())}
  catch(error){console.warn("[Heritage Atlas] Map coordinate projection failed",error);return undefined}
 }
-function updateGlobeModelOverlay(){
- const model=state.globeOverlay,v=state.viewer;
+function updateGlobeModelOverlay(modelOverride){
+ const model=modelOverride||state.globeOverlay,v=state.viewer;
  if(!model||!model.loaded||!v)return;
  const {site,asset,wrapper,renderer,camera}=model;
  const lon=Number(site.coordinates[0]),lat=Number(site.coordinates[1]);
@@ -205,7 +207,7 @@ function updateGlobeModelOverlay(){
   const baseProjected=baseWorld.clone().project(camera);
   model.basePixel.set((baseProjected.x+1)*0.5*model.canvasWidth,(1-baseProjected.y)*0.5*model.canvasHeight);
  }
- const heightMeters=Number(asset.targetSizeMeters&&asset.targetSizeMeters.height)||35;
+ const heightMeters=Number(asset.targetSizeMeters&&asset.targetSizeMeters.height)||model.targetHeight||35;
  const top=Cesium.Cartesian3.fromDegrees(lon,lat,anchorHeight+heightMeters);
  const topPixel=projectWorldToWindow(v.scene,top);
  if(!groundPixel||!topPixel||!Number.isFinite(groundPixel.x)||!Number.isFinite(groundPixel.y)||!Number.isFinite(topPixel.x)||!Number.isFinite(topPixel.y)){wrapper.hidden=true;return}
@@ -335,7 +337,7 @@ function updateKomodoMapOverlay(){
  const cameraDistance=Cesium.Cartesian3.distance(v.camera.positionWC,surface);
  if(!Number.isFinite(cameraDistance)||cameraDistance>220000){wrapper.hidden=true;return}
  const time=(window.performance&&performance.now?performance.now():Date.now())*.001;
- if(pivot){pivot.rotation.y=Math.sin(time*.24)*.36;pivot.position.y=model.basePivotY+Math.sin(time*1.1)*.1;renderer.render(model.scene,camera)}
+ if(pivot){pivot.rotation.y=(time*.65)%(Math.PI*2);pivot.position.y=model.basePivotY+Math.sin(time*1.1)*.1;renderer.render(model.scene,camera)}
  const groundPixel=projectWorldToWindow(v.scene,surface);
  const topPixel=projectWorldToWindow(v.scene,Cesium.Cartesian3.fromDegrees(lon,lat,anchorHeight+model.visualHeightMeters));
  if(!groundPixel||!topPixel||![groundPixel.x,groundPixel.y,topPixel.x,topPixel.y].every(Number.isFinite)){wrapper.hidden=true;return}
@@ -368,7 +370,7 @@ function updateMapHover(position){
   if(next&&next.label){
    const site=HERITAGE_SITES.find(s=>s.id===nextId);
    next.label.text=site?site.name:"";
-   const coveredByModel=!!((state.globeOverlay&&state.globeOverlay.loaded&&state.globeOverlay.site.id===nextId)||(state.komodoOverlay&&state.komodoOverlay.loaded&&state.komodoOverlay.site.id===nextId));
+   const mapOverlay=state.globeOverlays&&state.globeOverlays.get(nextId);const coveredByModel=!!((mapOverlay&&mapOverlay.loaded)||(state.globeOverlay&&state.globeOverlay.loaded&&state.globeOverlay.site.id===nextId)||(state.komodoOverlay&&state.komodoOverlay.loaded&&state.komodoOverlay.site.id===nextId));
    next.label.show=!coveredByModel;
   }
   setSelectedMarker(state.selected);
