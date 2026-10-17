@@ -119,6 +119,21 @@ jobs:
                       assert (root / model["file"]).is_file(), f"missing available model: {model['file']}"
           print(f"Validated {len(catalog['sites'])} curated sites and the JSON schema.")
           PY
+      - name: Check GLB decoder bootstrap configuration
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          html = Path("index.html").read_text(encoding="utf-8")
+          app = Path("js/app.js").read_text(encoding="utf-8")
+          assert "three@0.146.0" in html, "Three.js r146 compatibility build is not pinned"
+          assert "meshopt_decoder.module.js" in html, "Meshopt decoder missing"
+          assert "setMeshoptDecoder(MeshoptDecoder)" in html, "GLTFLoader is not wired to Meshopt"
+          assert "setDRACOLoader(dracoLoader)" in html, "GLTFLoader is not wired to Draco"
+          assert "KHR_materials_pbrSpecularGlossiness compatibility" in html, "Legacy material compatibility rationale missing"
+          assert "renderer.outputEncoding=THREE.sRGBEncoding" in app, "Renderer color encoding does not match r146"
+          assert "js/sites.js" in html and "js/app.js" in html, "Application bootstrap must load site data before app code"
+          print("GLTFLoader has Meshopt + Draco decoders; r146 retained for Komodo specular-glossiness materials.")
+          PY
       - name: Check JavaScript syntax
         run: |
           node --check --input-type=module < site-intelligence-worker.js
