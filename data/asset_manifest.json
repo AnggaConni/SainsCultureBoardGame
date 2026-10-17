@@ -171,36 +171,21 @@
       "notes": "Planned model; not yet uploaded."
     },
     {
-      "id": "komodo_island",
-      "label": "Komodo island learning environment",
-      "path": "assets/models/komodo_island.glb",
-      "group": "unesco_site",
-      "requirement": "planned",
-      "requiredForRuntime": false,
-      "referencedBy": [
-        "js/sites.js",
-        "data/sites.json"
-      ],
-      "creator": "Elin",
-      "license": "CC BY; attribution required",
-      "sourceUrl": "https://sketchfab.com/3d-models/tropical-island-f91862f8c38b481aa19edccac851eefb",
-      "notes": "Generic tropical island illustration, not a geographically accurate Komodo Island model."
-    },
-    {
       "id": "komodo_dragon",
       "label": "Komodo dragon",
       "path": "assets/models/komodo_dragon.glb",
       "group": "unesco_site",
-      "requirement": "planned",
+      "requirement": "optional",
       "requiredForRuntime": false,
       "referencedBy": [
         "js/sites.js",
         "data/sites.json"
       ],
-      "creator": "all of life",
-      "license": "CC BY; attribution required",
-      "sourceUrl": "https://sketchfab.com/3d-models/komodo-dragon-0b8679521991420a8b48a6e63018f52c",
-      "notes": "Planned local learning model; not yet uploaded."
+      "creator": "3DAssets.dev community model",
+      "license": "CC0 1.0 Universal",
+      "sourceUrl": "https://3dassets.dev/assets/reptiles-amphibians-and-minibeasts-komodo-dragon-9ed37a2d",
+      "notes": "Remote preview is currently used for the on-map model, with a procedural fallback. A local copy at this path is optional for self-hosting/offline use; the audit will still report if the local file is absent.",
+      "previewUrl": "https://cdn.3dassets.dev/assets/22431/v1/model.glb"
     },
     {
       "id": "bali_subak_landscape",
@@ -282,6 +267,7 @@
     "Do not rename a referenced file without updating data/sites.json, js/sites.js and/or js/board.js.",
     "Required runtime assets must exist; planned and optional paths are allowed to be missing and must be reported.",
     "Any GLB added to assets/models/ but absent from this manifest is reported as a new/unregistered asset.",
-    "The audit script checks file presence, GLB container structure, filename, references, size and SHA-256 inventory; it does not validate model geometry quality or licence rights."
+    "The audit script checks file presence, GLB container structure, filename, references, size and SHA-256 inventory; it does not validate model geometry quality or licence rights.",
+    "A model with previewUrl can be displayed from its external GLB while a local self-hosted copy is missing. The audit still reports the local copy as missing if its manifest path does not exist."
   ]
 }
