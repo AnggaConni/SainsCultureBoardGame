@@ -1,0 +1,62 @@
+name: Validate site catalog and data pipeline
+
+on:
+  pull_request:
+    paths:
+      - "data/**"
+      - "scripts/**"
+      - "js/**"
+      - ".github/workflows/**"
+      - "index.html"
+  push:
+    branches:
+      - "feature/site-data-pipeline"
+    paths:
+      - "data/**"
+      - "scripts/**"
+      - "js/**"
+      - ".github/workflows/**"
+      - "index.html"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile Python
+        run: python -m py_compile scripts/update_data.py scripts/test_update_data.py
+      - name: Run offline tests
+        run: python scripts/test_update_data.py
+      - name: Validate JSON and available model paths
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path(".")
+          catalog = json.loads((root / "data/sites.json").read_text(encoding="utf-8"))
+          schema = json.loads((root / "data/schemas/site-catalog.schema.json").read_text(encoding="utf-8"))
+          assert catalog["coordinateSystem"] == "EPSG:4326"
+          assert catalog["sites"], "site catalog is empty"
+          ids = [site["id"] for site in catalog["sites"]]
+          assert len(ids) == len(set(ids)), "duplicate site ids"
+          for site in catalog["sites"]:
+              loc = site["location"]
+              assert -90 <= loc["latitude"] <= 90
+              assert -180 <= loc["longitude"] <= 180
+              for model in site.get("models", []):
+                  if model.get("status") == "available":
+                      assert (root / model["file"]).is_file(), f"missing available model: {model['file']}"
+          print(f"Validated {len(catalog['sites'])} curated sites and {len(schema.get('properties', {}).get('sites', {}).get('items', {}).get('properties', {}).get('models', {}).get('items', {})) if False else 'model'} schema.")
+          PY
+      - name: Check JavaScript syntax
+        run: |
+          node --check js/app.js
+          node --check js/sites.js
