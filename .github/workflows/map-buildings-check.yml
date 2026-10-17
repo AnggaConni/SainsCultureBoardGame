@@ -5,6 +5,9 @@ on:
     branches: [main]
     paths:
       - "js/app.js"
+      - "scripts/update_data.py"
+      - "scripts/test_update_data.py"
+      - ".github/workflows/update-unesco-data.yml"
       - "js/cesium-config.js"
       - "index.html"
       - "css/atlas.css"
@@ -32,5 +35,13 @@ jobs:
           node-version: 22
       - name: Check application syntax
         run: node --check js/app.js
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile data pipeline and run offline Python tests
+        run: |
+          python -m py_compile scripts/update_data.py scripts/test_update_data.py
+          python scripts/test_update_data.py
       - name: Run OSM Buildings integration tests
         run: node --test tests/map-buildings.test.mjs
