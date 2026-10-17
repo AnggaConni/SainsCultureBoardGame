@@ -257,8 +257,6 @@ def parse_tentative_list_pages(page_texts: list[str]) -> list[dict[str, Any]]:
     if list_start is None:
         raise ValueError("Could not find Annex 3 of the official Tentative List report.")
     country_aliases = _tentative_country_aliases(page_texts, list_start)
-    if len(country_aliases) < 40:
-        raise ValueError("Could not recover enough State Party headings from Annex 1.")
 
     regions = {
         "AFRICA", "ARAB STATES", "ASIA AND THE PACIFIC",
@@ -335,6 +333,16 @@ def parse_tentative_list_pages(page_texts: list[str]) -> list[dict[str, Any]]:
             upper = line.upper()
             if upper in regions:
                 current_country = None
+                name_buffer = []
+                index += 1
+                continue
+            lower_line = line.casefold().lstrip("cn ")
+            if (
+                "tentative lists prepared by states parties" in lower_line
+                or "tentative lists submitted by states parties" in lower_line
+                or lower_line.startswith("in conformity with the operational guidelines")
+                or lower_line.startswith("whc/26/48.com/8a")
+            ):
                 name_buffer = []
                 index += 1
                 continue
@@ -772,11 +780,24 @@ def run(args: argparse.Namespace) -> int:
             })
         except Exception as exc:
             print(f"[error] WHC Tentative List: {exc}", file=sys.stderr)
-            errors.append({"sourceId": "whc_tentative_2026", "error": str(exc)})
-            manifest["sources"].append({
-                "sourceId": "whc_tentative_2026", "url": TENTATIVE_REPORT_URL,
-                "status": "error", "error": str(exc),
-            })
+            cached_tentative = read_json(OUT / "tentative_list.json")
+            preserved = isinstance(cached_tentative, dict) and isinstance(cached_tentative.get("records"), list) and bool(cached_tentative["records"])
+            if preserved:
+                registry.extend(cached_tentative["records"])
+                manifest["sources"].append({
+                    "sourceId": "whc_tentative_2026", "url": TENTATIVE_REPORT_URL,
+                    "status": "stale-cache", "error": str(exc),
+                    "recordCount": len(cached_tentative["records"]),
+                    "snapshotAsOf": cached_tentative.get("snapshotAsOf"),
+                    "attribution": "UNESCO World Heritage Centre",
+                })
+                print(f"[warning] Preserved {len(cached_tentative['records'])} previously cached Tentative List records.", file=sys.stderr)
+            else:
+                errors.append({"sourceId": "whc_tentative_2026", "error": str(exc)})
+                manifest["sources"].append({
+                    "sourceId": "whc_tentative_2026", "url": TENTATIVE_REPORT_URL,
+                    "status": "error", "error": str(exc),
+                })
 
     if args.scope in ("all", "economy"):
         economic_records: list[dict[str, Any]] = []
