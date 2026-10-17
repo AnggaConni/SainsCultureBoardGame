@@ -1,0 +1,32 @@
+name: Map Buildings Checks
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "js/app.js"
+      - "tests/map-buildings.test.mjs"
+      - ".github/workflows/map-buildings-check.yml"
+  pull_request:
+    paths:
+      - "js/app.js"
+      - "tests/map-buildings.test.mjs"
+      - ".github/workflows/map-buildings-check.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  map-buildings:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check application syntax
+        run: node --check js/app.js
+      - name: Run OSM Buildings integration tests
+        run: node --test tests/map-buildings.test.mjs
