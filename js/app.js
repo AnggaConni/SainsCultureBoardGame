@@ -460,6 +460,16 @@ function setBuildingsUi(message,tone){
  panel.className="buildings-status"+(tone?" "+tone:"");
  panel.hidden=!message;
 }
+function cameraAltitudeMeters(viewer){
+ if(!viewer||!viewer.camera)return Infinity;
+ const worldPosition=viewer.camera.positionWC;
+ if(worldPosition&&Cesium.Cartesian3&&Cesium.Ellipsoid&&Cesium.Ellipsoid.WGS84){
+  const altitude=Cesium.Cartesian3.magnitude(worldPosition)-Cesium.Ellipsoid.WGS84.maximumRadius;
+  return Number.isFinite(altitude)&&altitude>=-1000?Math.max(0,altitude):Infinity;
+ }
+ const cartographic=viewer.camera.positionCartographic;
+ return cartographic&&Number.isFinite(cartographic.height)&&cartographic.height>=0?cartographic.height:Infinity;
+}
 async function initOsmBuildings(viewer){
  if(!viewer||!window.Cesium||typeof Cesium.createOsmBuildingsAsync!=="function"){state.buildingsStatus="unsupported";return}
  const token=String(window.CESIUM_ION_ACCESS_TOKEN||"").trim();
@@ -468,74 +478,78 @@ async function initOsmBuildings(viewer){
   state.buildingsStatus="token-required";
   if(status)status.textContent="3D BUILDINGS NEED ION TOKEN";
   setBuildingsUi("3D BUILDINGS DISABLED · Add a restricted Cesium ion token in js/cesium-config.js.","warn");
-  console.warn("Cesium OSM Buildings needs an app-specific Cesium ion access token. Add a restricted public token to js/cesium-config.js; keep only assets:read scope and restrict it to this app and allow both OSM Buildings (asset 96188) and Cesium World Terrain (asset 1).");
+  console.warn("Cesium OSM Buildings needs an app-specific, restricted Cesium ion token.");
   return;
  }
  if(!Cesium.Ion){state.buildingsStatus="unsupported";if(status)status.textContent="3D BUILDINGS · CESIUM ION UNAVAILABLE";setBuildingsUi("Cesium ion is unavailable. Check the CesiumJS script and network.","error");return}
  Cesium.Ion.defaultAccessToken=token;
  state.buildingsStatus="loading";
- setBuildingsUi("3D BUILDINGS · Connecting to Cesium ion…","");
+ setBuildingsUi("3D BUILDINGS · Preparing local-detail layer…","");
  try{
   const tileset=await Cesium.createOsmBuildingsAsync({enableShowOutline:false});
   if(state.viewer!==viewer){tileset.destroy();return}
   state.buildingsTileset=tileset;
-  const BUILDINGS_MAX_VISIBLE_CAMERA_HEIGHT_METERS=500000;
+  const BUILDINGS_MAX_VISIBLE_CAMERA_HEIGHT_METERS=350000;
+  let attachedToScene=false;
   const syncBuildingVisibility=()=>{
-   if(state.viewer!==viewer||!state.buildingsTileset)return;
-   const cameraHeight=viewer.camera.positionCartographic?viewer.camera.positionCartographic.height:Infinity;
-   const visible=Number.isFinite(cameraHeight)&&cameraHeight<=BUILDINGS_MAX_VISIBLE_CAMERA_HEIGHT_METERS;
-   if(tileset.show!==visible)tileset.show=visible;
-   if(visible){
+   if(state.viewer!==viewer||state.buildingsTileset!==tileset)return;
+   const cameraHeight=cameraAltitudeMeters(viewer);
+   const shouldShow=Number.isFinite(cameraHeight)&&cameraHeight<=BUILDINGS_MAX_VISIBLE_CAMERA_HEIGHT_METERS;
+   if(shouldShow&&!attachedToScene){
+    viewer.scene.primitives.add(tileset);
+    attachedToScene=true;
+    tileset.show=true;
+    state.buildingsStatus="ready";
+    console.info("[Heritage Atlas] OSM Buildings added only at local camera height:",Math.round(cameraHeight),"m.");
+   }else if(!shouldShow&&attachedToScene){
+    tileset.show=false;
+   }
+   if(shouldShow){
     if(state.terrainStatus==="ready")setBuildingsUi("3D BUILDINGS ACTIVE · Local detail view","ok");
     else setBuildingsUi("3D BUILDINGS ACTIVE · Terrain is still loading…","warn");
    }else{
     setBuildingsUi("3D BUILDINGS READY · Zoom closer to reveal buildings","ok");
    }
   };
+  // Important: do not add the tileset to Cesium's scene at planet scale.
+  // This avoids global-scale OSM geometry artifacts before the user zooms in.
   tileset.show=false;
+  state.buildingsVisibilitySync=syncBuildingVisibility;
   viewer.camera.percentageChanged=0.03;
   viewer.camera.changed.addEventListener(syncBuildingVisibility);
   viewer.scene.preRender.addEventListener(syncBuildingVisibility);
   state.buildingsVisibilityCleanup=()=>{
    try{viewer.camera.changed.removeEventListener(syncBuildingVisibility)}catch(_){}
    try{viewer.scene.preRender.removeEventListener(syncBuildingVisibility)}catch(_){}
+   if(state.buildingsVisibilitySync===syncBuildingVisibility)state.buildingsVisibilitySync=null;
   };
-  // Re-evaluate every frame so a late tile load cannot leave buildings visible on the global globe.
   syncBuildingVisibility();
   tileset.tileFailed.addEventListener(error=>{
    state.buildingsStatus="tile-error";
    const detail=String(error&&error.message||"");
    const authFailure=/401|403|unauthori[sz]ed|invalid token|access token|forbidden/i.test(detail);
-   const currentStatus=$("#mapStatus");
-   if(currentStatus)currentStatus.textContent=authFailure?"3D BUILDINGS AUTH ERROR · CHECK TOKEN":"3D BUILDINGS TILE ERROR";
-   setBuildingsUi(authFailure?"3D BUILDINGS AUTH ERROR · Check token scope, allowed URL, and access to OSM Buildings (asset 96188) and World Terrain (asset 1).":"A 3D building tile failed to load. Check ion quota, network, and browser Console.","error");
-   console.warn("Cesium OSM Buildings tile failed. Check ion token scope, URL restriction, asset access, quota and network.",{message:detail,url:error&&error.url});
+   if(status)status.textContent=authFailure?"3D BUILDINGS AUTH ERROR · CHECK TOKEN":"3D BUILDINGS TILE ERROR";
+   setBuildingsUi(authFailure?"3D BUILDINGS AUTH ERROR · Check token scope, URL and access to OSM Buildings.":"A 3D building tile failed. Check Cesium ion quota, network and browser Console.","error");
+   console.warn("Cesium OSM Buildings tile failed.",{message:detail,url:error&&error.url});
   });
   tileset.tileLoad.addEventListener(()=>{
    if(state.buildingsStatus==="ready"||state.buildingsStatus==="loading"){
     state.buildingsStatus="ready";
-    const currentStatus=$("#mapStatus");
-    if(currentStatus&&["3D BUILDINGS CONNECTED · WAITING FOR TILES","3D BUILDINGS LOADING"].includes(currentStatus.textContent))currentStatus.textContent="3D BUILDINGS LOADED · OSM";
-    const cameraHeight=viewer.camera.positionCartographic?viewer.camera.positionCartographic.height:Infinity;
-    if(cameraHeight<=900000&&state.terrainStatus==="ready")setBuildingsUi("WORLD TERRAIN + OSM BUILDINGS ACTIVE · Local GLB clearance: 1.2 m.","ok");
-    else if(cameraHeight>900000)setBuildingsUi("3D BUILDINGS READY · Zoom closer to reveal buildings","ok");
-    else setBuildingsUi("OSM BUILDINGS LOADED · Waiting for Cesium World Terrain…","warn");
+    if(status&&status.textContent!=="EXPLORING")status.textContent="3D GLOBE ONLINE · OSM";
+    syncBuildingVisibility();
    }
   });
-  viewer.scene.primitives.add(tileset);
-  state.buildingsStatus="ready";
   if(status)status.textContent="3D GLOBE ONLINE · OSM";
   setBuildingsUi("3D BUILDINGS READY · Zoom closer to reveal buildings","ok");
-  console.info("Cesium OSM Buildings tileset attached. Building visibility depends on tile loading and local data coverage.");
+  console.info("[Heritage Atlas] OSM Buildings tileset prepared; it remains outside the render scene until local zoom.");
  }catch(error){
   state.buildingsStatus="unavailable";
-  console.warn("Cesium OSM Buildings could not initialize. Check the ion access token, OSM Buildings asset access, streaming quota and network.",error);
-  const currentStatus=$("#mapStatus");
-  if(currentStatus)currentStatus.textContent="3D BUILDINGS UNAVAILABLE · CHECK ION";
-  setBuildingsUi("3D BUILDINGS UNAVAILABLE · Check token, asset access, quota, and network.","error");
+  console.warn("Cesium OSM Buildings could not initialize. Check ion token, asset access, quota and network.",error);
+  if(status)status.textContent="3D BUILDINGS UNAVAILABLE · CHECK ION";
+  setBuildingsUi("3D BUILDINGS UNAVAILABLE · Check token, asset access, quota and network.","error");
  }
 }
-function initMap(){if(!window.Cesium){fallback();return}try{const appIonToken=String(window.CESIUM_ION_ACCESS_TOKEN||"").trim();if(appIonToken&&Cesium.Ion)Cesium.Ion.defaultAccessToken=appIonToken;const worldTerrain=Cesium.Terrain.fromWorldTerrain({requestVertexNormals:true});const v=new Cesium.Viewer("cesiumContainer",{terrain:worldTerrain,animation:false,baseLayer:false,baseLayerPicker:false,geocoder:false,homeButton:false,infoBox:false,sceneModePicker:false,selectionIndicator:false,timeline:false,navigationHelpButton:false,fullscreenButton:false,shouldAnimate:false});state.viewer=v;state.terrainStatus="loading";worldTerrain.readyEvent.addEventListener(()=>{state.terrainStatus="ready";console.info("[Heritage Atlas] Cesium World Terrain ready; OSM imagery and local models can align to sampled ground heights.");if(state.buildingsStatus==="ready")setBuildingsUi("WORLD TERRAIN + OSM BUILDINGS ACTIVE · Local GLB clearance: 1.2 m.","ok");else if(state.buildingsStatus==="loading")setBuildingsUi("CESIUM WORLD TERRAIN READY · OSM Buildings still loading…","")});worldTerrain.errorEvent.addEventListener(error=>{state.terrainStatus="unavailable";console.warn("[Heritage Atlas] Cesium World Terrain failed. Falling back to an ellipsoid to preserve the globe and OSM imagery.",error);try{v.scene.setTerrain(new Cesium.Terrain(Promise.resolve(new Cesium.EllipsoidTerrainProvider())));state.terrainStatus="ellipsoid-fallback"}catch(fallbackError){console.warn("[Heritage Atlas] Ellipsoid terrain fallback failed.",fallbackError)}setBuildingsUi("WORLD TERRAIN UNAVAILABLE · Globe restored with a smooth ellipsoid. Check the Cesium ion token and World Terrain asset access.","error")});v.imageryLayers.removeAll();v.imageryLayers.addImageryProvider(new Cesium.OpenStreetMapImageryProvider({url:"https://tile.openstreetmap.org/"}));v.scene.globe.enableLighting=false;v.scene.globe.baseColor=Cesium.Color.fromCssColorString("#78979a");v.scene.backgroundColor=Cesium.Color.fromCssColorString("#071a24");v.scene.globe.show=true;v.scene.globe.depthTestAgainstTerrain=true;v.scene.fog.enabled=false;v.scene.screenSpaceCameraController.enableRotate=true;v.scene.screenSpaceCameraController.enableZoom=true;v.scene.screenSpaceCameraController.enableTilt=true;v.camera.setView({destination:Cesium.Cartesian3.fromDegrees(112,4,22500000),orientation:{heading:0,pitch:Cesium.Math.toRadians(-88),roll:0}});markers();initGlobeModelOverlay();initKomodoMapOverlay();$("#mapStatus").textContent="OPEN MAP · OPENSTREETMAP";initOsmBuildings(v);v.screenSpaceEventHandler.setInputAction(e=>{const p=v.scene.pick(e.position);if(Cesium.defined(p)&&p.id&&p.id.siteId)openSite(p.id.siteId,true)},Cesium.ScreenSpaceEventType.LEFT_CLICK);v.screenSpaceEventHandler.setInputAction(e=>updateMapHover(e.endPosition),Cesium.ScreenSpaceEventType.MOUSE_MOVE);$("#cesiumContainer").addEventListener("mouseleave",()=>{$("#mapHoverTooltip").hidden=true;const old=state.entities.get(state.hovered);if(old&&old.label)old.label.show=state.hovered===state.selected;state.hovered=null;setSelectedMarker(state.selected)});v.scene.globe.tileLoadProgressEvent.addEventListener(n=>{if(n===0&&$("#mapStatus").textContent==="OPEN MAP · OPENSTREETMAP")$("#mapStatus").textContent="3D GLOBE ONLINE · OSM"})}catch(e){console.error("Cesium / OpenStreetMap initialization failed",e);fallback()}}
+function initMap(){if(!window.Cesium){fallback();return}try{const appIonToken=String(window.CESIUM_ION_ACCESS_TOKEN||"").trim();if(appIonToken&&Cesium.Ion)Cesium.Ion.defaultAccessToken=appIonToken;const worldTerrain=Cesium.Terrain.fromWorldTerrain({requestVertexNormals:true});const v=new Cesium.Viewer("cesiumContainer",{terrain:worldTerrain,animation:false,baseLayer:false,baseLayerPicker:false,geocoder:false,homeButton:false,infoBox:false,sceneModePicker:false,selectionIndicator:false,timeline:false,navigationHelpButton:false,fullscreenButton:false,shouldAnimate:false});state.viewer=v;state.terrainStatus="loading";worldTerrain.readyEvent.addEventListener(()=>{state.terrainStatus="ready";console.info("[Heritage Atlas] Cesium World Terrain ready; OSM imagery and local models can align to sampled ground heights.");if(state.buildingsVisibilitySync)state.buildingsVisibilitySync();else if(state.buildingsStatus==="loading")setBuildingsUi("CESIUM WORLD TERRAIN READY · OSM Buildings still preparing…","")});worldTerrain.errorEvent.addEventListener(error=>{state.terrainStatus="unavailable";console.warn("[Heritage Atlas] Cesium World Terrain failed. Falling back to an ellipsoid to preserve the globe and OSM imagery.",error);try{v.scene.setTerrain(new Cesium.Terrain(Promise.resolve(new Cesium.EllipsoidTerrainProvider())));state.terrainStatus="ellipsoid-fallback"}catch(fallbackError){console.warn("[Heritage Atlas] Ellipsoid terrain fallback failed.",fallbackError)}setBuildingsUi("WORLD TERRAIN UNAVAILABLE · Globe restored with a smooth ellipsoid. Check the Cesium ion token and World Terrain asset access.","error")});v.imageryLayers.removeAll();v.imageryLayers.addImageryProvider(new Cesium.OpenStreetMapImageryProvider({url:"https://tile.openstreetmap.org/"}));v.scene.globe.enableLighting=false;v.scene.globe.baseColor=Cesium.Color.fromCssColorString("#78979a");v.scene.backgroundColor=Cesium.Color.fromCssColorString("#071a24");v.scene.globe.show=true;v.scene.globe.depthTestAgainstTerrain=true;v.scene.fog.enabled=false;v.scene.screenSpaceCameraController.enableRotate=true;v.scene.screenSpaceCameraController.enableZoom=true;v.scene.screenSpaceCameraController.enableTilt=true;v.camera.setView({destination:Cesium.Cartesian3.fromDegrees(112,4,22500000),orientation:{heading:0,pitch:Cesium.Math.toRadians(-88),roll:0}});markers();initGlobeModelOverlay();initKomodoMapOverlay();$("#mapStatus").textContent="OPEN MAP · OPENSTREETMAP";initOsmBuildings(v);v.screenSpaceEventHandler.setInputAction(e=>{const p=v.scene.pick(e.position);if(Cesium.defined(p)&&p.id&&p.id.siteId)openSite(p.id.siteId,true)},Cesium.ScreenSpaceEventType.LEFT_CLICK);v.screenSpaceEventHandler.setInputAction(e=>updateMapHover(e.endPosition),Cesium.ScreenSpaceEventType.MOUSE_MOVE);$("#cesiumContainer").addEventListener("mouseleave",()=>{$("#mapHoverTooltip").hidden=true;const old=state.entities.get(state.hovered);if(old&&old.label)old.label.show=state.hovered===state.selected;state.hovered=null;setSelectedMarker(state.selected)});v.scene.globe.tileLoadProgressEvent.addEventListener(n=>{if(n===0&&$("#mapStatus").textContent==="OPEN MAP · OPENSTREETMAP")$("#mapStatus").textContent="3D GLOBE ONLINE · OSM"})}catch(e){console.error("Cesium / OpenStreetMap initialization failed",e);fallback()}}
 function fallback(){$("#mapStatus").textContent="MAP OFFLINE";$("#mapFallback").hidden=false}
 function renderLocalModelPicker(site){
  const zoneButton=$("#zoneToggleBtn");
