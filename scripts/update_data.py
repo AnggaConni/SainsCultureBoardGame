@@ -13,6 +13,7 @@ Examples:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import sys
@@ -33,6 +34,10 @@ WORLD_BANK_API = "https://api.worldbank.org/v2"
 USER_AGENT = "WorldHeritageAtlasDataBot/1.0 (+https://github.com/AnggaConni/SainsCultureBoardGame)"
 PAGE_SIZE = 100
 DEFAULT_YEARS = "2015:2025"
+TENTATIVE_REPORT_URL = "https://whc.unesco.org/document/226485"
+TENTATIVE_LIST_PAGE_URL = "https://whc.unesco.org/en/tentativelists/"
+TENTATIVE_REPORT_CODE = "WHC/26/48.COM/8A"
+TENTATIVE_SNAPSHOT_AS_OF = "2026-04-15"
 
 DATASETS = {
     "whc001": {
@@ -170,6 +175,294 @@ def fetch_ods_records(dataset_id: str) -> tuple[list[dict[str, Any]], int]:
             break
         time.sleep(0.12)
     return records, total_count if total_count is not None else len(records)
+
+
+
+def _tentative_key(value: str) -> str:
+    """Normalize a country heading for robust PDF line-wrap matching."""
+    return re.sub(r"[^\w]+", " ", value.casefold(), flags=re.UNICODE).strip()
+
+
+def _tentative_clean_line(value: str) -> str:
+    """Remove extraction control characters while preserving meaningful punctuation."""
+    value = value.replace("\x02", "-").replace("\x1f", "-").replace("\u00ad", "")
+    value = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1e]", " ", value)
+    return re.sub(r"\s+", " ", value).strip()
+
+
+def _tentative_country_aliases(page_texts: list[str], list_start: int) -> dict[str, str]:
+    """Read country headings from Annex 1 so Annex 3 names can be assigned conservatively."""
+    table_lines: list[str] = []
+    for page in page_texts[4:min(6, list_start)]:
+        table_lines.extend(_tentative_clean_line(line) for line in page.splitlines())
+    aliases: dict[str, str] = {}
+    region_names = {
+        "AFRICA", "ARAB STATES", "ASIA AND THE PACIFIC",
+        "EUROPE AND NORTH AMERICA", "LATIN AMERICA AND THE CARIBBEAN",
+        "STATE PARTY", "LAST REVISION",
+    }
+    date_pattern = re.compile(r"^(.*?)\s+(\d{2}/\d{2}/\d{4})$")
+    for index, line in enumerate(table_lines):
+        match = date_pattern.match(line)
+        if not match:
+            continue
+        base = match.group(1).strip()
+        if not base or base.casefold().startswith("total "):
+            continue
+        candidates = [base]
+        previous: list[str] = []
+        for distance in range(1, min(4, index + 1)):
+            part = table_lines[index - distance]
+            if not part or date_pattern.match(part) or part.casefold().startswith("total "):
+                break
+            if part.upper() in region_names or part.isupper():
+                break
+            if re.search(r"world heritage|last revision|state party|tentative lists", part, re.I):
+                break
+            previous.insert(0, part)
+            candidates.append(" ".join(previous + [base]))
+        canonical = max(candidates, key=len)
+        for candidate in candidates:
+            key = _tentative_key(candidate)
+            if key:
+                # Prefer the longer complete country heading when a PDF wraps it.
+                current = aliases.get(key)
+                if current is None or len(canonical) > len(current):
+                    aliases[key] = canonical
+    # Common multi-line country names may be wrapped differently across pages.
+    explicit = {
+        "democratic people's republic of korea": "Democratic People's Republic of Korea",
+        "democratic republic of the congo": "Democratic Republic of the Congo",
+        "united republic of tanzania": "United Republic of Tanzania",
+        "united kingdom of great britain and northern ireland": "United Kingdom of Great Britain and Northern Ireland",
+        "republic of korea": "Republic of Korea",
+        "state of palestine": "State of Palestine",
+    }
+    aliases.update({_tentative_key(alias): name for alias, name in explicit.items()})
+    return aliases
+
+
+def parse_tentative_list_pages(page_texts: list[str]) -> list[dict[str, Any]]:
+    """Parse the country/site/type table in UNESCO WHC document WHC/26/48.COM/8A.
+
+    The official report does not provide coordinates in Annex 3. Coordinates are
+    deliberately preserved as null until a separately verified geospatial source is
+    available; the records appear in the list but are not plotted as map markers.
+    """
+    list_start = next(
+        (index for index, text in enumerate(page_texts)
+         if "WORLD HERITAGE TENTATIVE LISTS BY REGION" in re.sub(r"\s+", " ", text.upper())),
+        None,
+    )
+    if list_start is None:
+        raise ValueError("Could not find Annex 3 of the official Tentative List report.")
+    country_aliases = _tentative_country_aliases(page_texts, list_start)
+    if len(country_aliases) < 40:
+        raise ValueError("Could not recover enough State Party headings from Annex 1.")
+
+    regions = {
+        "AFRICA", "ARAB STATES", "ASIA AND THE PACIFIC",
+        "EUROPE AND NORTH AMERICA", "LATIN AMERICA AND THE CARIBBEAN",
+    }
+    header_patterns = (
+        re.compile(r"^tentative lists (submitted by states parties|prepared by states parties)", re.I),
+        re.compile(r"^in conformity with the operational guidelines", re.I),
+        re.compile(r"^whc/26/48\.com/8a", re.I),
+        re.compile(r"^world heritage tentative lists by region$", re.I),
+        re.compile(r"^annex 3$", re.I),
+        re.compile(r"^sites accepted as meeting the requirements", re.I),
+        re.compile(r"^names of sites are listed in the language", re.I),
+    )
+    by_key: dict[str, dict[str, Any]] = {}
+    current_country: str | None = None
+    name_buffer: list[str] = []
+
+    def emit(name: str, code: str) -> None:
+        nonlocal current_country
+        clean_name = re.sub(r"\s+", " ", name).strip()
+        clean_name = re.sub(r"\s*\(#\)\s*", " ", clean_name).strip()
+        clean_name = re.sub(r"\s+", " ", clean_name)
+        if not current_country or not clean_name or len(clean_name) < 3:
+            return
+        categories = {"C": "Cultural", "N": "Natural", "CN": "Mixed"}
+        identity = f"{current_country.casefold()}|{clean_name.casefold()}"
+        record_id = "whc_tentative_2026:" + hashlib.sha1(identity.encode("utf-8")).hexdigest()[:16]
+        by_key.setdefault(identity, {
+            "id": record_id,
+            "sourceId": record_id.rsplit(":", 1)[-1],
+            "name": clean_name,
+            "country": current_country,
+            "category": categories[code],
+            "entityType": "tentative_site",
+            "programme": "world_heritage_tentative",
+            "coordinates": None,
+            "mapEligible": False,
+            "geometry": None,
+            "year": None,
+            "officialUrl": TENTATIVE_LIST_PAGE_URL,
+            "status": "tentative",
+            "statusAsOf": TENTATIVE_SNAPSHOT_AS_OF,
+            "source": {
+                "datasetId": "whc_tentative_2026",
+                "datasetUrl": TENTATIVE_REPORT_URL,
+                "recordUrl": TENTATIVE_LIST_PAGE_URL,
+                "attribution": "UNESCO World Heritage Centre",
+                "reportCode": TENTATIVE_REPORT_CODE,
+                "snapshotAsOf": TENTATIVE_SNAPSHOT_AS_OF,
+                "coordinateStatus": "not provided in report; not mapped",
+            },
+        })
+
+    def match_country(lines: list[str], index: int) -> tuple[str | None, int]:
+        # Try wrapped headings first, then exact single-line headings.
+        for width in range(min(4, len(lines) - index), 0, -1):
+            candidate_lines = lines[index:index + width]
+            if any(not item for item in candidate_lines):
+                continue
+            key = _tentative_key(" ".join(candidate_lines))
+            if key in country_aliases:
+                return country_aliases[key], width
+        return None, 0
+
+    for page in page_texts[list_start:]:
+        lines = [_tentative_clean_line(line) for line in page.splitlines()]
+        index = 0
+        while index < len(lines):
+            line = lines[index]
+            if not line:
+                index += 1
+                continue
+            upper = line.upper()
+            if upper in regions:
+                current_country = None
+                name_buffer = []
+                index += 1
+                continue
+            if any(pattern.search(line) for pattern in header_patterns):
+                index += 1
+                continue
+
+            country, width = match_country(lines, index)
+            if country:
+                current_country = country
+                name_buffer = []
+                index += width
+                continue
+
+            if line in {"C", "N", "CN"}:
+                if name_buffer:
+                    emit(" ".join(name_buffer), line)
+                    name_buffer = []
+                index += 1
+                continue
+
+            # The PDF text layer sometimes joins the category code to the name.
+            code = None
+            name_part = line
+            spaced = re.match(r"^(.*?)\s+(CN|C|N)$", line)
+            if spaced:
+                name_part, code = spaced.group(1).strip(), spaced.group(2)
+            elif re.search(r"\)(CN|C|N)$", line):
+                code = re.search(r"(CN|C|N)$", line).group(1)
+                name_part = line[:-len(code)].strip()
+            elif current_country:
+                for candidate_code in ("CN", "C", "N"):
+                    if line.endswith(candidate_code) and len(line) > len(candidate_code) + 2:
+                        prefix = line[:-len(candidate_code)].rstrip()
+                        if prefix and " " in prefix:
+                            name_part, code = prefix, candidate_code
+                            break
+
+            if code:
+                if name_part:
+                    name_buffer.append(name_part)
+                emit(" ".join(name_buffer), code)
+                name_buffer = []
+                index += 1
+                continue
+
+            if current_country:
+                name_buffer.append(line)
+            index += 1
+
+    records = list(by_key.values())
+    if not records:
+        raise ValueError("No Tentative List records were parsed from Annex 3.")
+    return records
+
+
+def fetch_tentative_list(force: bool, max_age_days: int) -> tuple[dict[str, Any], bool]:
+    """Load the latest reviewed official WHC Tentative List report snapshot.
+
+    This is a separate official WHC document source, not a UNESCO DataHub dataset.
+    The document itself is periodically published; update TENTATIVE_REPORT_URL and
+    TENTATIVE_SNAPSHOT_AS_OF when a newer complete report becomes available.
+    """
+    cache_path = OUT / "tentative_list.json"
+    cached = read_json(cache_path)
+    if (
+        not force and cache_is_fresh(cached, max_age_days)
+        and isinstance(cached.get("records"), list) and len(cached["records"]) > 500
+        and cached.get("snapshotAsOf") == TENTATIVE_SNAPSHOT_AS_OF
+    ):
+        print(f"[cache] WHC Tentative List: {len(cached['records'])} records (as of {cached['snapshotAsOf']})")
+        return cached, False
+
+    try:
+        from pypdf import PdfReader
+    except ImportError as exc:
+        raise RuntimeError("Tentative List extraction requires pypdf. Install it with: python -m pip install pypdf") from exc
+
+    raw_path = RAW_UNESCO / "tentative_lists_whc26_48_com_8a.pdf"
+    raw_path.parent.mkdir(parents=True, exist_ok=True)
+    last_error: Exception | None = None
+    pdf_bytes: bytes | None = None
+    for attempt in range(4):
+        request = Request(TENTATIVE_REPORT_URL, headers={
+            "Accept": "application/pdf",
+            "User-Agent": USER_AGENT,
+        })
+        try:
+            with urlopen(request, timeout=90) as response:
+                pdf_bytes = response.read()
+            if not pdf_bytes.startswith(b"%PDF-"):
+                raise ValueError("The official Tentative List report URL did not return a PDF.")
+            raw_path.write_bytes(pdf_bytes)
+            break
+        except (HTTPError, URLError, TimeoutError, ValueError) as exc:
+            last_error = exc
+            if attempt == 3:
+                raise RuntimeError(f"Unable to fetch official WHC Tentative List report: {exc}") from exc
+            time.sleep(min(2 ** attempt, 20))
+    if pdf_bytes is None:
+        raise RuntimeError(f"Unable to fetch official WHC Tentative List report: {last_error}")
+
+    reader = PdfReader(str(raw_path), strict=False)
+    page_texts = [page.extract_text() or "" for page in reader.pages]
+    records = parse_tentative_list_pages(page_texts)
+    if len(records) < 500:
+        raise ValueError(f"Parsed only {len(records)} Tentative List records; refusing to replace the cached snapshot.")
+
+    payload = {
+        "schemaVersion": "1.0.0",
+        "programme": "world_heritage_tentative",
+        "datasetId": "whc_tentative_2026",
+        "title": "World Heritage Tentative List",
+        "source": TENTATIVE_REPORT_URL,
+        "sourceListUrl": TENTATIVE_LIST_PAGE_URL,
+        "reportCode": TENTATIVE_REPORT_CODE,
+        "attribution": "UNESCO World Heritage Centre",
+        "snapshotAsOf": TENTATIVE_SNAPSHOT_AS_OF,
+        "fetchedAt": utc_now(),
+        "totalCount": len(records),
+        "mapEligibleCount": 0,
+        "records": records,
+        "methodNote": "The official report lists candidate names, States Parties and Cultural/Natural/Mixed type, but does not provide central-point coordinates in Annex 3. Records remain unplaced until coordinates are independently verified. Tentative status is not inscription.",
+        "reuseNote": "The document page states © UNESCO and does not state an open licence. The app retains source attribution and links; review UNESCO reuse terms before redistribution.",
+    }
+    write_json(cache_path, payload)
+    print(f"[ok] WHC Tentative List: {len(records)} records (as of {TENTATIVE_SNAPSHOT_AS_OF}; not a DataHub dataset)")
+    return payload, True
 
 
 def field_map(record: dict[str, Any]) -> dict[str, Any]:
