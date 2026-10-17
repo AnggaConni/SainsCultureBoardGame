@@ -251,6 +251,7 @@ def audit_repository(root: Path = ROOT, force: bool = False, checked_at: str | N
         f"| Invalid GLB containers | {len(invalid_glb)} |",
         f"| Non-standard filenames | {len(invalid_names)} |",
         f"| Model files above recommended {human_size(recommended_max)} | {len(oversized)} |",
+        f"| Non-GLB files inside model folder | {len(non_glb_in_model_folder)} |",
         "",
         "## Current inventory",
         "",
@@ -293,6 +294,14 @@ def audit_repository(root: Path = ROOT, force: bool = False, checked_at: str | N
         lines.append(f"| {md_escape(spec['path'])} | {md_escape(spec.get('requirement'))} | {md_escape(spec.get('label'))} | {md_escape(source_note)} |")
     if not planned_entries and not optional_entries:
         lines.append("| No planned or optional asset is missing | — | — | — |")
+
+    if non_glb_in_model_folder:
+        lines.extend(["", "## Unsupported file formats in assets/models", "",
+                      "The canonical folder should contain .glb files only (plus its README). Convert these files in Blender and export as GLB, or move non-model documentation out of this folder.", ""])
+        lines.extend([f"- {p}" for p in non_glb_in_model_folder])
+        lines.append("")
+    else:
+        lines.extend(["", "## Unsupported file formats in assets/models", "", "- None", ""])
 
     lines.extend(["", "## New, changed and removed since previous audit", "",
                   comparison_note, ""])
