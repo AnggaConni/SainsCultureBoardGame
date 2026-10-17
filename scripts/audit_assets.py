@@ -18,8 +18,8 @@ REPORT_REL = Path("ASSET_AUDIT_REPORT.md")
 GLB_MAGIC = b"glTF"
 GLB_VERSION = 2
 JSON_CHUNK_TYPE = 0x4E4F534A
-SNAKE_CASE_GLB = re.compile(r"^[a-z0-9]+(?:_[a-z0-9]+)*\\.glb$")
-REFERENCE_PATTERN = re.compile(r"assets/[A-Za-z0-9_./-]+\\.glb")
+SNAKE_CASE_GLB = re.compile(r"^[a-z0-9]+(?:_[a-z0-9]+)*\.glb$")
+REFERENCE_PATTERN = re.compile(r"assets/[A-Za-z0-9_./-]+\.glb")
 
 
 def utc_now() -> str:
@@ -83,7 +83,7 @@ def inspect_glb(path: Path) -> dict[str, Any]:
                         issues.append("Multiple JSON chunks detected.")
                     saw_json = True
                     try:
-                        json.loads(chunk_data.decode("utf-8").rstrip(" \\t\\r\\n\\x00"))
+                        json.loads(chunk_data.decode("utf-8").rstrip(" \t\r\n\x00"))
                     except (UnicodeDecodeError, json.JSONDecodeError):
                         issues.append("GLB JSON chunk is not valid UTF-8 JSON.")
                 offset += chunk_length
@@ -137,7 +137,7 @@ def human_size(size: int) -> str:
 
 
 def md_escape(value: Any) -> str:
-    return str(value if value is not None else "—").replace("|", "\\|").replace("\\n", " ")
+    return str(value if value is not None else "—").replace("|", "\\|").replace("\n", " ")
 
 
 def audit_repository(root: Path = ROOT, force: bool = False, checked_at: str | None = None) -> tuple[dict[str, Any], str]:
@@ -353,7 +353,7 @@ def audit_repository(root: Path = ROOT, force: bool = False, checked_at: str | N
                   "",
                   "Full filename list and upload steps: ASSET_UPLOAD_GUIDE.md. Canonical metadata: data/asset_manifest.json.",
                   ""])
-    return state, "\\n".join(lines)
+    return state, "\n".join(lines)
 
 
 def main() -> int:
@@ -363,7 +363,7 @@ def main() -> int:
     args = parser.parse_args()
     state, report = audit_repository(ROOT, force=args.force)
     (ROOT / STATE_REL).parent.mkdir(parents=True, exist_ok=True)
-    (ROOT / STATE_REL).write_text(json.dumps(state, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8")
+    (ROOT / STATE_REL).write_text(json.dumps(state, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     (ROOT / REPORT_REL).write_text(report, encoding="utf-8")
     print(report.splitlines()[0])
     print(f"Folder: {state['canonicalDirectory']}/")
