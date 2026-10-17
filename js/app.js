@@ -479,7 +479,7 @@ async function initOsmBuildings(viewer){
   const tileset=await Cesium.createOsmBuildingsAsync({enableShowOutline:false});
   if(state.viewer!==viewer){tileset.destroy();return}
   state.buildingsTileset=tileset;
-  const BUILDINGS_MAX_VISIBLE_CAMERA_HEIGHT_METERS=900000;
+  const BUILDINGS_MAX_VISIBLE_CAMERA_HEIGHT_METERS=500000;
   const syncBuildingVisibility=()=>{
    if(state.viewer!==viewer||!state.buildingsTileset)return;
    const cameraHeight=viewer.camera.positionCartographic?viewer.camera.positionCartographic.height:Infinity;
@@ -495,7 +495,12 @@ async function initOsmBuildings(viewer){
   tileset.show=false;
   viewer.camera.percentageChanged=0.03;
   viewer.camera.changed.addEventListener(syncBuildingVisibility);
-  state.buildingsVisibilityCleanup=()=>{try{viewer.camera.changed.removeEventListener(syncBuildingVisibility)}catch(_){}};
+  viewer.scene.preRender.addEventListener(syncBuildingVisibility);
+  state.buildingsVisibilityCleanup=()=>{
+   try{viewer.camera.changed.removeEventListener(syncBuildingVisibility)}catch(_){}
+   try{viewer.scene.preRender.removeEventListener(syncBuildingVisibility)}catch(_){}
+  };
+  // Re-evaluate every frame so a late tile load cannot leave buildings visible on the global globe.
   syncBuildingVisibility();
   tileset.tileFailed.addEventListener(error=>{
    state.buildingsStatus="tile-error";
