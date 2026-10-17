@@ -1,0 +1,10 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "heritage-site-intelligence",
+  "main": "site-intelligence-worker.js",
+  "compatibility_date": "2026-10-13",
+  "workers_dev": true,
+  "vars": {
+    "ALLOWED_ORIGINS": "https://anggaconni.github.io"
+  }
+}
