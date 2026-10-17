@@ -93,8 +93,8 @@ test("terrain shading does not darken the entire OSM basemap", () => {
 });
 
 test("map markers stay clamped to ground but remain occluded by the globe", () => {
-  assert.match(app, /heightReference:Cesium\\.HeightReference\\.CLAMP_TO_GROUND,disableDepthTestDistance:0\\},label:/);
-  assert.match(app, /distanceDisplayCondition:new Cesium\\.DistanceDisplayCondition\\(0,450000\\),disableDepthTestDistance:0/);
-  assert.match(app, /v\\.scene\\.globe\\.depthTestAgainstTerrain=true/);
-  assert.doesNotMatch(app, /disableDepthTestDistance:Number\\.POSITIVE_INFINITY/);
+  assert.ok(app.includes("heightReference:Cesium.HeightReference.CLAMP_TO_GROUND,disableDepthTestDistance:0},label:"));
+  assert.ok(app.includes("distanceDisplayCondition:new Cesium.DistanceDisplayCondition(0,450000),disableDepthTestDistance:0}});"));
+  assert.ok(app.includes("v.scene.globe.depthTestAgainstTerrain=true"));
+  assert.ok(!app.includes("disableDepthTestDistance:Number.POSITIVE_INFINITY"));
 });
