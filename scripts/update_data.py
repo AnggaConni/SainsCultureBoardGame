@@ -715,7 +715,9 @@ def run(args: argparse.Namespace) -> int:
             "Automated data is kept separately from data/sites.json. Human-reviewed model paths, educational copy and map anchors are not overwritten.",
             "World Bank tourism/economy indicators are country-level context, not evidence of an individual heritage site's economic contribution.",
             "Some UNESCO programmes do not provide a reliable point location for every record. Missing coordinates are preserved as null; records are not dropped.",
-            "Check each dataset's current licence and attribution terms before republishing."
+            "The World Heritage Tentative List is a separate official WHC report snapshot as of 15 April 2026, not a UNESCO DataHub dataset and not an inscription.",
+            "Tentative-list coordinates are left null because the report's Annex 3 does not provide central-point coordinates; these entries appear in the list but are not plotted.",
+            "Check each dataset's current licence and attribution terms before republishing; the WHC report states © UNESCO and no open licence is stated on its document page."
         ],
     }
     registry: list[dict[str, Any]] = []
@@ -749,6 +751,33 @@ def run(args: argparse.Namespace) -> int:
                 print(f"[error] UNESCO {dataset_id}: {exc}", file=sys.stderr)
                 errors.append({"sourceId": dataset_id, "error": str(exc)})
                 manifest["sources"].append({"sourceId": dataset_id, "url": conf["url"], "status": "error", "error": str(exc)})
+        try:
+            tentative_payload, changed = fetch_tentative_list(args.force, args.max_age_days)
+            changed_count += int(changed)
+            tentative_records = tentative_payload.get("records", [])
+            registry.extend(tentative_records)
+            manifest["sources"].append({
+                "sourceId": "whc_tentative_2026",
+                "sourceType": "unesco_whc_official_document",
+                "url": TENTATIVE_REPORT_URL,
+                "listingUrl": TENTATIVE_LIST_PAGE_URL,
+                "status": "ok",
+                "recordCount": len(tentative_records),
+                "mapEligibleCount": sum(1 for record in tentative_records if record.get("mapEligible")),
+                "fetchedAt": tentative_payload.get("fetchedAt"),
+                "snapshotAsOf": TENTATIVE_SNAPSHOT_AS_OF,
+                "reportCode": TENTATIVE_REPORT_CODE,
+                "attribution": "UNESCO World Heritage Centre",
+                "reuseNote": "© UNESCO; review reuse terms before redistribution.",
+            })
+        except Exception as exc:
+            print(f"[error] WHC Tentative List: {exc}", file=sys.stderr)
+            errors.append({"sourceId": "whc_tentative_2026", "error": str(exc)})
+            manifest["sources"].append({
+                "sourceId": "whc_tentative_2026", "url": TENTATIVE_REPORT_URL,
+                "status": "error", "error": str(exc),
+            })
+
     if args.scope in ("all", "economy"):
         economic_records: list[dict[str, Any]] = []
         successful_indicator_codes: set[str] = set()
@@ -788,7 +817,7 @@ def run(args: argparse.Namespace) -> int:
             "schemaVersion": "1.0.0", "title": "UNESCO designation registry",
             "fetchedAt": utc_now(), "recordCount": len(registry), "mapEligibleCount": sum(1 for r in registry if r.get("mapEligible")),
             "records": registry,
-            "programmeNote": "World Heritage sites, Global Geoparks, Biosphere Reserves, Intangible Cultural Heritage elements and Creative Cities are separate UNESCO designation programmes; do not merge them into one site category.",
+            "programmeNote": "Inscribed World Heritage properties, World Heritage Tentative List candidates, Global Geoparks, Biosphere Reserves, Intangible Cultural Heritage elements and Creative Cities are separate programmes/statuses; tentative candidates are not inscribed and do not inherit coordinates.",
         })
     manifest["generatedAt"] = utc_now()
     manifest["successCount"] = sum(1 for s in manifest["sources"] if s.get("status") == "ok")
