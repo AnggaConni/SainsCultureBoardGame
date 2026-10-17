@@ -66,8 +66,21 @@ class AuditAssetsTests(unittest.TestCase):
             self.assertIn("assets/models/planned.glb", report)
             self.assertIn("assets/models/extra_model.glb", report)
             self.assertIn("unregistered", report.lower())
-            self.assertIn("extra_model.glb", state["assets"])
+            self.assertIn("assets/models/extra_model.glb", state["assets"])
             self.assertEqual(len(state["assets"]), 1)
+
+    def test_non_glb_upload_is_listed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "data").mkdir()
+            models = root / "assets" / "models"
+            models.mkdir(parents=True)
+            (root / "data" / "asset_manifest.json").write_text(
+                json.dumps({"canonicalDirectory":"assets/models","assets":[]}), encoding="utf-8")
+            (models / "accidental_upload.gltf").write_text("{}", encoding="utf-8")
+            _, report = audit_repository(root, checked_at="2026-10-17T00:00:00+00:00")
+            self.assertIn("Unsupported file formats in assets/models", report)
+            self.assertIn("assets/models/accidental_upload.gltf", report)
 
     def test_initial_audit_creates_baseline_state(self):
         with tempfile.TemporaryDirectory() as tmp:
