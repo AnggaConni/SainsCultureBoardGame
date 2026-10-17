@@ -82,3 +82,7 @@ The site uses a custom vector temple favicon at `favicon.svg` with an explicit S
 ## Dynamic UNESCO explorer
 The application reads the curated `data/sites.json` and generated `data/generated/site_registry.json`. The registry currently contains 3,568 records across five distinct programmes; roughly 1,824 source records have map coordinates. The UI now includes site search, programme filters and incremental list rendering. Records without coordinates stay searchable in the list but are not given invented map pins. Curated records reuse the stable local IDs, notes and GLB configuration.
 The Borobudur overlay uses a square transparent canvas and fits the complete GLB bounding sphere to the camera before display. This should reduce the previous clipping caused by a wide canvas and too-close fixed camera. The selected model's own marker label is suppressed behind the mesh.
+
+
+## Globe marker occlusion and exploration-zone label
+Map points and site labels use depth testing rather than disabling it at infinite distance. This prevents markers on the far hemisphere (for example Africa when the camera faces Asia) from being drawn over the visible side of the globe. The exploration zone is labelled by a responsive HTML card instead of a tiny geospatial Cesium label, so the radius and non-official-boundary disclaimer remain legible.
