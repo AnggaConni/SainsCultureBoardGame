@@ -46,6 +46,52 @@ jobs:
           python scripts/test_update_data.py
           python scripts/test_audit_assets.py
           python scripts/audit_assets.py --force
+      - name: Validate runtime GLB containers and report extensions
+        run: |
+          python - <<'PY'
+          import json
+          import struct
+          from pathlib import Path
+
+          state = json.loads(Path("data/asset_audit_state.json").read_text(encoding="utf-8"))
+          required = [
+              "assets/models/borobudur_temple.glb",
+              "assets/models/prambanan_temple.glb",
+              "assets/models/komodo_dragon.glb",
+          ]
+          failed = False
+          for path in required:
+              item = state.get("assets", {}).get(path)
+              if not item:
+                  print(f"FAIL: file is missing from audit inventory: {path}")
+                  failed = True
+                  continue
+              print(f"{'PASS' if item.get('validGlb') else 'FAIL'}: {path} ({item.get('sizeBytes')} bytes)")
+              for issue in item.get("issues", []):
+                  print(f"  - {issue}")
+              try:
+                  with Path(path).open("rb") as model:
+                      header = model.read(12)
+                      _, _, declared = struct.unpack("<4sII", header)
+                      offset = 12
+                      gltf = None
+                      while offset + 8 <= declared:
+                          chunk_length, chunk_type = struct.unpack("<II", model.read(8))
+                          offset += 8
+                          chunk = model.read(chunk_length)
+                          offset += chunk_length
+                          if chunk_type == 0x4E4F534A:
+                              gltf = json.loads(chunk.decode("utf-8").rstrip(" \\t\\r\\n\\x00"))
+                              break
+                  used = (gltf or {}).get("extensionsUsed", [])
+                  required_ext = (gltf or {}).get("extensionsRequired", [])
+                  print(f"  extensionsUsed={used}; extensionsRequired={required_ext}")
+              except Exception as exc:
+                  print(f"  extension metadata could not be read: {exc}")
+              failed = failed or not item.get("validGlb")
+          if failed:
+              raise SystemExit("One or more runtime GLB files are not structurally valid.")
+          PY
       - name: Validate JSON and available model paths
         run: |
           python - <<'PY'
@@ -72,6 +118,21 @@ jobs:
                   if model.get("status") == "available":
                       assert (root / model["file"]).is_file(), f"missing available model: {model['file']}"
           print(f"Validated {len(catalog['sites'])} curated sites and the JSON schema.")
+          PY
+      - name: Check GLB decoder bootstrap configuration
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          html = Path("index.html").read_text(encoding="utf-8")
+          app = Path("js/app.js").read_text(encoding="utf-8")
+          assert "three@0.146.0" in html, "Three.js r146 compatibility build is not pinned"
+          assert "meshopt_decoder.module.js" in html, "Meshopt decoder missing"
+          assert "setMeshoptDecoder(MeshoptDecoder)" in html, "GLTFLoader is not wired to Meshopt"
+          assert "setDRACOLoader(dracoLoader)" in html, "GLTFLoader is not wired to Draco"
+          assert "KHR_materials_pbrSpecularGlossiness compatibility" in html, "Legacy material compatibility rationale missing"
+          assert "renderer.outputEncoding=THREE.sRGBEncoding" in app, "Renderer color encoding does not match r146"
+          assert "js/sites.js" in html and "js/app.js" in html, "Application bootstrap must load site data before app code"
+          print("GLTFLoader has Meshopt + Draco decoders; r146 retained for Komodo specular-glossiness materials.")
           PY
       - name: Check JavaScript syntax
         run: |
