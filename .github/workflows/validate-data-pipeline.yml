@@ -46,11 +46,13 @@ jobs:
           python scripts/test_update_data.py
           python scripts/test_audit_assets.py
           python scripts/audit_assets.py --force
-      - name: Validate runtime GLB containers
+      - name: Validate runtime GLB containers and report extensions
         run: |
           python - <<'PY'
           import json
+          import struct
           from pathlib import Path
+
           state = json.loads(Path("data/asset_audit_state.json").read_text(encoding="utf-8"))
           required = [
               "assets/models/borobudur_temple.glb",
@@ -67,6 +69,25 @@ jobs:
               print(f"{'PASS' if item.get('validGlb') else 'FAIL'}: {path} ({item.get('sizeBytes')} bytes)")
               for issue in item.get("issues", []):
                   print(f"  - {issue}")
+              try:
+                  with Path(path).open("rb") as model:
+                      header = model.read(12)
+                      _, _, declared = struct.unpack("<4sII", header)
+                      offset = 12
+                      gltf = None
+                      while offset + 8 <= declared:
+                          chunk_length, chunk_type = struct.unpack("<II", model.read(8))
+                          offset += 8
+                          chunk = model.read(chunk_length)
+                          offset += chunk_length
+                          if chunk_type == 0x4E4F534A:
+                              gltf = json.loads(chunk.decode("utf-8").rstrip(" \\t\\r\\n\\x00"))
+                              break
+                  used = (gltf or {}).get("extensionsUsed", [])
+                  required_ext = (gltf or {}).get("extensionsRequired", [])
+                  print(f"  extensionsUsed={used}; extensionsRequired={required_ext}")
+              except Exception as exc:
+                  print(f"  extension metadata could not be read: {exc}")
               failed = failed or not item.get("validGlb")
           if failed:
               raise SystemExit("One or more runtime GLB files are not structurally valid.")
