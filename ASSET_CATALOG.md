@@ -45,3 +45,10 @@ For a **geographically accurate Komodo landscape**, a generic island mesh is not
 - Borobudur relief — PHAC, Sketchfab, [source](https://sketchfab.com/3d-models/borobudur-3rd-floor-relief-pictograph-2c49eeb628684757b8f0f87165a12007), CC BY with NoAI tag on its listing.
 
 Always check the original download page one more time before publishing; model availability and terms can change.
+
+
+## Site coordinates and the 3D globe
+
+The curated `data/sites.json` now separates site identity from quizzes. A site record can carry a representative WGS84 point, programme/designation information, camera range, and one or more model assets. Models marked `placement: "globe"` can be rendered at map coordinates; `placement: "detail"` is loaded into the separate 3D viewer.
+
+Target sizes such as Borobudur's approximately 35 m display height are sizing targets to normalize the visual model, not a claim that the repository GLB's dimensions have been measured or archaeologically verified. The model's origin/heading/footprint should be checked visually before institutional publication.
