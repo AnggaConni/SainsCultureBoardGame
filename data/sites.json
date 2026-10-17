@@ -79,7 +79,7 @@
         "source": "Curated starter coordinate; verify against survey data"
       },
       "map": {
-        "initialCameraRangeMeters": 9000,
+        "initialCameraRangeMeters": 1800,
         "modelAnchorHeightMeters": 0,
         "modelHeadingDegrees": 0
       },
@@ -89,7 +89,7 @@
           "label": "Borobudur temple — existing repository model",
           "file": "assets/temples/borobudur_temple.glb",
           "format": "glb",
-          "placement": "detail",
+          "placement": "globe",
           "status": "available",
           "scale": 1,
           "targetSizeMeters": {
@@ -108,7 +108,8 @@
           "creator": "Unknown — inherited repository asset",
           "license": "Unverified — review before public redistribution",
           "sourceUrl": null,
-          "notes": "Shown in the isolated Three.js site viewer by default. Do not add this unverified GLB to Cesium's native model render loop until compatibility is tested; the old native path caused the Cesium render loop to stop."
+          "notes": "Rendered as a transparent Three.js overlay anchored at the curated Borobudur coordinate; it is deliberately not passed through Cesium's native glTF renderer. Target height is an approximate visual size and the position should be checked against the real site's elevation/footprint.",
+          "autoScaleToTargetHeight": true
         },
         {
           "id": "borobudur-relief-detail",
@@ -446,6 +447,7 @@
     "Multi-component sites and protected areas cannot be represented accurately by a single point; use the point for map navigation only until boundaries are added.",
     "Model target dimensions are planning metadata, not measured facts about the current GLB file. Inspect actual GLB bounds before using it for scale analysis.",
     "Automated source datasets are stored separately under data/generated and must not overwrite curated designations, model paths, licence reviews, educational copy or coordinates.",
-    "GLB model placement mode 'detail' is intentionally used for the current Borobudur asset to isolate it from Cesium's renderer. Once validated or converted, a separate tested globe-model path can be enabled."
+    "GLB model placement mode 'detail' is intentionally used for the current Borobudur asset to isolate it from Cesium's renderer. Once validated or converted, a separate tested globe-model path can be enabled.",
+    "On-globe GLB models currently use a screen-projected Three.js overlay anchored to the WGS84 coordinate. This prevents the unverified Borobudur asset from entering Cesium's native glTF render loop. The overlay has no terrain occlusion and should be used on the OSM ellipsoid basemap until terrain support is added."
   ]
 }
