@@ -77,3 +77,8 @@ The site uses a custom vector temple favicon at `favicon.svg` with an explicit S
 - The globe overlay rotates slowly and gently bobs vertically while Borobudur is in the visible close-up range.
 - Clicking the transparent model canvas toggles an indicative 350 m exploration zone on the map. The site drawer includes the same control so the zone can be switched while the drawer is open.
 - The circle is explicitly labelled as illustrative, **not the official UNESCO buffer zone**. Replace it with a validated boundary polygon from an authoritative source before presenting it as an official buffer zone.
+
+
+## Dynamic UNESCO explorer
+The application reads the curated `data/sites.json` and generated `data/generated/site_registry.json`. The registry currently contains 3,568 records across five distinct programmes; roughly 1,824 source records have map coordinates. The UI now includes site search, programme filters and incremental list rendering. Records without coordinates stay searchable in the list but are not given invented map pins. Curated records reuse the stable local IDs, notes and GLB configuration.
+The Borobudur overlay uses a square transparent canvas and fits the complete GLB bounding sphere to the camera before display. This should reduce the previous clipping caused by a wide canvas and too-close fixed camera. The selected model's own marker label is suppressed behind the mesh.
