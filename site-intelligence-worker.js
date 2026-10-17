@@ -81,7 +81,7 @@ function extractSearchRows(payload) {
   if (Array.isArray(payload)) return payload;
   if (!payload || typeof payload !== "object") return [];
   const candidates = [
-    payload.results, payload.data, payload.items, payload.organic,
+    payload.results, payload.data, payload.items, payload.organic_results, payload.organic,
     payload.search_results, payload.web?.results, payload.data?.results
   ];
   for (const candidate of candidates) if (Array.isArray(candidate)) return candidate;

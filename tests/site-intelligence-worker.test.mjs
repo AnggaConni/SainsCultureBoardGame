@@ -179,3 +179,18 @@ test("unrecognized paths and methods are rejected", async () => {
   const wrongMethod = await requestWorker("/health", { method: "POST" });
   assert.equal(wrongMethod.response.status, 405);
 });
+
+
+test("news endpoint supports TinyFish organic_results payloads", async () => {
+  const { body } = await requestWorker("/site-intel?scope=news&site=Prambanan&country=Indonesia", {
+    env: { TINYFISH_API_KEY: "test-key" },
+    fetchMock: async () => new Response(JSON.stringify({
+      organic_results: [
+        { title: "Prambanan heritage management", link: "https://publisher.example/prambanan", description: "A source lead about the site." }
+      ]
+    }), { status: 200, headers: { "Content-Type": "application/json" } })
+  });
+  assert.equal(body.status, "ok");
+  assert.equal(body.count, 1);
+  assert.equal(body.items[0].url, "https://publisher.example/prambanan");
+});

@@ -1,5 +1,5 @@
 (() => {"use strict";
-const $=s=>document.querySelector(s),SITE_INTEL_API_URL="https://heritage-site-intelligence.conniezz-cool.workers.dev/site-intel",state={filter:"all",search:"",listLimit:60,selected:null,visited:new Set(),xp:0,answered:new Set(),viewer:null,entities:new Map(),globeModelEntities:new Map(),catalog:null,registryMeta:null,hovered:null,globeOverlay:null,globeOverlayReady:false,globeOverlayCleanup:null,komodoOverlay:null,komodoOverlayCleanup:null,explorationZones:new Map(),activeZoneId:null,siteIntelCache:new Map(),siteIntelPending:new Map(),siteIntelTab:"overview",siteIntelRequestId:0,toastTimer:null,local3d:null,local3dFrame:null,local3dModel:null},KEY="world-heritage-atlas-progress-v1",cat={culture:"CULTURE",nature:"NATURE",mixed:"MIXED"};
+const $=s=>document.querySelector(s),SITE_INTEL_API_URL="https://heritage-site-intelligence.conniezz-cool.workers.dev/site-intel",state={filter:"all",search:"",listLimit:60,selected:null,visited:new Set(),xp:0,answered:new Set(),viewer:null,entities:new Map(),globeModelEntities:new Map(),catalog:null,registryMeta:null,hovered:null,globeOverlay:null,globeOverlayReady:false,globeOverlayCleanup:null,komodoOverlay:null,komodoOverlayCleanup:null,explorationZones:new Map(),activeZoneId:null,siteIntelCache:new Map(),siteIntelPending:new Map(),siteIntelTab:"overview",toastTimer:null,local3d:null,local3dFrame:null,local3dModel:null},KEY="world-heritage-atlas-progress-v1",cat={culture:"CULTURE",nature:"NATURE",mixed:"MIXED"};
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function toast(t){const e=$("#toast");e.textContent=t;e.classList.add("show");clearTimeout(state.toastTimer);state.toastTimer=setTimeout(()=>e.classList.remove("show"),2500)}
 function save(){try{localStorage.setItem(KEY,JSON.stringify({visited:[...state.visited],answered:[...state.answered],xp:state.xp}));$("#saveStatus").textContent="PROGRESS SAVED LOCALLY"}catch(e){$("#saveStatus").textContent="LOCAL SAVE UNAVAILABLE"}}
@@ -517,7 +517,6 @@ function renderSiteIntelligence(site,tab){
  content.innerHTML='<div class="intel-loading"><span class="intel-spinner"></span><div><strong>Searching '+(scope==="news"?"web sources":"scholarly metadata")+'…</strong><p>This runs only when this tab is opened. Results are cached in this session.</p></div></div>';
  if(state.siteIntelPending.has(key))return;
  const params=new URLSearchParams({scope,site:site.name||site.id,country:site.country||site.location||""});
- const requestId=++state.siteIntelRequestId;
  const pending=fetch(SITE_INTEL_API_URL+"?"+params.toString(),{method:"GET",headers:{Accept:"application/json"},signal:AbortSignal.timeout(16000)})
   .then(async response=>{
    const payload=await response.json().catch(()=>({}));
@@ -526,12 +525,12 @@ function renderSiteIntelligence(site,tab){
   })
   .then(payload=>{
    state.siteIntelCache.set(key,payload);
-   if(requestId!==state.siteIntelRequestId||state.selected!==site.id||state.siteIntelTab!==scope)return;
+   if(state.selected!==site.id||state.siteIntelTab!==scope)return;
    status.textContent=payload.status==="ok"?"SOURCE · "+(payload.provider||scope).toUpperCase():String(payload.status||"SOURCE STATUS").replace(/_/g," ").toUpperCase();
    content.innerHTML=renderIntelResults(scope,payload);
   })
   .catch(error=>{
-   if(requestId!==state.siteIntelRequestId||state.selected!==site.id||state.siteIntelTab!==scope)return;
+   if(state.selected!==site.id||state.siteIntelTab!==scope)return;
    status.textContent="CONNECTOR UNAVAILABLE";
    content.innerHTML=renderIntelMessage("Site Intelligence Worker is not reachable","Deploy the separate Cloudflare Worker and configure its TinyFish secret for news. Details: SITE_INTELLIGENCE_SETUP.md. Technical message: "+String(error&&error.message||error).slice(0,160),"error")+'<p class="intel-worker-link"><a href="https://github.com/AnggaConni/SainsCultureBoardGame/blob/main/SITE_INTELLIGENCE_SETUP.md" target="_blank" rel="noopener noreferrer">Open setup guide ↗</a></p>';
   })
