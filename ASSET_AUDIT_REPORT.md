@@ -1,62 +1,102 @@
 # 3D Asset Audit Report
 
-Last inspected: 2026-10-17  
-Folder: assets/models/  
-Method: repository tree inspection before the first automated baseline run.
+Last checked: 2026-10-17T15:16:27+00:00
+Run mode: FORCED full scan
+Canonical model folder: assets/models/
+
+**Overall status: PASS — runtime asset set complete; planned/optional assets remain outstanding.**
 
 ## Summary
 
 | Check | Result |
 |---|---:|
-| GLB files currently present | 9 |
-| Required for current application | 6 / 6 found |
-| Planned UNESCO/site models | 1 / 8 found; 7 missing |
-| Optional environment props | 0 / 2 found |
-| Existing but not currently referenced models | 3 |
-| GLB files outside assets/models/ | 0 after consolidation |
-| Unregistered GLB files | 0 in the initial manifest |
-| Invalid GLB container checks | Pending first Python audit run |
+| GLB files present in assets/models/ | 9 |
+| Required by current app | 6 / 6 present |
+| UNESCO/site model slots | 1 / 8 present; 7 planned/optional missing |
+| Optional environment props | 0 / 2 present |
+| Unregistered model files | 0 |
+| GLB files outside canonical folder | 0 |
+| Invalid GLB containers | 0 |
+| Non-standard filenames | 0 |
+| Model files above recommended 5.00 MiB | 4 |
+| Non-GLB files inside model folder | 0 |
 
-This is a manually prepared starting report. Run the audit workflow to create the first SHA-256 inventory baseline; subsequent runs will identify newly added, changed and removed model files.
+## Current inventory
 
-## Required runtime assets
+| Path | Size | GLB validation | Manifest role | Code reference |
+|---|---:|---|---|---|
+| assets/models/african_hut.glb | 9.34 MiB | PASS · optimize | African hut environment prop | Yes |
+| assets/models/artifact.glb | 4.48 MiB | PASS | Board-game artifact token | Yes |
+| assets/models/beach_environment.glb | 1.91 MiB | PASS | Beach / coastal environment | Yes |
+| assets/models/borobudur_temple.glb | 2.27 MiB | PASS | Borobudur Temple | Yes |
+| assets/models/classical_statue.glb | 8.21 MiB | PASS · optimize | Classical statue | No |
+| assets/models/egyptian_head.glb | 13.55 MiB | PASS · optimize | Egyptian head statue | No |
+| assets/models/school_building.glb | 422.5 KiB | PASS | Low-poly school building | Yes |
+| assets/models/statue_of_bastet.glb | 2.00 MiB | PASS | Statue of Bastet player token | Yes |
+| assets/models/wounded_amazon_statue.glb | 10.77 MiB | PASS · optimize | Wounded Amazon statue | No |
 
-| File | Status | Size |
-|---|---|---:|
-| assets/models/borobudur_temple.glb | Present; source licence needs review | 2,379,592 bytes |
-| assets/models/artifact.glb | Present | 4,693,620 bytes |
-| assets/models/statue_of_bastet.glb | Present | 2,101,512 bytes |
-| assets/models/beach_environment.glb | Present | 2,004,052 bytes |
-| assets/models/school_building.glb | Present | 432,600 bytes |
-| assets/models/african_hut.glb | Present; optimise for web | 9,797,956 bytes |
+## Runtime-required assets
 
-## Site models still missing
+| Final filename | Status | Used by |
+|---|---|---|
+| assets/models/borobudur_temple.glb | PRESENT | js/board.js, js/sites.js, data/sites.json |
+| assets/models/artifact.glb | PRESENT | js/board.js |
+| assets/models/statue_of_bastet.glb | PRESENT | js/board.js |
+| assets/models/beach_environment.glb | PRESENT | js/board.js |
+| assets/models/school_building.glb | PRESENT | js/board.js |
+| assets/models/african_hut.glb | PRESENT | js/board.js |
 
-Upload to the exact path shown:
+## Missing planned / optional files
 
-| Expected filename | Purpose |
-|---|---|
-| assets/models/prambanan_temple.glb | Prambanan / Candi Siwa |
-| assets/models/komodo_island.glb | Illustrative tropical island environment |
-| assets/models/komodo_dragon.glb | Komodo wildlife learning asset |
-| assets/models/bali_subak_landscape.glb | Bali cultural landscape |
-| assets/models/sangiran_fossil_display.glb | Sangiran fossil learning display |
-| assets/models/lorentz_highland_forest.glb | Lorentz ecosystem |
-| assets/models/borobudur_relief_3rd_floor.glb | Optional Borobudur relief detail |
+Upload each file to the exact path shown. Use a single .glb with embedded textures.
 
-## Optional props still missing
+| Expected filename | Priority | Subject | Source / note |
+|---|---|---|---|
+| assets/models/prambanan_temple.glb | planned | Prambanan / Candi Siwa | [Source](https://sketchfab.com/3d-models/candi-siwa-prambanan-d7d633ba14be4ba7aeef1500f32e13f0) — CC BY; verify current terms; AI-generated illustrative model, optimize before web deployment |
+| assets/models/komodo_island.glb | planned | Komodo island learning environment | [Source](https://sketchfab.com/3d-models/tropical-island-f91862f8c38b481aa19edccac851eefb) — CC BY; attribution required |
+| assets/models/komodo_dragon.glb | planned | Komodo dragon | [Source](https://sketchfab.com/3d-models/komodo-dragon-0b8679521991420a8b48a6e63018f52c) — CC BY; attribution required |
+| assets/models/bali_subak_landscape.glb | planned | Bali subak landscape | Source to be identified — To be confirmed |
+| assets/models/sangiran_fossil_display.glb | planned | Sangiran fossil learning display | Source to be identified — To be confirmed |
+| assets/models/lorentz_highland_forest.glb | planned | Lorentz highland forest | Source to be identified — To be confirmed |
+| assets/models/borobudur_relief_3rd_floor.glb | optional | Borobudur relief detail | [Source](https://sketchfab.com/3d-models/borobudur-3rd-floor-relief-pictograph-2c49eeb628684757b8f0f87165a12007) — CC BY; verify current terms and attribution at source |
+| assets/models/palm_tree.glb | optional | Palm tree prop | [Source](https://marina-sunny-girl.itch.io/free-modular-islands-pack) — CC0 (check exact source item) |
+| assets/models/coastal_rock.glb | optional | Coastal rock prop | [Source](https://marina-sunny-girl.itch.io/free-modular-islands-pack) — CC0 (check exact source item) |
 
-- assets/models/palm_tree.glb
-- assets/models/coastal_rock.glb
+## Unsupported file formats in assets/models
 
-## Present but not referenced by current game/site code
+- None
 
-These are retained rather than deleted so existing binary assets are not lost:
 
-- assets/models/egyptian_head.glb — 14,204,616 bytes; optimise before web use.
-- assets/models/classical_statue.glb — 8,614,000 bytes.
-- assets/models/wounded_amazon_statue.glb — 11,293,532 bytes; optimise before web use.
+## New, changed and removed since previous audit
 
-## Licence and scale warnings
+Initial baseline: additions and removals will be comparable from the next audit onwards.
 
-Several inherited board-game models do not have creator/licence details documented in the repository. Before public or institutional distribution, check each original source and add attribution. The audit can verify file/container metadata and folder structure, but cannot determine licence permission or whether a model is historically accurate.
+No previous inventory existed. This scan creates the first baseline; it does not label all existing files as new.
+## Findings and cleanup candidates
+
+- No unregistered GLB is currently present in the canonical model folder.
+
+### Present but not referenced in executable code
+
+These files are retained rather than deleted automatically. Decide whether to reuse or remove them in a separate reviewed change.
+
+- assets/models/classical_statue.glb — 8.21 MiB
+- assets/models/egyptian_head.glb — 13.55 MiB
+- assets/models/wounded_amazon_statue.glb — 10.77 MiB
+
+### Optimisation warnings
+
+Recommended maximum is 5.00 MiB. Large files may load slowly in GitHub Pages / browser gameplay.
+
+- assets/models/african_hut.glb — 9.34 MiB
+- assets/models/classical_statue.glb — 8.21 MiB
+- assets/models/egyptian_head.glb — 13.55 MiB
+- assets/models/wounded_amazon_statue.glb — 10.77 MiB
+
+## What this audit does not do
+
+- It only checks files already in the repository; it does not search for or download new 3D models.
+- It cannot confirm copyright/licence permission, archaeological accuracy, topology quality, texture appearance or in-game scale.
+- New files placed in assets/models/ are reported; register their purpose and licence in data/asset_manifest.json after review.
+
+Full filename list and upload steps: ASSET_UPLOAD_GUIDE.md. Canonical metadata: data/asset_manifest.json.

@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "1.0.0",
+  "baselineInitialized": true,
+  "checkedAt": "2026-10-17T15:16:27+00:00",
+  "forcedRun": true,
+  "canonicalDirectory": "assets/models",
+  "assets": {
+    "assets/models/african_hut.glb": {
+      "sha256": "5d78e92711d6aaf080d5de2788970dd6c489642a2d3191ee7e1571c8bd83ba92",
+      "sizeBytes": 9797956,
+      "validGlb": true
+    },
+    "assets/models/artifact.glb": {
+      "sha256": "431f607a090666a1b75d552b7eefa9600cbef4a69f713e74a36b800cd8d73163",
+      "sizeBytes": 4693620,
+      "validGlb": true
+    },
+    "assets/models/beach_environment.glb": {
+      "sha256": "39021fb6c05e1e4fc6e1d1d47c8099d3c3a6e2245987575229c9d7b3adf0aec2",
+      "sizeBytes": 2004052,
+      "validGlb": true
+    },
+    "assets/models/borobudur_temple.glb": {
+      "sha256": "b385e333b403c8884d501544495e4eda6b02f11b1ffc3062006cf2fc7bd8a29e",
+      "sizeBytes": 2379592,
+      "validGlb": true
+    },
+    "assets/models/classical_statue.glb": {
+      "sha256": "e81f734d599a2e8c1d67e510eb3aa4211fba4ab22580b3f52372ca0401588a67",
+      "sizeBytes": 8614000,
+      "validGlb": true
+    },
+    "assets/models/egyptian_head.glb": {
+      "sha256": "e6b611bfb1d2265e854f0b097744ece73622923fc6376a942cb7e083e9cda87e",
+      "sizeBytes": 14204616,
+      "validGlb": true
+    },
+    "assets/models/school_building.glb": {
+      "sha256": "1dddc059e43071216257baf1197a493554cb91d218af9f2460170b791b05b356",
+      "sizeBytes": 432600,
+      "validGlb": true
+    },
+    "assets/models/statue_of_bastet.glb": {
+      "sha256": "131acc7358f46292aa553d02f08d7993f2c35b4b7518a19f07e58ec933908783",
+      "sizeBytes": 2101512,
+      "validGlb": true
+    },
+    "assets/models/wounded_amazon_statue.glb": {
+      "sha256": "dd37af1a0abc096b651917932db93d4201bd3a849a9eb2cc231f2af6f56c8066",
+      "sizeBytes": 11293532,
+      "validGlb": true
+    }
+  }
+}
