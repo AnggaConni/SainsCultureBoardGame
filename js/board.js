@@ -138,7 +138,7 @@
   const templeAnchor=pointBesideTile(63,18,.15,1);
   createTemplePlaceholder(templeAnchor);
   if(gltfLoader){
-    gltfLoader.load("assets/temples/borobudur_temple.glb",gltf=>{
+    gltfLoader.load("assets/models/borobudur_temple.glb",gltf=>{
       const model=gltf.scene;model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});
       const box=new THREE.Box3().setFromObject(model),size=box.getSize(new THREE.Vector3()),center=box.getCenter(new THREE.Vector3());
       const max=Math.max(size.x,size.y,size.z)||1;model.scale.setScalar(18/max);
@@ -157,8 +157,8 @@
     const leaves=new THREE.Mesh(new THREE.ConeGeometry(2.4+Math.random()*2,6+Math.random()*3,7),leafMats[i%leafMats.length]);leaves.position.set(x,5.5,z);leaves.castShadow=true;scene.add(leaves);
   }
   const players=[
-    {id:"P1",name:"Player 1",position:1,color:0xf4c45f,asset:"assets/players/artifact.glb",mesh:null},
-    {id:"P2",name:"Player 2",position:1,color:0x78cbef,asset:"assets/players/statue_of_bastet.glb",mesh:null}
+    {id:"P1",name:"Player 1",position:1,color:0xf4c45f,asset:"assets/models/artifact.glb",mesh:null},
+    {id:"P2",name:"Player 2",position:1,color:0x78cbef,asset:"assets/models/statue_of_bastet.glb",mesh:null}
   ];
   const fallbackPlayer=(pl)=>{const g=new THREE.Group(),m=new THREE.MeshStandardMaterial({color:pl.color,roughness:.55});const body=new THREE.Mesh(new THREE.CylinderGeometry(.68,.8,2.2,10),m);body.position.y=1.3;const head=new THREE.Mesh(new THREE.SphereGeometry(.62,16,12),m);head.position.y=2.65;g.add(body,head);g.traverse(o=>{if(o.isMesh)o.castShadow=true});return g};
   function setPlayerPosition(pl){
@@ -222,9 +222,9 @@
     },undefined,err=>console.warn("Asset fallback:",path,err));
   }
   // Use the beach environment in the ocean section and a school as a science/education landmark.
-  loadLandmark("assets/ocean/the_beach.glb",pointBesideTile(188,19,-1.7,-1),38,Math.PI*.12);
-  loadLandmark("assets/environment/low_poly__school_building.glb",pointBesideTile(438,18,-1.8,1),15,-Math.PI*.35);
-  loadLandmark("assets/environment/african hut.glb",pointBesideTile(313,18,-1.8,-1),15,Math.PI*.6);
+  loadLandmark("assets/models/beach_environment.glb",pointBesideTile(188,19,-1.7,-1),38,Math.PI*.12);
+  loadLandmark("assets/models/school_building.glb",pointBesideTile(438,18,-1.8,1),15,-Math.PI*.35);
+  loadLandmark("assets/models/african_hut.glb",pointBesideTile(313,18,-1.8,-1),15,Math.PI*.6);
   const api={
     TOTAL_TILES:TOTAL,points,players,zones,scene,camera,renderer,controls,tileMeshes,
     zoneForTile:id=>zoneOf(id).name,
