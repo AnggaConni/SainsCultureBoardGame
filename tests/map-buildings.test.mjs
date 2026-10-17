@@ -97,6 +97,7 @@ test("markers use dark cores with bright category-colored glow", () => {
   assert.ok(app.includes('world_heritage:{glow:"#FFC857",core:"#101923"}'));
   assert.ok(app.includes('global_geopark:{glow:"#B7A4FF",core:"#19162F"}'));
   assert.ok(app.includes('biosphere_reserve:{glow:"#55F2B0",core:"#0D2923"}'));
+  assert.ok(app.includes('creative_cities:{glow:"#FF86AA",core:"#321725"}'));
   assert.ok(app.includes("function createMarkerImage(site)"));
   assert.ok(app.includes("ctx.createRadialGradient(32,32,4,32,32,31)"));
   assert.ok(app.includes("billboard:{image:createMarkerImage(s)"));
