@@ -1,5 +1,5 @@
 (() => {"use strict";
-const $=s=>document.querySelector(s),state={filter:"all",selected:null,visited:new Set(),xp:0,answered:new Set(),viewer:null,entities:new Map(),globeModelEntities:new Map(),catalog:null,hovered:null,toastTimer:null,local3d:null,local3dFrame:null,local3dModel:null},KEY="world-heritage-atlas-progress-v1",cat={culture:"CULTURE",nature:"NATURE",mixed:"MIXED"};
+const $=s=>document.querySelector(s),state={filter:"all",selected:null,visited:new Set(),xp:0,answered:new Set(),viewer:null,entities:new Map(),globeModelEntities:new Map(),catalog:null,hovered:null,globeOverlay:null,globeOverlayReady:false,globeOverlayCleanup:null,toastTimer:null,local3d:null,local3dFrame:null,local3dModel:null},KEY="world-heritage-atlas-progress-v1",cat={culture:"CULTURE",nature:"NATURE",mixed:"MIXED"};
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function toast(t){const e=$("#toast");e.textContent=t;e.classList.add("show");clearTimeout(state.toastTimer);state.toastTimer=setTimeout(()=>e.classList.remove("show"),2500)}
 function save(){try{localStorage.setItem(KEY,JSON.stringify({visited:[...state.visited],answered:[...state.answered],xp:state.xp}));$("#saveStatus").textContent="PROGRESS SAVED LOCALLY"}catch(e){$("#saveStatus").textContent="LOCAL SAVE UNAVAILABLE"}}
@@ -11,12 +11,97 @@ function setSelectedMarker(id){state.entities.forEach((entity,key)=>{const activ
 function markers(){
  HERITAGE_SITES.forEach(s=>{
   const [lon,lat]=s.coordinates;
-  const e=state.viewer.entities.add({position:Cesium.Cartesian3.fromDegrees(lon,lat,1200),point:{pixelSize:12,color:Cesium.Color.fromCssColorString(s.color),outlineColor:Cesium.Color.fromCssColorString("#dcece7"),outlineWidth:2,disableDepthTestDistance:Number.POSITIVE_INFINITY},label:{show:false,text:s.name,font:"14px sans-serif",fillColor:Cesium.Color.WHITE,outlineColor:Cesium.Color.fromCssColorString("#08232d"),outlineWidth:3,style:Cesium.LabelStyle.FILL_AND_OUTLINE,showBackground:true,backgroundColor:Cesium.Color.fromCssColorString("#08232d").withAlpha(0.94),backgroundPadding:new Cesium.Cartesian2(9,6),verticalOrigin:Cesium.VerticalOrigin.BOTTOM,pixelOffset:new Cesium.Cartesian2(0,-25),distanceDisplayCondition:new Cesium.DistanceDisplayCondition(0,450000),disableDepthTestDistance:Number.POSITIVE_INFINITY}});
+  const e=state.viewer.entities.add({position:Cesium.Cartesian3.fromDegrees(lon,lat,2),point:{pixelSize:12,color:Cesium.Color.fromCssColorString(s.color),outlineColor:Cesium.Color.fromCssColorString("#dcece7"),outlineWidth:2,disableDepthTestDistance:Number.POSITIVE_INFINITY},label:{show:false,text:s.name,font:"14px sans-serif",fillColor:Cesium.Color.WHITE,outlineColor:Cesium.Color.fromCssColorString("#08232d"),outlineWidth:3,style:Cesium.LabelStyle.FILL_AND_OUTLINE,showBackground:true,backgroundColor:Cesium.Color.fromCssColorString("#08232d").withAlpha(0.94),backgroundPadding:new Cesium.Cartesian2(9,6),verticalOrigin:Cesium.VerticalOrigin.BOTTOM,pixelOffset:new Cesium.Cartesian2(0,-25),distanceDisplayCondition:new Cesium.DistanceDisplayCondition(0,450000),disableDepthTestDistance:Number.POSITIVE_INFINITY}});
   e.siteId=s.id;state.entities.set(s.id,e);
  });
  // Deliberately do not attach GLB meshes to Cesium's render loop until each asset
  // is validated against Cesium's glTF renderer. The site GLB remains in the
  // isolated Three.js site viewer so a bad model cannot stop the whole globe.
+}
+function hideGlobeOverlay(){const el=$("#globeModelOverlay");if(el)el.hidden=true}
+function initGlobeModelOverlay(){
+ const site=HERITAGE_SITES.find(s=>s.globeModel);
+ if(!site||!site.globeModel||!window.THREE||!THREE.GLTFLoader){console.info("[Heritage Atlas] No on-globe GLB configured or Three.js unavailable.");return}
+ const host=$("#globeModelCanvasHost"),wrapper=$("#globeModelOverlay");
+ if(!host||!wrapper)return;
+ wrapper.hidden=true;
+ const scene=new THREE.Scene();
+ scene.background=null;
+ scene.add(new THREE.HemisphereLight(0xfff4dc,0x334b51,2.0));
+ const keyLight=new THREE.DirectionalLight(0xffffff,2.4);keyLight.position.set(5,8,6);scene.add(keyLight);
+ const fillLight=new THREE.DirectionalLight(0x9bd9ce,0.9);fillLight.position.set(-5,4,-5);scene.add(fillLight);
+ const renderer=new THREE.WebGLRenderer({alpha:true,antialias:true,powerPreference:"low-power"});
+ renderer.setPixelRatio(1);
+ renderer.setClearColor(0x000000,0);
+ renderer.outputEncoding=THREE.sRGBEncoding;
+ renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.08;
+ host.innerHTML="";host.appendChild(renderer.domElement);
+ const camera=new THREE.PerspectiveCamera(35,2,0.01,1000);
+ const modelState={site,asset:site.globeModel,scene,renderer,camera,host,wrapper,loaded:false,basePixel:new THREE.Vector2(),targetHeight:35,aspect:2};
+ state.globeOverlay=modelState;
+ const loader=new THREE.GLTFLoader();
+ loader.load(modelState.asset.path,gltf=>{
+  try{
+   const model=gltf.scene;
+   const bounds=new THREE.Box3().setFromObject(model);
+   const size=bounds.getSize(new THREE.Vector3());
+   const center=bounds.getCenter(new THREE.Vector3());
+   if(!Number.isFinite(size.y)||size.y<=0||!Number.isFinite(size.x)||!Number.isFinite(size.z))throw new Error("GLB has invalid or empty bounding dimensions");
+   const normalizedHeight=4.2;
+   const modelScale=normalizedHeight/size.y;
+   model.scale.setScalar(modelScale);
+   model.position.set(-center.x*modelScale,-bounds.min.y*modelScale,-center.z*modelScale);
+   scene.add(model);
+   const horizontalWidth=Math.max(size.x,size.z)*modelScale;
+   modelState.aspect=Math.max(1.35,Math.min(4.8,(horizontalWidth/normalizedHeight)*1.12));
+   const canvasHeight=512,canvasWidth=Math.round(canvasHeight*modelState.aspect);
+   renderer.setSize(canvasWidth,canvasHeight,false);
+   camera.aspect=modelState.aspect;camera.fov=35;camera.position.set(Math.min(3.4,horizontalWidth*0.23),5.0,7.3);camera.lookAt(0,1.65,0);camera.updateProjectionMatrix();
+   renderer.render(scene,camera);
+   const baseProjected=new THREE.Vector3(0,0,0).project(camera);
+   modelState.basePixel.set((baseProjected.x+1)*0.5*canvasWidth,(1-baseProjected.y)*0.5*canvasHeight);
+   const topProjected=new THREE.Vector3(0,normalizedHeight,0).project(camera);
+   modelState.renderedHeight=Math.abs(modelState.basePixel.y-(1-topProjected.y)*0.5*canvasHeight);
+   modelState.canvasWidth=canvasWidth;modelState.canvasHeight=canvasHeight;modelState.normalizedHeight=normalizedHeight;
+   modelState.loaded=true;
+   wrapper.hidden=false;
+   console.info("[Heritage Atlas] GLB loaded for geospatial overlay",site.name,{sourceBounds:{width:size.x,depth:size.z,height:size.y},targetHeightMeters:modelState.targetHeight,asset:modelState.asset.path});
+   updateGlobeModelOverlay();
+  }catch(error){console.error("[Heritage Atlas] Could not prepare GLB overlay",error);hideGlobeOverlay()}
+ },undefined,error=>{console.error("[Heritage Atlas] GLB overlay failed to load",modelState.asset.path,error);hideGlobeOverlay()});
+ const onPostRender=()=>updateGlobeModelOverlay();
+ state.viewer.scene.postRender.addEventListener(onPostRender);
+ state.globeOverlayCleanup=()=>{try{state.viewer&&state.viewer.scene.postRender.removeEventListener(onPostRender)}catch(_){};renderer.dispose();state.globeOverlay=null;state.globeOverlayReady=false};
+}
+function updateGlobeModelOverlay(){
+ const model=state.globeOverlay,v=state.viewer;
+ if(!model||!model.loaded||!v)return;
+ const {site,asset,wrapper,renderer,camera}=model;
+ const lon=Number(site.coordinates[0]),lat=Number(site.coordinates[1]);
+ const anchorHeight=Number(site.catalogRecord&&site.catalogRecord.map&&site.catalogRecord.map.modelAnchorHeightMeters||0)+Number(asset.offsetMeters&&asset.offsetMeters.up||0);
+ const surface=Cesium.Cartesian3.fromDegrees(lon,lat,anchorHeight);
+ const cameraDistance=Cesium.Cartesian3.distance(v.camera.positionWC,surface);
+ if(!Number.isFinite(cameraDistance)||cameraDistance>180000){wrapper.hidden=true;return}
+ const groundPixel=Cesium.SceneTransforms.wgs84ToWindowCoordinates(v.scene,surface,new Cesium.Cartesian2());
+ const heightMeters=Number(asset.targetSizeMeters&&asset.targetSizeMeters.height)||35;
+ const top=Cesium.Cartesian3.fromDegrees(lon,lat,anchorHeight+heightMeters);
+ const topPixel=Cesium.SceneTransforms.wgs84ToWindowCoordinates(v.scene,top,new Cesium.Cartesian2());
+ if(!groundPixel||!topPixel||!Number.isFinite(groundPixel.x)||!Number.isFinite(groundPixel.y)||!Number.isFinite(topPixel.x)||!Number.isFinite(topPixel.y)){wrapper.hidden=true;return}
+ const width=v.container.clientWidth,height=v.container.clientHeight;
+ if(groundPixel.x<-100||groundPixel.x>width+100||groundPixel.y<-150||groundPixel.y>height+150){wrapper.hidden=true;return}
+ const projectedHeight=Math.hypot(topPixel.x-groundPixel.x,topPixel.y-groundPixel.y);
+ if(!Number.isFinite(projectedHeight)||projectedHeight<0.5){wrapper.hidden=true;return}
+ // Keep the model large enough to be discoverable at the initial site zoom,
+ // but cap it so users can still read the surrounding map.
+ const displayHeight=Math.max(22,Math.min(projectedHeight,245));
+ const canvasHeight=model.canvasHeight,canvasWidth=model.canvasWidth;
+ const cssScale=displayHeight/Math.max(1,model.renderedHeight);
+ const displayWidth=canvasWidth*cssScale;
+ const left=groundPixel.x-model.basePixel.x*cssScale;
+ const topPos=groundPixel.y-model.basePixel.y*cssScale;
+ wrapper.style.left=Math.round(left)+"px";wrapper.style.top=Math.round(topPos)+"px";
+ wrapper.style.width=Math.round(displayWidth)+"px";wrapper.style.height=Math.round(canvasHeight*cssScale)+"px";
+ wrapper.hidden=false;
 }
 function updateMapHover(position){
  if(!state.viewer)return;
@@ -52,7 +137,7 @@ function updateMapHover(position){
  tooltip.style.left=Math.max(8,Math.min(position.x+15,maxX))+"px";
  tooltip.style.top=Math.max(8,Math.min(position.y+15,maxY))+"px";
 }
-function initMap(){if(!window.Cesium){fallback();return}try{const v=new Cesium.Viewer("cesiumContainer",{animation:false,baseLayer:false,baseLayerPicker:false,geocoder:false,homeButton:false,infoBox:false,sceneModePicker:false,selectionIndicator:false,timeline:false,navigationHelpButton:false,fullscreenButton:false,shouldAnimate:false});state.viewer=v;v.imageryLayers.removeAll();v.imageryLayers.addImageryProvider(new Cesium.OpenStreetMapImageryProvider({url:"https://tile.openstreetmap.org/"}));v.scene.globe.enableLighting=true;v.scene.globe.baseColor=Cesium.Color.fromCssColorString("#78979a");v.scene.backgroundColor=Cesium.Color.fromCssColorString("#071a24");v.scene.globe.show=true;v.scene.globe.depthTestAgainstTerrain=false;v.scene.fog.enabled=false;v.scene.screenSpaceCameraController.enableRotate=true;v.scene.screenSpaceCameraController.enableZoom=true;v.scene.screenSpaceCameraController.enableTilt=true;v.camera.setView({destination:Cesium.Cartesian3.fromDegrees(112,4,22500000),orientation:{heading:0,pitch:Cesium.Math.toRadians(-88),roll:0}});markers();$("#mapStatus").textContent="OPEN MAP · OPENSTREETMAP";v.screenSpaceEventHandler.setInputAction(e=>{const p=v.scene.pick(e.position);if(Cesium.defined(p)&&p.id&&p.id.siteId)openSite(p.id.siteId,true)},Cesium.ScreenSpaceEventType.LEFT_CLICK);v.screenSpaceEventHandler.setInputAction(e=>updateMapHover(e.endPosition),Cesium.ScreenSpaceEventType.MOUSE_MOVE);$("#cesiumContainer").addEventListener("mouseleave",()=>{$("#mapHoverTooltip").hidden=true;const old=state.entities.get(state.hovered);if(old&&old.label)old.label.show=state.hovered===state.selected;state.hovered=null;setSelectedMarker(state.selected)});v.scene.globe.tileLoadProgressEvent.addEventListener(n=>{if(n===0&&$("#mapStatus").textContent==="OPEN MAP · OPENSTREETMAP")$("#mapStatus").textContent="3D GLOBE ONLINE · OSM"})}catch(e){console.error("Cesium / OpenStreetMap initialization failed",e);fallback()}}
+function initMap(){if(!window.Cesium){fallback();return}try{const v=new Cesium.Viewer("cesiumContainer",{animation:false,baseLayer:false,baseLayerPicker:false,geocoder:false,homeButton:false,infoBox:false,sceneModePicker:false,selectionIndicator:false,timeline:false,navigationHelpButton:false,fullscreenButton:false,shouldAnimate:false});state.viewer=v;v.imageryLayers.removeAll();v.imageryLayers.addImageryProvider(new Cesium.OpenStreetMapImageryProvider({url:"https://tile.openstreetmap.org/"}));v.scene.globe.enableLighting=true;v.scene.globe.baseColor=Cesium.Color.fromCssColorString("#78979a");v.scene.backgroundColor=Cesium.Color.fromCssColorString("#071a24");v.scene.globe.show=true;v.scene.globe.depthTestAgainstTerrain=false;v.scene.fog.enabled=false;v.scene.screenSpaceCameraController.enableRotate=true;v.scene.screenSpaceCameraController.enableZoom=true;v.scene.screenSpaceCameraController.enableTilt=true;v.camera.setView({destination:Cesium.Cartesian3.fromDegrees(112,4,22500000),orientation:{heading:0,pitch:Cesium.Math.toRadians(-88),roll:0}});markers();initGlobeModelOverlay();$("#mapStatus").textContent="OPEN MAP · OPENSTREETMAP";v.screenSpaceEventHandler.setInputAction(e=>{const p=v.scene.pick(e.position);if(Cesium.defined(p)&&p.id&&p.id.siteId)openSite(p.id.siteId,true)},Cesium.ScreenSpaceEventType.LEFT_CLICK);v.screenSpaceEventHandler.setInputAction(e=>updateMapHover(e.endPosition),Cesium.ScreenSpaceEventType.MOUSE_MOVE);$("#cesiumContainer").addEventListener("mouseleave",()=>{$("#mapHoverTooltip").hidden=true;const old=state.entities.get(state.hovered);if(old&&old.label)old.label.show=state.hovered===state.selected;state.hovered=null;setSelectedMarker(state.selected)});v.scene.globe.tileLoadProgressEvent.addEventListener(n=>{if(n===0&&$("#mapStatus").textContent==="OPEN MAP · OPENSTREETMAP")$("#mapStatus").textContent="3D GLOBE ONLINE · OSM"})}catch(e){console.error("Cesium / OpenStreetMap initialization failed",e);fallback()}}
 function fallback(){$("#mapStatus").textContent="MAP OFFLINE";$("#mapFallback").hidden=false}
 function renderLocalModelPicker(site){
  const models=Array.isArray(site.models)?site.models:[];
@@ -123,7 +208,7 @@ function openSite(id,zoom){const s=HERITAGE_SITES.find(x=>x.id===id);if(!s)retur
 function answer(s,i){const ok=i===s.challenge.answer;$("#quizOptions").querySelectorAll("button").forEach((b,n)=>{b.disabled=true;if(n===s.challenge.answer)b.classList.add("correct");else if(n===i)b.classList.add("incorrect")});$("#quizFeedback").hidden=false;if(ok){if(!state.answered.has(s.id)){state.answered.add(s.id);state.xp+=100;save();progress()}$("#quizFeedback").textContent="Correct! +100 Field XP. "+s.challenge.explanation;toast("Knowledge unlocked · +100 Field XP")}else $("#quizFeedback").textContent="Not quite. "+s.challenge.explanation+" Try another challenge.";$("#visitedPill").textContent="CHALLENGE COMPLETED";$("#visitedPill").classList.add("done")}
 function visit(s){if(!state.visited.has(s.id)){state.visited.add(s.id);state.xp+=50;save();progress();toast("Discovery recorded · +50 Field XP")}$("#visitedPill").textContent="DISCOVERY RECORDED";$("#visitedPill").classList.add("done");$("#visitBtn").textContent="Discovery recorded ✓"}
 function close(id){$("#"+id).hidden=true}
-function bind(){document.querySelectorAll("[data-filter]").forEach(b=>b.addEventListener("click",()=>{state.filter=b.dataset.filter;document.querySelectorAll("[data-filter]").forEach(x=>x.classList.toggle("active",x===b));renderSites()}));document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>close(b.dataset.close)));["siteDrawer","helpModal"].forEach(id=>$("#"+id).addEventListener("click",e=>{if(e.target.id===id)close(id)}));$("#resetViewBtn").addEventListener("click",()=>{if(state.viewer)state.viewer.camera.flyHome(1.5);$("#coordReadout").textContent="SELECT A PIN TO BEGIN"});$("#retryMapBtn").addEventListener("click",()=>{if(state.viewer){state.viewer.destroy();state.viewer=null}$("#mapFallback").hidden=true;initMap()});$("#helpBtn").addEventListener("click",()=>$("#helpModal").hidden=false);$("#missionGoBtn").addEventListener("click",()=>{const s=HERITAGE_SITES.find(x=>!state.visited.has(x.id))||HERITAGE_SITES[0];openSite(s.id,true)});$("#locateBtn").addEventListener("click",()=>{if(!navigator.geolocation){toast("Location is not available in this browser.");return}navigator.geolocation.getCurrentPosition(p=>{if(state.viewer){state.viewer.camera.flyTo({destination:Cesium.Cartesian3.fromDegrees(p.coords.longitude,p.coords.latitude,25000),duration:1.6});$("#coordReadout").textContent=p.coords.latitude.toFixed(3)+"°, "+p.coords.longitude.toFixed(3)+"°"}},()=>toast("Location permission was not granted."),{timeout:8000})});$("#loadLocalModelBtn").addEventListener("click",loadLocal3D);$("#resetLocalModelBtn").addEventListener("click",()=>{if(state.local3d){const {camera,controls}=state.local3d;camera.position.set(4.8,3.5,5.5);controls.target.set(0,1.4,0);controls.update()}});window.addEventListener("resize",resizeLocal3D);$("#soundBtn").addEventListener("click",()=>toast("Ambient sound is not included in this prototype."));document.addEventListener("keydown",e=>{if(e.key==="Escape"){close("siteDrawer");close("helpModal")}})}
+function bind(){document.querySelectorAll("[data-filter]").forEach(b=>b.addEventListener("click",()=>{state.filter=b.dataset.filter;document.querySelectorAll("[data-filter]").forEach(x=>x.classList.toggle("active",x===b));renderSites()}));document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>close(b.dataset.close)));["siteDrawer","helpModal"].forEach(id=>$("#"+id).addEventListener("click",e=>{if(e.target.id===id)close(id)}));$("#resetViewBtn").addEventListener("click",()=>{if(state.viewer)state.viewer.camera.flyHome(1.5);$("#coordReadout").textContent="SELECT A PIN TO BEGIN"});$("#retryMapBtn").addEventListener("click",()=>{if(state.viewer){state.viewer.destroy();state.viewer=null}$("#mapFallback").hidden=true;initMap()});$("#helpBtn").addEventListener("click",()=>$("#helpModal").hidden=false);$("#missionGoBtn").addEventListener("click",()=>{const s=HERITAGE_SITES.find(x=>!state.visited.has(x.id))||HERITAGE_SITES[0];openSite(s.id,true)});$("#locateBtn").addEventListener("click",()=>{if(!navigator.geolocation){toast("Location is not available in this browser.");return}navigator.geolocation.getCurrentPosition(p=>{if(state.viewer){state.viewer.camera.flyTo({destination:Cesium.Cartesian3.fromDegrees(p.coords.longitude,p.coords.latitude,25000),duration:1.6});$("#coordReadout").textContent=p.coords.latitude.toFixed(3)+"°, "+p.coords.longitude.toFixed(3)+"°"}},()=>toast("Location permission was not granted."),{timeout:8000})});$("#loadLocalModelBtn").addEventListener("click",loadLocal3D);$("#resetLocalModelBtn").addEventListener("click",()=>{if(state.local3d){const {camera,controls}=state.local3d;camera.position.set(4.8,3.5,5.5);controls.target.set(0,1.4,0);controls.update()}});window.addEventListener("resize",()=>{resizeLocal3D();if(state.globeOverlay&&state.globeOverlay.loaded){const m=state.globeOverlay;m.renderer.render(m.scene,m.camera);updateGlobeModelOverlay()}});$("#soundBtn").addEventListener("click",()=>toast("Ambient sound is not included in this prototype."));document.addEventListener("keydown",e=>{if(e.key==="Escape"){close("siteDrawer");close("helpModal")}})}
 async function loadSiteCatalog(){
  try{
   const response=await fetch("data/sites.json",{cache:"no-cache"});
