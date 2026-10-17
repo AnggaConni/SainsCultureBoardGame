@@ -1,0 +1,70 @@
+name: Refresh UNESCO and tourism data
+
+on:
+  schedule:
+    - cron: "17 3 1 * *"
+  workflow_dispatch:
+    inputs:
+      scope:
+        description: Which data sources should be refreshed?
+        required: true
+        type: choice
+        default: all
+        options:
+          - all
+          - unesco
+          - economy
+      force:
+        description: Ignore local cache and force-fetch all selected sources
+        required: true
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-unesco-data
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: true
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run offline scraper tests
+        run: python scripts/test_update_data.py
+      - name: Run offline scraper tests
+        run: python scripts/test_update_data.py
+      - name: Run data refresh
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_SCOPE: ${{ inputs.scope }}
+          INPUT_FORCE: ${{ inputs.force }}
+        run: |
+          SCOPE="${INPUT_SCOPE:-all}"
+          ARGS=(--scope "$SCOPE")
+          if [[ "$EVENT_NAME" == "workflow_dispatch" && "$INPUT_FORCE" == "true" ]]; then
+            ARGS+=(--force)
+          fi
+          python scripts/update_data.py "${ARGS[@]}"
+      - name: Commit updated data snapshots
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/generated
+          if git diff --cached --quiet; then
+            echo "No generated data changes to commit."
+            exit 0
+          fi
+          git commit -m "chore(data): refresh UNESCO and tourism datasets"
+          git push origin HEAD:main

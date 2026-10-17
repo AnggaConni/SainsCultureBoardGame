@@ -1,0 +1,450 @@
+{
+  "schemaVersion": "1.0.0",
+  "title": "World Heritage Atlas — Site and Asset Catalog",
+  "updatedAt": "2026-10-17",
+  "coordinateSystem": "EPSG:4326",
+  "coordinateOrder": "longitude, latitude for map coordinates; latitude and longitude are also stored as named fields",
+  "purpose": "Curated site identity, map anchor, designated programme, model path, intended size and provenance. Automated external datasets are written separately to data/generated/ and must not overwrite this file.",
+  "sources": [
+    {
+      "id": "unesco-world-heritage",
+      "datasetId": "whc001",
+      "programme": "World Heritage List",
+      "url": "https://data.unesco.org/explore/dataset/whc001/",
+      "license": "CC BY-SA 4.0 as displayed on UNESCO DataHub; review dataset page terms before redistribution",
+      "attribution": "UNESCO DataHub"
+    },
+    {
+      "id": "unesco-global-geoparks",
+      "datasetId": "eg0001",
+      "programme": "UNESCO Global Geoparks",
+      "url": "https://data.unesco.org/explore/dataset/eg0001/",
+      "license": "CC BY-SA 4.0 as displayed on UNESCO DataHub",
+      "attribution": "UNESCO DataHub"
+    },
+    {
+      "id": "unesco-biosphere-reserves",
+      "datasetId": "mab001",
+      "programme": "Man and the Biosphere Programme",
+      "url": "https://data.unesco.org/explore/dataset/mab001/",
+      "license": "CC BY-SA 4.0 as displayed on UNESCO DataHub",
+      "attribution": "UNESCO DataHub"
+    },
+    {
+      "id": "unesco-intangible-heritage",
+      "datasetId": "ich001",
+      "programme": "Intangible Cultural Heritage",
+      "url": "https://data.unesco.org/explore/dataset/ich001/",
+      "license": "Check current dataset license/terms before redistribution",
+      "attribution": "UNESCO DataHub"
+    },
+    {
+      "id": "unesco-creative-cities",
+      "datasetId": "cce001",
+      "programme": "UNESCO Creative Cities Network",
+      "url": "https://data.unesco.org/explore/dataset/cce001/",
+      "license": "Check current dataset license/terms before redistribution",
+      "attribution": "UNESCO DataHub"
+    },
+    {
+      "id": "world-bank-wdi",
+      "programme": "World Development Indicators — tourism/economy",
+      "url": "https://api.worldbank.org/v2/",
+      "license": "CC BY 4.0 dataset-level terms; retain indicator/source attribution",
+      "attribution": "World Bank; tourism series may cite UN Tourism"
+    }
+  ],
+  "sites": [
+    {
+      "id": "borobudur",
+      "name": "Borobudur Temple Compounds",
+      "country": "Indonesia",
+      "countryCode": "IDN",
+      "region": "Asia and the Pacific",
+      "designations": [
+        {
+          "programme": "UNESCO World Heritage List",
+          "datasetId": "whc001",
+          "category": "Cultural",
+          "inscriptionYear": 1991,
+          "officialUrl": "https://whc.unesco.org/en/list/592/"
+        }
+      ],
+      "location": {
+        "latitude": -7.6079,
+        "longitude": 110.2038,
+        "coordinateOrder": "lat-lon",
+        "pointRole": "monument anchor / approximate centre",
+        "horizontalAccuracyMeters": null,
+        "source": "Curated starter coordinate; verify against survey data"
+      },
+      "map": {
+        "initialCameraRangeMeters": 9000,
+        "modelAnchorHeightMeters": 0,
+        "modelHeadingDegrees": 0
+      },
+      "models": [
+        {
+          "id": "borobudur-main",
+          "label": "Borobudur temple — existing repository model",
+          "file": "assets/temples/borobudur_temple.glb",
+          "format": "glb",
+          "placement": "globe",
+          "status": "available",
+          "scale": 1,
+          "targetSizeMeters": {
+            "width": 123,
+            "depth": 123,
+            "height": 35
+          },
+          "sizeStatus": "approximate display target; actual GLB bounds have not been measured",
+          "headingDegrees": 0,
+          "offsetMeters": {
+            "east": 0,
+            "north": 0,
+            "up": 0
+          },
+          "anchor": "model origin should sit at the base centre; adjust if source origin differs",
+          "creator": "Unknown — inherited repository asset",
+          "license": "Unverified — review before public redistribution",
+          "sourceUrl": null,
+          "notes": "Existing file is ~2.38 MB. Scale=1 assumes the GLB was exported in metres; inspect the result in-browser and adjust if necessary."
+        },
+        {
+          "id": "borobudur-relief-detail",
+          "label": "Borobudur relief detail (optional)",
+          "file": "assets/temples/borobudur_relief_3rd_floor.glb",
+          "format": "glb",
+          "placement": "detail",
+          "status": "planned",
+          "scale": 1,
+          "targetSizeMeters": {
+            "width": null,
+            "depth": null,
+            "height": null
+          },
+          "sizeStatus": "not measured",
+          "headingDegrees": 0,
+          "offsetMeters": {
+            "east": 0,
+            "north": 0,
+            "up": 0
+          },
+          "creator": "PHAC",
+          "license": "CC BY; verify exact version and attribution at source",
+          "sourceUrl": "https://sketchfab.com/3d-models/borobudur-3rd-floor-relief-pictograph-2c49eeb628684757b8f0f87165a12007",
+          "notes": "Optional educational close-up, not a replacement for the complete temple model."
+        }
+      ],
+      "editorial": {
+        "summary": "A monumental Buddhist complex with terraces, stupas and narrative reliefs.",
+        "reviewStatus": "starter summary; verify official record before institutional/public release"
+      },
+      "updatedAt": "2026-10-17"
+    },
+    {
+      "id": "prambanan",
+      "name": "Prambanan Temple Compounds",
+      "country": "Indonesia",
+      "countryCode": "IDN",
+      "region": "Asia and the Pacific",
+      "designations": [
+        {
+          "programme": "UNESCO World Heritage List",
+          "datasetId": "whc001",
+          "category": "Cultural",
+          "inscriptionYear": 1991,
+          "officialUrl": "https://whc.unesco.org/en/list/642/"
+        }
+      ],
+      "location": {
+        "latitude": -7.752,
+        "longitude": 110.4915,
+        "coordinateOrder": "lat-lon",
+        "pointRole": "Candi Siwa / approximate site anchor",
+        "horizontalAccuracyMeters": null,
+        "source": "Curated starter coordinate; verify against survey data"
+      },
+      "map": {
+        "initialCameraRangeMeters": 8000,
+        "modelAnchorHeightMeters": 0,
+        "modelHeadingDegrees": 0
+      },
+      "models": [
+        {
+          "id": "prambanan-main",
+          "label": "Prambanan — Candi Siwa model",
+          "file": "assets/temples/prambanan_temple.glb",
+          "format": "glb",
+          "placement": "globe",
+          "status": "planned",
+          "scale": 1,
+          "targetSizeMeters": {
+            "width": null,
+            "depth": null,
+            "height": 47
+          },
+          "sizeStatus": "target height estimate; actual GLB bounds must be checked",
+          "headingDegrees": 0,
+          "offsetMeters": {
+            "east": 0,
+            "north": 0,
+            "up": 0
+          },
+          "anchor": "base centre",
+          "creator": "PixForge (AI-generated illustrative model)",
+          "license": "CC BY; review exact terms and add attribution",
+          "sourceUrl": "https://sketchfab.com/3d-models/candi-siwa-prambanan-d7d633ba14be4ba7aeef1500f32e13f0",
+          "notes": "Optimise high polygon count before web deployment."
+        }
+      ],
+      "editorial": {
+        "summary": "A monumental Hindu temple complex in Central Java and the Yogyakarta region.",
+        "reviewStatus": "starter summary; verify official record before institutional/public release"
+      },
+      "updatedAt": "2026-10-17"
+    },
+    {
+      "id": "komodo",
+      "name": "Komodo National Park",
+      "country": "Indonesia",
+      "countryCode": "IDN",
+      "region": "Asia and the Pacific",
+      "designations": [
+        {
+          "programme": "UNESCO World Heritage List",
+          "datasetId": "whc001",
+          "category": "Natural",
+          "inscriptionYear": 1991,
+          "officialUrl": "https://whc.unesco.org/en/list/609/"
+        }
+      ],
+      "location": {
+        "latitude": -8.55,
+        "longitude": 119.489,
+        "coordinateOrder": "lat-lon",
+        "pointRole": "park reference point; broad protected area is not a single point",
+        "horizontalAccuracyMeters": null,
+        "source": "Curated approximate camera anchor; not a legal park boundary"
+      },
+      "map": {
+        "initialCameraRangeMeters": 32000
+      },
+      "models": [
+        {
+          "id": "komodo-island-demo",
+          "label": "Tropical island — illustrative scene",
+          "file": "assets/landscapes/komodo_island.glb",
+          "format": "glb",
+          "placement": "detail",
+          "status": "planned",
+          "scale": 1,
+          "targetSizeMeters": {
+            "width": null,
+            "depth": null,
+            "height": null
+          },
+          "sizeStatus": "not measured; generic asset",
+          "headingDegrees": 0,
+          "creator": "Elin",
+          "license": "CC BY; attribution required",
+          "sourceUrl": "https://sketchfab.com/3d-models/tropical-island-f91862f8c38b481aa19edccac851eefb",
+          "notes": "Stylised local learning environment, NOT a geographically accurate model of Komodo Island."
+        },
+        {
+          "id": "komodo-dragon",
+          "label": "Komodo dragon",
+          "file": "assets/nature/komodo_dragon.glb",
+          "format": "glb",
+          "placement": "detail",
+          "status": "planned",
+          "scale": 1,
+          "targetSizeMeters": {
+            "width": null,
+            "depth": null,
+            "height": null
+          },
+          "sizeStatus": "not measured",
+          "headingDegrees": 0,
+          "creator": "all of life",
+          "license": "CC BY; attribution required",
+          "sourceUrl": "https://sketchfab.com/3d-models/komodo-dragon-0b8679521991420a8b48a6e63018f52c",
+          "notes": "Site-scene model; not geographically pinned on the globe."
+        }
+      ],
+      "editorial": {
+        "summary": "Protected terrestrial and marine ecosystems, including habitat for the Komodo dragon.",
+        "reviewStatus": "starter summary; verify official record before institutional/public release"
+      },
+      "updatedAt": "2026-10-17"
+    },
+    {
+      "id": "bali-cultural-landscape",
+      "name": "Cultural Landscape of Bali Province",
+      "country": "Indonesia",
+      "countryCode": "IDN",
+      "region": "Asia and the Pacific",
+      "designations": [
+        {
+          "programme": "UNESCO World Heritage List",
+          "datasetId": "whc001",
+          "category": "Cultural",
+          "inscriptionYear": 2012,
+          "officialUrl": "https://whc.unesco.org/en/list/1194/"
+        }
+      ],
+      "location": {
+        "latitude": -8.369,
+        "longitude": 115.2625,
+        "coordinateOrder": "lat-lon",
+        "pointRole": "representative map anchor; serial property has multiple components",
+        "horizontalAccuracyMeters": null,
+        "source": "Curated approximate anchor, not property boundary"
+      },
+      "map": {
+        "initialCameraRangeMeters": 20000
+      },
+      "models": [
+        {
+          "id": "bali-subak-demo",
+          "label": "Bali subak landscape (planned)",
+          "file": "assets/landscapes/bali_subak_landscape.glb",
+          "format": "glb",
+          "placement": "detail",
+          "status": "planned",
+          "scale": 1,
+          "targetSizeMeters": {
+            "width": null,
+            "depth": null,
+            "height": null
+          },
+          "sizeStatus": "not measured",
+          "headingDegrees": 0,
+          "creator": null,
+          "license": "To be confirmed",
+          "sourceUrl": null,
+          "notes": "Use a clearly licensed landscape model; this is a multi-component cultural landscape, not a single monument."
+        }
+      ],
+      "editorial": {
+        "summary": "A cultural landscape that includes rice terraces, water temples and the subak water-management tradition.",
+        "reviewStatus": "starter summary; verify official record before institutional/public release"
+      },
+      "updatedAt": "2026-10-17"
+    },
+    {
+      "id": "sangiran",
+      "name": "Sangiran Early Man Site",
+      "country": "Indonesia",
+      "countryCode": "IDN",
+      "region": "Asia and the Pacific",
+      "designations": [
+        {
+          "programme": "UNESCO World Heritage List",
+          "datasetId": "whc001",
+          "category": "Cultural",
+          "inscriptionYear": 1996,
+          "officialUrl": "https://whc.unesco.org/en/list/593/"
+        }
+      ],
+      "location": {
+        "latitude": -7.455,
+        "longitude": 110.833,
+        "coordinateOrder": "lat-lon",
+        "pointRole": "representative anchor; protected property covers an area",
+        "horizontalAccuracyMeters": null,
+        "source": "Curated approximate anchor, not property boundary"
+      },
+      "map": {
+        "initialCameraRangeMeters": 13000
+      },
+      "models": [
+        {
+          "id": "sangiran-display",
+          "label": "Sangiran fossil learning display (planned)",
+          "file": "assets/heritage/sangiran_fossil_display.glb",
+          "format": "glb",
+          "placement": "detail",
+          "status": "planned",
+          "scale": 1,
+          "targetSizeMeters": {
+            "width": null,
+            "depth": null,
+            "height": null
+          },
+          "sizeStatus": "not measured",
+          "headingDegrees": 0,
+          "creator": null,
+          "license": "To be confirmed",
+          "sourceUrl": null,
+          "notes": "Use a suitable, licensed fossil/specimen scene rather than implying an exact archaeological reconstruction."
+        }
+      ],
+      "editorial": {
+        "summary": "Important fossil and geological evidence for studies of human evolution.",
+        "reviewStatus": "starter summary; verify official record before institutional/public release"
+      },
+      "updatedAt": "2026-10-17"
+    },
+    {
+      "id": "lorentz",
+      "name": "Lorentz National Park",
+      "country": "Indonesia",
+      "countryCode": "IDN",
+      "region": "Asia and the Pacific",
+      "designations": [
+        {
+          "programme": "UNESCO World Heritage List",
+          "datasetId": "whc001",
+          "category": "Natural",
+          "inscriptionYear": 1999,
+          "officialUrl": "https://whc.unesco.org/en/list/955/"
+        }
+      ],
+      "location": {
+        "latitude": -4.75,
+        "longitude": 137.833,
+        "coordinateOrder": "lat-lon",
+        "pointRole": "representative camera anchor; large protected area is not a single point",
+        "horizontalAccuracyMeters": null,
+        "source": "Curated approximate anchor, not a legal park boundary"
+      },
+      "map": {
+        "initialCameraRangeMeters": 70000
+      },
+      "models": [
+        {
+          "id": "lorentz-forest-demo",
+          "label": "Lorentz highland forest (planned)",
+          "file": "assets/landscapes/lorentz_highland_forest.glb",
+          "format": "glb",
+          "placement": "detail",
+          "status": "planned",
+          "scale": 1,
+          "targetSizeMeters": {
+            "width": null,
+            "depth": null,
+            "height": null
+          },
+          "sizeStatus": "not measured",
+          "headingDegrees": 0,
+          "creator": null,
+          "license": "To be confirmed",
+          "sourceUrl": null,
+          "notes": "Stylised local learning scene; do not treat as actual terrain."
+        }
+      ],
+      "editorial": {
+        "summary": "A large protected landscape containing a wide range of tropical habitats and high mountain ecosystems.",
+        "reviewStatus": "starter summary; verify official record before institutional/public release"
+      },
+      "updatedAt": "2026-10-17"
+    }
+  ],
+  "notes": [
+    "This is a curated starter catalog, not the authoritative complete UNESCO registry.",
+    "Multi-component sites and protected areas cannot be represented accurately by a single point; use the point for map navigation only until boundaries are added.",
+    "Model target dimensions are planning metadata, not measured facts about the current GLB file. Inspect actual GLB bounds before using it for scale analysis.",
+    "Automated source datasets are stored separately under data/generated and must not overwrite curated designations, model paths, licence reviews, educational copy or coordinates."
+  ]
+}

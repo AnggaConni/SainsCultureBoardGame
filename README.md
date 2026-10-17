@@ -47,3 +47,15 @@ Serve the repository root over HTTP (e.g. `python -m http.server 8000`) and open
 - Reveals only the selected site's label, with a readable dark label background; highlights the selected map marker.
 - Reduces the dark overlay over the base map so the raster map labels and geographic context remain easier to read.
 - Turns off atmospheric fog that can soften map imagery.
+
+
+## Site catalog, model placement and automated data refresh
+
+- `data/sites.json` is the curated site/asset catalog: programme identity, coordinate pair, map camera range, model path, placement mode, target size metadata, scale, heading, offsets, source, creator and licence-review status.
+- The existing Borobudur GLB is configured as a globe model anchored near the curated monument-centre coordinate. The app reads the JSON catalog before building markers. The model loader estimates the GLB's vertical bounds and scales to the configured target height (currently an approximate 35 m display target); check visual fit and position in a live browser. Map data uses an ellipsoid rather than detailed terrain, so the anchor height is not a survey-grade terrain elevation.
+- `scripts/update_data.py` fetches UNESCO DataHub Explore API v2.1 datasets `whc001`, `eg0001`, `mab001`, `ich001`, and `cce001`, plus World Bank WDI tourism/economy indicators. It writes raw snapshots and normalized records under `data/generated/`; it never overwrites curated `data/sites.json`, quiz content or model metadata.
+- Run manually: `python scripts/update_data.py --scope all --force`. Use `--scope unesco` or `--scope economy` to limit the sources.
+- GitHub Actions can refresh monthly and has a manual `workflow_dispatch` trigger with source scope and force-refresh inputs. The workflow commits only generated outputs.
+- Unit tests: `python scripts/test_update_data.py`.
+- World Bank tourism/economy series are country-level context, not site-level economic impact estimates. Intangible heritage elements and some designated areas lack a single point, so records with missing coordinates are retained but not mapped.
+- Review current data licences/attribution and source terms before redistribution. In particular, use UNESCO DataHub's published dataset/API rather than scraping UNESCO World Heritage Centre pages directly; the Centre's own conditions restrict republication and non-syndicated scraping without permission.

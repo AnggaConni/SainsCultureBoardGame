@@ -1,14 +1,58 @@
 (() => {"use strict";
-const $=s=>document.querySelector(s),state={filter:"all",selected:null,visited:new Set(),xp:0,answered:new Set(),viewer:null,entities:new Map(),toastTimer:null,local3d:null,local3dFrame:null,local3dModel:null},KEY="world-heritage-atlas-progress-v1",cat={culture:"CULTURE",nature:"NATURE",mixed:"MIXED"};
+const $=s=>document.querySelector(s),state={filter:"all",selected:null,visited:new Set(),xp:0,answered:new Set(),viewer:null,entities:new Map(),globeModelEntities:new Map(),catalog:null,toastTimer:null,local3d:null,local3dFrame:null,local3dModel:null},KEY="world-heritage-atlas-progress-v1",cat={culture:"CULTURE",nature:"NATURE",mixed:"MIXED"};
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function toast(t){const e=$("#toast");e.textContent=t;e.classList.add("show");clearTimeout(state.toastTimer);state.toastTimer=setTimeout(()=>e.classList.remove("show"),2500)}
 function save(){try{localStorage.setItem(KEY,JSON.stringify({visited:[...state.visited],answered:[...state.answered],xp:state.xp}));$("#saveStatus").textContent="PROGRESS SAVED LOCALLY"}catch(e){$("#saveStatus").textContent="LOCAL SAVE UNAVAILABLE"}}
 function load(){try{const p=JSON.parse(localStorage.getItem(KEY)||"{}");state.visited=new Set(p.visited||[]);state.answered=new Set(p.answered||[]);state.xp=Number(p.xp)||0}catch(e){}}
 function renderSites(){const list=HERITAGE_SITES.filter(s=>state.filter==="all"||s.category===state.filter);$("#siteCount").textContent=String(list.length).padStart(2,"0")+" SITES";$("#siteList").innerHTML=list.map(s=>`<button class="site-card ${state.selected===s.id?"selected":""}" data-site="${s.id}" type="button"><span class="site-thumb"><span class="thumb-icon">${s.icon}</span><img loading="lazy" src="${esc(s.image)}" alt="" onerror="this.remove()"></span><span class="site-info"><strong>${esc(s.name)}</strong><small>${esc(s.location)}</small><span class="site-meta"><i class="type-pill ${s.category}">${cat[s.category]}</i>${state.visited.has(s.id)?'<i class="type-pill nature">DISCOVERED</i>':""}</span></span><span class="site-arrow">↗</span></button>`).join("");$("#siteList").querySelectorAll("[data-site]").forEach(b=>b.addEventListener("click",()=>openSite(b.dataset.site,true)))}
 function progress(){const n=state.xp%500;$("#xpValue").textContent=state.xp;$("#xpBar").style.width=n/500*100+"%";$("#levelValue").textContent=String(Math.floor(state.xp/500)+1).padStart(2,"0");$("#discoveriesValue").textContent=state.visited.size+" "+(state.visited.size===1?"discovery":"discoveries");$("#badgeValue").textContent=state.visited.size>=6?"Heritage Guardian":state.visited.size>=3?"Curious Cartographer":state.visited.size?"Field Observer":"First steps";const yes=state.visited.size>0;$("#missionProgressBar").style.width=yes?"100%":"0%";$("#missionProgressText").textContent=yes?"1 / 1 completed":"0 / 1 completed";$("#missionTitle").textContent=yes?"Field notes updated":"The curious traveller";$("#missionDescription").textContent=yes?"Your first discovery is recorded. Pick another site to continue.":"Visit a designated site and complete its knowledge check.";renderSites()}
-function fly(s){if(!state.viewer)return;const ranges={borobudur:9000,prambanan:9000,"bali-cultural-landscape":20000,komodo:32000,sangiran:10000,lorentz:70000};const target=state.entities.get(s.id);const range=ranges[s.id]||14000;if(target){state.viewer.flyTo(target,{duration:2.0,offset:new Cesium.HeadingPitchRange(Cesium.Math.toRadians(24),Cesium.Math.toRadians(-38),range)})}else{const [lon,lat]=s.coordinates;state.viewer.camera.flyTo({destination:Cesium.Cartesian3.fromDegrees(lon,lat,range),orientation:{heading:Cesium.Math.toRadians(24),pitch:Cesium.Math.toRadians(-65),roll:0},duration:2.0})}$("#coordReadout").textContent=s.coordinates[1].toFixed(3)+"°, "+s.coordinates[0].toFixed(3)+"°";$("#mapStatus").textContent="EXPLORING · "+s.name.toUpperCase()}
+function fly(s){if(!state.viewer)return;const ranges={borobudur:9000,prambanan:9000,"bali-cultural-landscape":20000,komodo:32000,sangiran:10000,lorentz:70000};const target=state.entities.get(s.id);const range=Number(s.mapRange)||ranges[s.id]||14000;if(target){state.viewer.flyTo(target,{duration:2.0,offset:new Cesium.HeadingPitchRange(Cesium.Math.toRadians(24),Cesium.Math.toRadians(-38),range)})}else{const [lon,lat]=s.coordinates;state.viewer.camera.flyTo({destination:Cesium.Cartesian3.fromDegrees(lon,lat,range),orientation:{heading:Cesium.Math.toRadians(24),pitch:Cesium.Math.toRadians(-65),roll:0},duration:2.0})}$("#coordReadout").textContent=s.coordinates[1].toFixed(3)+"°, "+s.coordinates[0].toFixed(3)+"°";$("#mapStatus").textContent="EXPLORING · "+s.name.toUpperCase()}
 function setSelectedMarker(id){state.entities.forEach((entity,key)=>{const active=key===id;if(entity.label)entity.label.show=active;if(entity.point){entity.point.pixelSize=active?19:12;entity.point.outlineWidth=active?3:2;entity.point.outlineColor=active?Cesium.Color.fromCssColorString("#ffffff"):Cesium.Color.fromCssColorString("#dcece7")}})}
-function markers(){HERITAGE_SITES.forEach(s=>{const [lon,lat]=s.coordinates,e=state.viewer.entities.add({position:Cesium.Cartesian3.fromDegrees(lon,lat,1200),point:{pixelSize:12,color:Cesium.Color.fromCssColorString(s.color),outlineColor:Cesium.Color.fromCssColorString("#dcece7"),outlineWidth:2,disableDepthTestDistance:Number.POSITIVE_INFINITY},label:{show:false,text:s.name,font:"14px sans-serif",fillColor:Cesium.Color.WHITE,outlineColor:Cesium.Color.fromCssColorString("#08232d"),outlineWidth:3,style:Cesium.LabelStyle.FILL_AND_OUTLINE,showBackground:true,backgroundColor:Cesium.Color.fromCssColorString("#08232d").withAlpha(0.94),backgroundPadding:new Cesium.Cartesian2(9,6),verticalOrigin:Cesium.VerticalOrigin.BOTTOM,pixelOffset:new Cesium.Cartesian2(0,-25),distanceDisplayCondition:new Cesium.DistanceDisplayCondition(0,450000),disableDepthTestDistance:Number.POSITIVE_INFINITY}});e.siteId=s.id;state.entities.set(s.id,e)});}
+function markers(){
+ HERITAGE_SITES.forEach(s=>{
+  const [lon,lat]=s.coordinates;
+  const e=state.viewer.entities.add({position:Cesium.Cartesian3.fromDegrees(lon,lat,1200),point:{pixelSize:12,color:Cesium.Color.fromCssColorString(s.color),outlineColor:Cesium.Color.fromCssColorString("#dcece7"),outlineWidth:2,disableDepthTestDistance:Number.POSITIVE_INFINITY},label:{show:false,text:s.name,font:"14px sans-serif",fillColor:Cesium.Color.WHITE,outlineColor:Cesium.Color.fromCssColorString("#08232d"),outlineWidth:3,style:Cesium.LabelStyle.FILL_AND_OUTLINE,showBackground:true,backgroundColor:Cesium.Color.fromCssColorString("#08232d").withAlpha(0.94),backgroundPadding:new Cesium.Cartesian2(9,6),verticalOrigin:Cesium.VerticalOrigin.BOTTOM,pixelOffset:new Cesium.Cartesian2(0,-25),distanceDisplayCondition:new Cesium.DistanceDisplayCondition(0,450000),disableDepthTestDistance:Number.POSITIVE_INFINITY}});
+  e.siteId=s.id;state.entities.set(s.id,e);
+ });
+ addGlobeModels();
+}
+function addGlobeModels(){
+ if(!state.viewer)return;
+ HERITAGE_SITES.forEach(site=>{
+  const asset=site.globeModel;
+  if(!asset||asset.status!=="available"||!asset.path)return;
+  const [lon,lat]=site.coordinates,up=Number(asset.offsetMeters?.up||0);
+  const position=Cesium.Cartesian3.fromDegrees(lon,lat,up);
+  const heading=Cesium.Math.toRadians(Number(asset.headingDegrees||0));
+  const orientation=Cesium.Transforms.headingPitchRollQuaternion(position,new Cesium.HeadingPitchRoll(heading,0,0));
+  const entity=state.viewer.entities.add({
+   id:"site-model-"+site.id,
+   name:site.name+" 3D model",
+   position,orientation,siteId:site.id,isSiteModel:true,
+   model:{uri:asset.path,scale:Number(asset.scale||1),minimumPixelSize:Number(asset.minimumPixelSize||26),maximumScale:Number(asset.maximumScale||100),runAnimations:false,shadows:Cesium.ShadowMode.ENABLED}
+  });
+  state.globeModelEntities.set(site.id,entity);
+  fitGlobeModelToTarget(site,asset,entity);
+ });
+}
+function fitGlobeModelToTarget(site,asset,entity){
+ const targetHeight=Number(asset.targetSizeMeters&&asset.targetSizeMeters.height);
+ if(asset.autoScaleToTargetHeight===false||!targetHeight||!window.THREE||!THREE.GLTFLoader)return;
+ const loader=new THREE.GLTFLoader();
+ loader.load(asset.path,gltf=>{
+  if(!state.globeModelEntities.has(site.id))return;
+  const bounds=new THREE.Box3().setFromObject(gltf.scene),size=bounds.getSize(new THREE.Vector3());
+  if(!Number.isFinite(size.y)||size.y<=0)return;
+  const scale=targetHeight/size.y*Number(asset.scale||1);
+  entity.model.scale=scale;
+  const baseOffset=Math.max(0,-bounds.min.y*scale)+Number(asset.offsetMeters?.up||0);
+  entity.position=Cesium.Cartesian3.fromDegrees(site.coordinates[0],site.coordinates[1],baseOffset);
+  const heading=Cesium.Math.toRadians(Number(asset.headingDegrees||0));
+  entity.orientation=Cesium.Transforms.headingPitchRollQuaternion(entity.position,new Cesium.HeadingPitchRoll(heading,0,0));
+  const note="Auto-scaled to target height "+targetHeight+" m using GLB local bounds";
+  console.info("[Heritage Atlas]",site.name,note,{sourceHeightM:size.y,scale});
+ },undefined,error=>console.warn("[Heritage Atlas] Map model could not load",asset.path,error));
+}
 function initMap(){if(!window.Cesium){fallback();return}try{const v=new Cesium.Viewer("cesiumContainer",{animation:false,baseLayer:false,baseLayerPicker:false,geocoder:false,homeButton:false,infoBox:false,sceneModePicker:false,selectionIndicator:false,timeline:false,navigationHelpButton:false,fullscreenButton:false,shouldAnimate:false});state.viewer=v;v.imageryLayers.removeAll();v.imageryLayers.addImageryProvider(new Cesium.OpenStreetMapImageryProvider({url:"https://tile.openstreetmap.org/"}));v.scene.globe.enableLighting=true;v.scene.globe.baseColor=Cesium.Color.fromCssColorString("#78979a");v.scene.backgroundColor=Cesium.Color.fromCssColorString("#071a24");v.scene.globe.show=true;v.scene.globe.depthTestAgainstTerrain=false;v.scene.fog.enabled=false;v.scene.screenSpaceCameraController.enableRotate=true;v.scene.screenSpaceCameraController.enableZoom=true;v.scene.screenSpaceCameraController.enableTilt=true;v.camera.setView({destination:Cesium.Cartesian3.fromDegrees(112,4,22500000),orientation:{heading:0,pitch:Cesium.Math.toRadians(-88),roll:0}});markers();$("#mapStatus").textContent="OPEN MAP · OPENSTREETMAP";v.screenSpaceEventHandler.setInputAction(e=>{const p=v.scene.pick(e.position);if(Cesium.defined(p)&&p.id&&p.id.siteId)openSite(p.id.siteId,true)},Cesium.ScreenSpaceEventType.LEFT_CLICK);v.scene.globe.tileLoadProgressEvent.addEventListener(n=>{if(n===0&&$("#mapStatus").textContent==="OPEN MAP · OPENSTREETMAP")$("#mapStatus").textContent="3D GLOBE ONLINE · OSM"})}catch(e){console.error("Cesium / OpenStreetMap initialization failed",e);fallback()}}
 function fallback(){$("#mapStatus").textContent="MAP OFFLINE";$("#mapFallback").hidden=false}
 function renderLocalModelPicker(site){
@@ -81,5 +125,28 @@ function answer(s,i){const ok=i===s.challenge.answer;$("#quizOptions").querySele
 function visit(s){if(!state.visited.has(s.id)){state.visited.add(s.id);state.xp+=50;save();progress();toast("Discovery recorded · +50 Field XP")}$("#visitedPill").textContent="DISCOVERY RECORDED";$("#visitedPill").classList.add("done");$("#visitBtn").textContent="Discovery recorded ✓"}
 function close(id){$("#"+id).hidden=true}
 function bind(){document.querySelectorAll("[data-filter]").forEach(b=>b.addEventListener("click",()=>{state.filter=b.dataset.filter;document.querySelectorAll("[data-filter]").forEach(x=>x.classList.toggle("active",x===b));renderSites()}));document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>close(b.dataset.close)));["siteDrawer","helpModal"].forEach(id=>$("#"+id).addEventListener("click",e=>{if(e.target.id===id)close(id)}));$("#resetViewBtn").addEventListener("click",()=>{if(state.viewer)state.viewer.camera.flyHome(1.5);$("#coordReadout").textContent="SELECT A PIN TO BEGIN"});$("#retryMapBtn").addEventListener("click",()=>{if(state.viewer){state.viewer.destroy();state.viewer=null}$("#mapFallback").hidden=true;initMap()});$("#helpBtn").addEventListener("click",()=>$("#helpModal").hidden=false);$("#missionGoBtn").addEventListener("click",()=>{const s=HERITAGE_SITES.find(x=>!state.visited.has(x.id))||HERITAGE_SITES[0];openSite(s.id,true)});$("#locateBtn").addEventListener("click",()=>{if(!navigator.geolocation){toast("Location is not available in this browser.");return}navigator.geolocation.getCurrentPosition(p=>{if(state.viewer){state.viewer.camera.flyTo({destination:Cesium.Cartesian3.fromDegrees(p.coords.longitude,p.coords.latitude,25000),duration:1.6});$("#coordReadout").textContent=p.coords.latitude.toFixed(3)+"°, "+p.coords.longitude.toFixed(3)+"°"}},()=>toast("Location permission was not granted."),{timeout:8000})});$("#loadLocalModelBtn").addEventListener("click",loadLocal3D);$("#resetLocalModelBtn").addEventListener("click",()=>{if(state.local3d){const {camera,controls}=state.local3d;camera.position.set(4.8,3.5,5.5);controls.target.set(0,1.4,0);controls.update()}});window.addEventListener("resize",resizeLocal3D);$("#soundBtn").addEventListener("click",()=>toast("Ambient sound is not included in this prototype."));document.addEventListener("keydown",e=>{if(e.key==="Escape"){close("siteDrawer");close("helpModal")}})}
-load();bind();renderSites();progress();initMap();
+async function loadSiteCatalog(){
+ try{
+  const response=await fetch("data/sites.json",{cache:"no-cache"});
+  if(!response.ok)throw new Error("HTTP "+response.status);
+  const catalog=await response.json();
+  state.catalog=catalog;
+  const byId=new Map((catalog.sites||[]).map(site=>[site.id,site]));
+  HERITAGE_SITES.forEach(site=>{
+   const item=byId.get(site.id);if(!item)return;
+   const lon=Number(item.location&&item.location.longitude),lat=Number(item.location&&item.location.latitude);
+   if(Number.isFinite(lon)&&Number.isFinite(lat))site.coordinates=[lon,lat];
+   site.catalogRecord=item;
+   site.mapRange=item.map&&item.map.initialCameraRangeMeters;
+   site.models=(item.models||[]).map(m=>({
+    ...m,path:m.file||m.path,label:m.label||m.id,
+    credit:[m.creator||"Creator not recorded",m.license||"License to verify",m.sourceUrl||""].filter(Boolean).join(" · ")
+   }));
+   site.globeModel=site.models.find(m=>m.placement==="globe"&&m.status==="available")||null;
+  });
+  console.info("[Heritage Atlas] loaded curated catalog",catalog.schemaVersion,(catalog.sites||[]).length,"sites");
+ }catch(error){console.warn("[Heritage Atlas] curated data/sites.json unavailable; using JS fallbacks",error)}
+}
+async function boot(){load();bind();await loadSiteCatalog();renderSites();progress();initMap()}
+boot();
 })();
