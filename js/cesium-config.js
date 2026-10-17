@@ -6,7 +6,7 @@
  * Recommended restrictions:
  *   - Scope: assets:read only
  *   - Allowed URL: https://anggaconni.github.io/SainsCultureBoardGame/
- *   - Allowed asset: Cesium OSM Buildings (asset 96188), if asset restrictions are enabled
+ *   - Allowed assets: Cesium OSM Buildings and Cesium World Terrain, if asset restrictions are enabled
  *
  * Leave empty until a restricted token has been created. The app will show a visible
  * status message rather than silently using Cesium's limited demo token.
