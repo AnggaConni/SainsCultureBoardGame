@@ -69,9 +69,17 @@ function initGlobeModelOverlay(){
    updateGlobeModelOverlay();
   }catch(error){console.error("[Heritage Atlas] Could not prepare GLB overlay",error);hideGlobeOverlay()}
  },undefined,error=>{console.error("[Heritage Atlas] GLB overlay failed to load",modelState.asset.path,error);hideGlobeOverlay()});
- const onPostRender=()=>updateGlobeModelOverlay();
+ const onPostRender=()=>{try{updateGlobeModelOverlay()}catch(error){console.error("[Heritage Atlas] 3D overlay update failed; hiding overlay to keep the globe running.",error);hideGlobeOverlay()}};
  state.viewer.scene.postRender.addEventListener(onPostRender);
  state.globeOverlayCleanup=()=>{try{state.viewer&&state.viewer.scene.postRender.removeEventListener(onPostRender)}catch(_){};renderer.dispose();state.globeOverlay=null;state.globeOverlayReady=false};
+}
+function projectWorldToWindow(scene,position){
+ const transforms=Cesium.SceneTransforms;
+ // Cesium 1.121+ removed wgs84ToWindowCoordinates in favour of worldToWindowCoordinates.
+ const fn=transforms&&(transforms.worldToWindowCoordinates||transforms.wgs84ToWindowCoordinates);
+ if(typeof fn!=="function")return undefined;
+ try{return fn.call(transforms,scene,position,new Cesium.Cartesian2())}
+ catch(error){console.warn("[Heritage Atlas] Map coordinate projection failed",error);return undefined}
 }
 function updateGlobeModelOverlay(){
  const model=state.globeOverlay,v=state.viewer;
@@ -82,10 +90,10 @@ function updateGlobeModelOverlay(){
  const surface=Cesium.Cartesian3.fromDegrees(lon,lat,anchorHeight);
  const cameraDistance=Cesium.Cartesian3.distance(v.camera.positionWC,surface);
  if(!Number.isFinite(cameraDistance)||cameraDistance>180000){wrapper.hidden=true;return}
- const groundPixel=Cesium.SceneTransforms.wgs84ToWindowCoordinates(v.scene,surface,new Cesium.Cartesian2());
+ const groundPixel=projectWorldToWindow(v.scene,surface);
  const heightMeters=Number(asset.targetSizeMeters&&asset.targetSizeMeters.height)||35;
  const top=Cesium.Cartesian3.fromDegrees(lon,lat,anchorHeight+heightMeters);
- const topPixel=Cesium.SceneTransforms.wgs84ToWindowCoordinates(v.scene,top,new Cesium.Cartesian2());
+ const topPixel=projectWorldToWindow(v.scene,top);
  if(!groundPixel||!topPixel||!Number.isFinite(groundPixel.x)||!Number.isFinite(groundPixel.y)||!Number.isFinite(topPixel.x)||!Number.isFinite(topPixel.y)){wrapper.hidden=true;return}
  const width=v.container.clientWidth,height=v.container.clientHeight;
  if(groundPixel.x<-100||groundPixel.x>width+100||groundPixel.y<-150||groundPixel.y>height+150){wrapper.hidden=true;return}
