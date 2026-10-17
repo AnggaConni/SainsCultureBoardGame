@@ -1,5 +1,5 @@
 (() => {"use strict";
-const $=s=>document.querySelector(s),state={filter:"all",search:"",listLimit:60,selected:null,visited:new Set(),xp:0,answered:new Set(),viewer:null,entities:new Map(),globeModelEntities:new Map(),catalog:null,registryMeta:null,hovered:null,globeOverlay:null,globeOverlayReady:false,globeOverlayCleanup:null,komodoOverlay:null,komodoOverlayCleanup:null,explorationZones:new Map(),activeZoneId:null,toastTimer:null,local3d:null,local3dFrame:null,local3dModel:null},KEY="world-heritage-atlas-progress-v1",cat={culture:"CULTURE",nature:"NATURE",mixed:"MIXED"};
+const $=s=>document.querySelector(s),SITE_INTEL_API_URL="https://heritage-site-intelligence.conniezz-cool.workers.dev/site-intel",state={filter:"all",search:"",listLimit:60,selected:null,visited:new Set(),xp:0,answered:new Set(),viewer:null,entities:new Map(),globeModelEntities:new Map(),catalog:null,registryMeta:null,hovered:null,globeOverlay:null,globeOverlayReady:false,globeOverlayCleanup:null,komodoOverlay:null,komodoOverlayCleanup:null,explorationZones:new Map(),activeZoneId:null,siteIntelCache:new Map(),siteIntelPending:new Map(),siteIntelTab:"overview",siteIntelRequestId:0,toastTimer:null,local3d:null,local3dFrame:null,local3dModel:null},KEY="world-heritage-atlas-progress-v1",cat={culture:"CULTURE",nature:"NATURE",mixed:"MIXED"};
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function toast(t){const e=$("#toast");e.textContent=t;e.classList.add("show");clearTimeout(state.toastTimer);state.toastTimer=setTimeout(()=>e.classList.remove("show"),2500)}
 function save(){try{localStorage.setItem(KEY,JSON.stringify({visited:[...state.visited],answered:[...state.answered],xp:state.xp}));$("#saveStatus").textContent="PROGRESS SAVED LOCALLY"}catch(e){$("#saveStatus").textContent="LOCAL SAVE UNAVAILABLE"}}
@@ -457,6 +457,87 @@ function loadLocal3D(){
  });
 }
 function resizeLocal3D(){if(!state.local3d)return;const {host,camera,renderer}=state.local3d,w=Math.max(260,host.clientWidth),h=Math.max(200,host.clientHeight);camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h)}
+function safeHttpUrl(value){try{const url=new URL(String(value||""));return url.protocol==="http:"||url.protocol==="https:"?url.href:""}catch(_){return""}}
+function formatIntelDate(value){
+ if(!value)return"Date not confirmed";
+ const date=new Date(value);
+ return Number.isNaN(date.getTime())?"Date not confirmed":new Intl.DateTimeFormat("en",{year:"numeric",month:"short",day:"numeric",timeZone:"UTC"}).format(date);
+}
+function siteIntelOverview(site){
+ const official=safeHttpUrl(site.official||site.sourceRecord&&site.sourceRecord.officialUrl||site.sourceUrl||"https://data.unesco.org/");
+ const source=safeHttpUrl(site.sourceUrl||site.official||"https://data.unesco.org/");
+ const coordinateText=hasCoordinates(site)?Number(site.coordinates[1]).toFixed(4)+"°, "+Number(site.coordinates[0]).toFixed(4)+"°":"No reliable point coordinates supplied";
+ return '<div class="intel-overview-grid"><div class="intel-overview-stat"><span>DESIGNATION</span><b>'+esc(site.designation||site.programmeLabel||"UNESCO programme")+'</b></div><div class="intel-overview-stat"><span>COUNTRY / AREA</span><b>'+esc(site.country||site.location||"Not specified")+'</b></div><div class="intel-overview-stat"><span>INSCRIPTION / YEAR</span><b>'+esc(site.year||"Not provided")+'</b></div><div class="intel-overview-stat"><span>MAP COORDINATE</span><b>'+esc(coordinateText)+'</b></div></div><p class="intel-caveat">This dossier combines source metadata and external discovery results. Confirm site-specific claims against the linked original source; a map anchor is not necessarily a legal site boundary.</p><div class="intel-source-links">'+(official?'<a target="_blank" rel="noopener noreferrer" href="'+esc(official)+'">Open official site record ↗</a>':"")+(source&&source!==official?'<a target="_blank" rel="noopener noreferrer" href="'+esc(source)+'">Open source dataset ↗</a>':"")+'</div>';
+}
+function renderIntelMessage(title,body,kind){
+ return '<div class="intel-state '+esc(kind||"")+'"><strong>'+esc(title)+'</strong><p>'+esc(body)+'</p></div>';
+}
+function renderIntelResults(scope,payload){
+ if(!payload)return renderIntelMessage("No response received","Try the tab again in a moment.","error");
+ if(payload.status==="not_configured")return renderIntelMessage("Provider not configured",payload.message||"This source has not been configured on the Cloudflare Worker.","warn");
+ if(["unavailable","timeout","upstream_error"].includes(payload.status))return renderIntelMessage("Source temporarily unavailable",payload.message||"The provider did not return data. Try again later.","warn");
+ const items=Array.isArray(payload.items)?payload.items:[];
+ if(!items.length)return renderIntelMessage("No matching records returned",scope==="news"?"The search returned no usable source links. This does not prove that no news exists.":"No matching scholarly records were returned. Try the original title or browse the linked OpenAlex search.","empty");
+ if(scope==="news"){
+  return '<div class="intel-results-heading"><span>'+items.length+' source leads</span><span>Not independently verified</span></div><div class="intel-result-list">'+items.map(item=>{
+   const href=safeHttpUrl(item.url);if(!href)return"";
+   const date=item.publishedAt?formatIntelDate(item.publishedAt):"Date unconfirmed";
+   return '<article class="intel-result-card"><div class="intel-result-meta"><span>'+esc(item.source||"Web source")+'</span><time>'+esc(date)+'</time></div><h4><a href="'+esc(href)+'" target="_blank" rel="noopener noreferrer">'+esc(item.title||"Untitled source")+'</a></h4>'+(item.snippet?'<p>'+esc(item.snippet)+'</p>':"")+'<div class="intel-result-footer"><span class="intel-confidence">'+(item.publishedAt?"Publication date parsed":"Date needs review")+'</span><a href="'+esc(href)+'" target="_blank" rel="noopener noreferrer">Original source ↗</a></div></article>';
+  }).join("")+'</div><p class="intel-small-note">Search results are leads, not verified incidents or official UNESCO statements. Check the publisher, event date, locality and original article.</p>';
+ }
+ return '<div class="intel-results-heading"><span>'+items.length+' scholarly records</span><span>OpenAlex</span></div><div class="intel-result-list">'+items.map(item=>{
+  const mainUrl=safeHttpUrl(item.openAlexUrl||item.url);const oa=safeHttpUrl(item.openAccessUrl);
+  const authors=Array.isArray(item.authors)?item.authors.join(", "):"";
+  return '<article class="intel-result-card"><div class="intel-result-meta"><span>'+esc(item.source||item.type||"Scholarly work")+'</span><span>'+(item.year?esc(item.year):"Year not provided")+'</span></div><h4><a href="'+esc(mainUrl||"https://openalex.org/")+'" target="_blank" rel="noopener noreferrer">'+esc(item.title||"Untitled work")+'</a></h4>'+(authors?'<p class="intel-authors">'+esc(authors)+(item.authors&&item.authors.length===4?" et al.":"")+'</p>':"")+'<div class="intel-result-footer"><span>'+Number(item.citedByCount||0).toLocaleString()+" citations"+(item.isOpenAccess?" · Open access":"")+'</span><span class="intel-result-links">'+(oa&&oa!==mainUrl?'<a href="'+esc(oa)+'" target="_blank" rel="noopener noreferrer">Read open copy ↗</a>':"")+(safeHttpUrl(item.doi)?'<a href="'+esc(item.doi)+'" target="_blank" rel="noopener noreferrer">DOI ↗</a>':"")+'</span></div></article>';
+ }).join("")+'</div><p class="intel-small-note">Search relevance is approximate; verify each title and abstract to confirm it concerns this specific site. OpenAlex indexes scholarly metadata, not necessarily full text.</p>';
+}
+function renderSiteIntelligence(site,tab){
+ state.siteIntelTab=tab||"overview";
+ const content=$("#siteIntelContent"),status=$("#siteIntelStatus");
+ if(!content||!status)return;
+ document.querySelectorAll("[data-intel-tab]").forEach(button=>{
+  const active=button.dataset.intelTab===state.siteIntelTab;
+  button.classList.toggle("active",active);button.setAttribute("aria-selected",active?"true":"false");button.tabIndex=active?0:-1;
+ });
+ if(state.siteIntelTab==="overview"){
+  status.textContent="CURATED + OFFICIAL SOURCE";
+  content.innerHTML=siteIntelOverview(site);
+  return;
+ }
+ if(state.siteIntelTab==="environment"){
+  status.textContent="PHASE 2 CONNECTORS";
+  content.innerHTML='<div class="intel-roadmap"><div class="intel-roadmap-icon">🌿</div><h4>Environmental intelligence is next</h4><p>The dossier already knows this site’s curated coordinates. The next connector can retrieve nearby biodiversity observations from GBIF and event context from NASA EONET, with each result labelled by its search area and the provider’s data date.</p><p><strong>Important:</strong> the current map anchor is approximate for large or multi-component properties. Environmental matches should not be described as inside an official boundary until a validated site polygon is available.</p><span class="intel-roadmap-badge">CONNECTOR NOT YET ENABLED</span></div>';
+  return;
+ }
+ const scope=state.siteIntelTab;
+ const key=site.id+":"+scope;
+ const cached=state.siteIntelCache.get(key);
+ if(cached){status.textContent=(cached.status==="ok"?"UPDATED "+formatIntelDate(cached.fetchedAt).toUpperCase():"SOURCE STATUS");content.innerHTML=renderIntelResults(scope,cached);return}
+ status.textContent=scope==="news"?"SEARCHING WEB SOURCES":"SEARCHING OPENALEX";
+ content.innerHTML='<div class="intel-loading"><span class="intel-spinner"></span><div><strong>Searching '+(scope==="news"?"web sources":"scholarly metadata")+'…</strong><p>This runs only when this tab is opened. Results are cached in this session.</p></div></div>';
+ if(state.siteIntelPending.has(key))return;
+ const params=new URLSearchParams({scope,site:site.name||site.id,country:site.country||site.location||""});
+ const requestId=++state.siteIntelRequestId;
+ const pending=fetch(SITE_INTEL_API_URL+"?"+params.toString(),{method:"GET",headers:{Accept:"application/json"},signal:AbortSignal.timeout(16000)})
+  .then(async response=>{
+   const payload=await response.json().catch(()=>({}));
+   if(!response.ok)throw new Error(payload.error||("HTTP "+response.status));
+   return payload;
+  })
+  .then(payload=>{
+   state.siteIntelCache.set(key,payload);
+   if(requestId!==state.siteIntelRequestId||state.selected!==site.id||state.siteIntelTab!==scope)return;
+   status.textContent=payload.status==="ok"?"SOURCE · "+(payload.provider||scope).toUpperCase():String(payload.status||"SOURCE STATUS").replace(/_/g," ").toUpperCase();
+   content.innerHTML=renderIntelResults(scope,payload);
+  })
+  .catch(error=>{
+   if(requestId!==state.siteIntelRequestId||state.selected!==site.id||state.siteIntelTab!==scope)return;
+   status.textContent="CONNECTOR UNAVAILABLE";
+   content.innerHTML=renderIntelMessage("Site Intelligence Worker is not reachable","Deploy the separate Cloudflare Worker and configure its TinyFish secret for news. Details: SITE_INTELLIGENCE_SETUP.md. Technical message: "+String(error&&error.message||error).slice(0,160),"error")+'<p class="intel-worker-link"><a href="https://github.com/AnggaConni/SainsCultureBoardGame/blob/main/SITE_INTELLIGENCE_SETUP.md" target="_blank" rel="noopener noreferrer">Open setup guide ↗</a></p>';
+  })
+  .finally(()=>state.siteIntelPending.delete(key));
+ state.siteIntelPending.set(key,pending);
+}
 function openSite(id,zoom){
  const s=HERITAGE_SITES.find(x=>x.id===id);if(!s)return;
  const hasPoint=hasCoordinates(s);state.selected=id;setSelectedMarker(id);
@@ -471,6 +552,7 @@ function openSite(id,zoom){
  $("#drawerTags").innerHTML=(s.tags||[]).map(t=>"<span>"+esc(t)+"</span>").join("");
  $("#drawerDescription").textContent=s.description||"Consult the linked source record for authoritative details.";
  $("#drawerFacts").innerHTML='<div class="fact"><span>Designation</span><b>'+esc(s.designation||s.programmeLabel||"UNESCO programme")+'</b></div><div class="fact"><span>Year</span><b>'+esc(s.year||"Not provided")+'</b></div><div class="fact"><span>Why it matters</span><b>'+esc(s.why||"See official source record")+'</b></div><div class="fact"><span>Source detail</span><b>'+esc(s.fact||s.sourceDatasetId||"UNESCO DataHub")+'</b></div>';
+ renderSiteIntelligence(s,"overview");
  renderLocalModelPicker(s);
  const official=s.official||s.sourceRecord&&s.sourceRecord.officialUrl||s.sourceUrl||"https://data.unesco.org/";
  $("#officialLink").href=official;
@@ -491,7 +573,7 @@ function openSite(id,zoom){
 function answer(s,i){const ok=i===s.challenge.answer;$("#quizOptions").querySelectorAll("button").forEach((b,n)=>{b.disabled=true;if(n===s.challenge.answer)b.classList.add("correct");else if(n===i)b.classList.add("incorrect")});$("#quizFeedback").hidden=false;if(ok){if(!state.answered.has(s.id)){state.answered.add(s.id);state.xp+=100;save();progress()}$("#quizFeedback").textContent="Correct! +100 Field XP. "+s.challenge.explanation;toast("Knowledge unlocked · +100 Field XP")}else $("#quizFeedback").textContent="Not quite. "+s.challenge.explanation+" Try another challenge.";$("#visitedPill").textContent="CHALLENGE COMPLETED";$("#visitedPill").classList.add("done")}
 function visit(s){if(!state.visited.has(s.id)){state.visited.add(s.id);state.xp+=50;save();progress();toast("Discovery recorded · +50 Field XP")}$("#visitedPill").textContent="DISCOVERY RECORDED";$("#visitedPill").classList.add("done");$("#visitBtn").textContent="Discovery recorded ✓"}
 function close(id){$("#"+id).hidden=true}
-function bind(){$("#programmeFilter").addEventListener("change",()=>{state.filter=$("#programmeFilter").value;state.listLimit=60;renderSites()});$("#siteSearch").addEventListener("input",()=>{state.search=$("#siteSearch").value;state.listLimit=60;renderSites()});$("#loadMoreSites").addEventListener("click",()=>{state.listLimit+=60;renderSites()});document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>close(b.dataset.close)));["siteDrawer","helpModal"].forEach(id=>$("#"+id).addEventListener("click",e=>{if(e.target.id===id)close(id)}));$("#resetViewBtn").addEventListener("click",()=>{if(state.viewer)state.viewer.camera.flyHome(1.5);$("#coordReadout").textContent="SELECT A PIN TO BEGIN"});$("#retryMapBtn").addEventListener("click",()=>{if(state.viewer){state.viewer.destroy();state.viewer=null}$("#mapFallback").hidden=true;initMap()});$("#helpBtn").addEventListener("click",()=>$("#helpModal").hidden=false);$("#missionGoBtn").addEventListener("click",()=>{const s=HERITAGE_SITES.find(x=>!state.visited.has(x.id))||HERITAGE_SITES[0];openSite(s.id,true)});$("#locateBtn").addEventListener("click",()=>{if(!navigator.geolocation){toast("Location is not available in this browser.");return}navigator.geolocation.getCurrentPosition(p=>{if(state.viewer){state.viewer.camera.flyTo({destination:Cesium.Cartesian3.fromDegrees(p.coords.longitude,p.coords.latitude,25000),duration:1.6});$("#coordReadout").textContent=p.coords.latitude.toFixed(3)+"°, "+p.coords.longitude.toFixed(3)+"°"}},()=>toast("Location permission was not granted."),{timeout:8000})});$("#loadLocalModelBtn").addEventListener("click",loadLocal3D);$("#zoneToggleBtn").addEventListener("click",()=>toggleExplorationZone(HERITAGE_SITES.find(s=>s.id===state.selected),true));$("#zoneMapCardClose").addEventListener("click",()=>{const active=HERITAGE_SITES.find(s=>s.id===state.activeZoneId)||state.globeOverlay&&state.globeOverlay.site;if(active)toggleExplorationZone(active,false)});$("#resetLocalModelBtn").addEventListener("click",()=>{if(state.local3d){const {camera,controls}=state.local3d;camera.position.set(4.8,3.5,5.5);controls.target.set(0,1.4,0);controls.update()}});window.addEventListener("resize",()=>{resizeLocal3D();if(state.globeOverlay&&state.globeOverlay.loaded){const m=state.globeOverlay;m.renderer.render(m.scene,m.camera);updateGlobeModelOverlay()}if(state.komodoOverlay&&state.komodoOverlay.loaded){const m=state.komodoOverlay;m.renderer.render(m.scene,m.camera);updateKomodoMapOverlay()}});$("#soundBtn").addEventListener("click",()=>toast("Ambient sound is not included in this prototype."));document.addEventListener("keydown",e=>{if(e.key==="Escape"){close("siteDrawer");close("helpModal")}})}
+function bind(){document.querySelectorAll("[data-intel-tab]").forEach(button=>button.addEventListener("click",()=>{const site=HERITAGE_SITES.find(item=>item.id===state.selected);if(site)renderSiteIntelligence(site,button.dataset.intelTab)}));$("#programmeFilter").addEventListener("change",()=>{state.filter=$("#programmeFilter").value;state.listLimit=60;renderSites()});$("#siteSearch").addEventListener("input",()=>{state.search=$("#siteSearch").value;state.listLimit=60;renderSites()});$("#loadMoreSites").addEventListener("click",()=>{state.listLimit+=60;renderSites()});document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>close(b.dataset.close)));["siteDrawer","helpModal"].forEach(id=>$("#"+id).addEventListener("click",e=>{if(e.target.id===id)close(id)}));$("#resetViewBtn").addEventListener("click",()=>{if(state.viewer)state.viewer.camera.flyHome(1.5);$("#coordReadout").textContent="SELECT A PIN TO BEGIN"});$("#retryMapBtn").addEventListener("click",()=>{if(state.viewer){state.viewer.destroy();state.viewer=null}$("#mapFallback").hidden=true;initMap()});$("#helpBtn").addEventListener("click",()=>$("#helpModal").hidden=false);$("#missionGoBtn").addEventListener("click",()=>{const s=HERITAGE_SITES.find(x=>!state.visited.has(x.id))||HERITAGE_SITES[0];openSite(s.id,true)});$("#locateBtn").addEventListener("click",()=>{if(!navigator.geolocation){toast("Location is not available in this browser.");return}navigator.geolocation.getCurrentPosition(p=>{if(state.viewer){state.viewer.camera.flyTo({destination:Cesium.Cartesian3.fromDegrees(p.coords.longitude,p.coords.latitude,25000),duration:1.6});$("#coordReadout").textContent=p.coords.latitude.toFixed(3)+"°, "+p.coords.longitude.toFixed(3)+"°"}},()=>toast("Location permission was not granted."),{timeout:8000})});$("#loadLocalModelBtn").addEventListener("click",loadLocal3D);$("#zoneToggleBtn").addEventListener("click",()=>toggleExplorationZone(HERITAGE_SITES.find(s=>s.id===state.selected),true));$("#zoneMapCardClose").addEventListener("click",()=>{const active=HERITAGE_SITES.find(s=>s.id===state.activeZoneId)||state.globeOverlay&&state.globeOverlay.site;if(active)toggleExplorationZone(active,false)});$("#resetLocalModelBtn").addEventListener("click",()=>{if(state.local3d){const {camera,controls}=state.local3d;camera.position.set(4.8,3.5,5.5);controls.target.set(0,1.4,0);controls.update()}});window.addEventListener("resize",()=>{resizeLocal3D();if(state.globeOverlay&&state.globeOverlay.loaded){const m=state.globeOverlay;m.renderer.render(m.scene,m.camera);updateGlobeModelOverlay()}if(state.komodoOverlay&&state.komodoOverlay.loaded){const m=state.komodoOverlay;m.renderer.render(m.scene,m.camera);updateKomodoMapOverlay()}});$("#soundBtn").addEventListener("click",()=>toast("Ambient sound is not included in this prototype."));document.addEventListener("keydown",e=>{if(e.key==="Escape"){close("siteDrawer");close("helpModal")}})}
 const PROGRAMMES=[
  {key:"world_heritage",label:"UNESCO World Heritage Site",short:"World Heritage",plural:"World Heritage Sites",icon:"🏛️",color:"#efbd6b",dataset:"whc001",range:14000},
  {key:"global_geopark",label:"UNESCO Global Geopark",short:"Global Geopark",plural:"UNESCO Global Geoparks",icon:"🌋",color:"#a6a5f2",dataset:"eg0001",range:65000},
