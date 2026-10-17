@@ -54,7 +54,7 @@ Upload each file to the exact path shown. Use a single .glb with embedded textur
 |---|---|---|---|
 | assets/models/prambanan_temple.glb | planned | Prambanan / Candi Siwa | [Source](https://sketchfab.com/3d-models/candi-siwa-prambanan-d7d633ba14be4ba7aeef1500f32e13f0) — CC BY; verify current terms; AI-generated illustrative model, optimize before web deployment |
 | assets/models/komodo_island.glb | planned | Komodo island learning environment | [Source](https://sketchfab.com/3d-models/tropical-island-f91862f8c38b481aa19edccac851eefb) — CC BY; attribution required |
-| assets/models/komodo_dragon.glb | planned | Komodo dragon | [Source](https://sketchfab.com/3d-models/komodo-dragon-0b8679521991420a8b48a6e63018f52c) — CC BY; attribution required |
+| assets/models/komodo_dragon.glb | optional local copy | Komodo dragon map model (remote CC0 preview active) | [3DAssets.dev model and CC0 1.0 licence](https://3dassets.dev/assets/reptiles-amphibians-and-minibeasts-komodo-dragon-9ed37a2d) |
 | assets/models/bali_subak_landscape.glb | planned | Bali subak landscape | Source to be identified — To be confirmed |
 | assets/models/sangiran_fossil_display.glb | planned | Sangiran fossil learning display | Source to be identified — To be confirmed |
 | assets/models/lorentz_highland_forest.glb | planned | Lorentz highland forest | Source to be identified — To be confirmed |
@@ -100,3 +100,7 @@ Recommended maximum is 5.00 MiB. Large files may load slowly in GitHub Pages / b
 - New files placed in assets/models/ are reported; register their purpose and licence in data/asset_manifest.json after review.
 
 Full filename list and upload steps: ASSET_UPLOAD_GUIDE.md. Canonical metadata: data/asset_manifest.json.
+
+
+## Komodo dragon preview note
+The app now streams a small CC0 Komodo dragon GLB from 3DAssets.dev with a procedural 3D lizard fallback. The local file `assets/models/komodo_dragon.glb` remains an optional self-hosted copy; the monthly audit reports it if it is not uploaded locally.
