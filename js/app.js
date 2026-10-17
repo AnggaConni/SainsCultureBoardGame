@@ -1,5 +1,6 @@
 (() => {"use strict";
 const $=s=>document.querySelector(s),SITE_INTEL_API_URL="https://civilaegis-tinyfish-proxy.conniezz-cool.workers.dev/site-intel",state={filter:"all",search:"",listLimit:60,selected:null,visited:new Set(),xp:0,answered:new Set(),viewer:null,buildingsTileset:null,buildingsStatus:"idle",entities:new Map(),globeModelEntities:new Map(),catalog:null,registryMeta:null,hovered:null,globeOverlay:null,globeOverlays:new Map(),globeOverlayReady:false,globeOverlayCleanup:null,globeOverlayCleanups:[],komodoOverlay:null,komodoOverlayCleanup:null,explorationZones:new Map(),activeZoneId:null,siteIntelCache:new Map(),siteIntelPending:new Map(),siteIntelTab:"overview",toastTimer:null,local3d:null,local3dFrame:null,local3dModel:null},KEY="world-heritage-atlas-progress-v1",cat={culture:"CULTURE",nature:"NATURE",mixed:"MIXED"};
+const LOCAL_MODEL_GROUND_CLEARANCE_METERS=1.2;
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function toast(t){const e=$("#toast");e.textContent=t;e.classList.add("show");clearTimeout(state.toastTimer);state.toastTimer=setTimeout(()=>e.classList.remove("show"),2500)}
 function save(){try{localStorage.setItem(KEY,JSON.stringify({visited:[...state.visited],answered:[...state.answered],xp:state.xp}));$("#saveStatus").textContent="PROGRESS SAVED LOCALLY"}catch(e){$("#saveStatus").textContent="LOCAL SAVE UNAVAILABLE"}}
@@ -42,7 +43,7 @@ function markers(){
  HERITAGE_SITES.forEach(s=>{
   if(!hasCoordinates(s))return;
   const lon=Number(s.coordinates[0]),lat=Number(s.coordinates[1]);
-  const e=state.viewer.entities.add({position:Cesium.Cartesian3.fromDegrees(lon,lat,2),point:{pixelSize:8,color:Cesium.Color.fromCssColorString(s.color||"#86c8b4"),outlineColor:Cesium.Color.fromCssColorString("#dcece7"),outlineWidth:1.5,disableDepthTestDistance:0},label:{show:false,text:s.name,font:"13px sans-serif",fillColor:Cesium.Color.WHITE,outlineColor:Cesium.Color.fromCssColorString("#08232d"),outlineWidth:3,style:Cesium.LabelStyle.FILL_AND_OUTLINE,showBackground:true,backgroundColor:Cesium.Color.fromCssColorString("#08232d").withAlpha(0.94),backgroundPadding:new Cesium.Cartesian2(9,6),verticalOrigin:Cesium.VerticalOrigin.BOTTOM,pixelOffset:new Cesium.Cartesian2(0,-23),distanceDisplayCondition:new Cesium.DistanceDisplayCondition(0,450000),disableDepthTestDistance:0}});
+  const e=state.viewer.entities.add({position:Cesium.Cartesian3.fromDegrees(lon,lat,0),point:{pixelSize:8,color:Cesium.Color.fromCssColorString(s.color||"#86c8b4"),outlineColor:Cesium.Color.fromCssColorString("#dcece7"),outlineWidth:1.5,heightReference:Cesium.HeightReference.CLAMP_TO_GROUND,disableDepthTestDistance:0},label:{show:false,text:s.name,font:"13px sans-serif",fillColor:Cesium.Color.WHITE,outlineColor:Cesium.Color.fromCssColorString("#08232d"),outlineWidth:3,heightReference:Cesium.HeightReference.CLAMP_TO_GROUND,style:Cesium.LabelStyle.FILL_AND_OUTLINE,showBackground:true,backgroundColor:Cesium.Color.fromCssColorString("#08232d").withAlpha(0.94),backgroundPadding:new Cesium.Cartesian2(9,6),verticalOrigin:Cesium.VerticalOrigin.BOTTOM,pixelOffset:new Cesium.Cartesian2(0,-23),distanceDisplayCondition:new Cesium.DistanceDisplayCondition(0,450000),disableDepthTestDistance:0}});
   e.siteId=s.id;e.programmeKey=s.programmeKey||"world_heritage";state.entities.set(s.id,e);
  });
  console.info("[Heritage Atlas] rendered",state.entities.size,"georeferenced markers from",HERITAGE_SITES.length,"UNESCO designation records");
@@ -100,7 +101,7 @@ function initGlobeModelForSite(site,wrapper,host){
  const canvasWidth=768,canvasHeight=768;renderer.setSize(canvasWidth,canvasHeight,false);
  const camera=new THREE.PerspectiveCamera(35,1,.01,1000);
  const targetHeight=Number(asset.targetSizeMeters&&asset.targetSizeMeters.height)||35;
- const modelState={site,asset,scene,renderer,camera,host,wrapper,loaded:false,basePixel:new THREE.Vector2(),targetHeight,aspect:1,pivot:null,basePivotY:.08,canvasWidth,canvasHeight,renderedHeight:180};
+ const modelState={site,asset,scene,renderer,camera,host,wrapper,loaded:false,basePixel:new THREE.Vector2(),targetHeight,aspect:1,pivot:null,basePivotY:0,terrainHeightMeters:null,canvasWidth,canvasHeight,renderedHeight:180};
  state.globeOverlays.set(site.id,modelState);
  if(site.id==="borobudur"||!state.globeOverlay)state.globeOverlay=modelState;
  const loader=new THREE.GLTFLoader();
@@ -209,7 +210,11 @@ function updateGlobeModelOverlay(modelOverride){
  if(!model||!model.loaded||!v)return;
  const {site,asset,wrapper,renderer,camera}=model;
  const lon=Number(site.coordinates[0]),lat=Number(site.coordinates[1]);
- const anchorHeight=Number(site.catalogRecord&&site.catalogRecord.map&&site.catalogRecord.map.modelAnchorHeightMeters||0)+Number(asset.offsetMeters&&asset.offsetMeters.up||0);
+ const cartographic=Cesium.Cartographic.fromDegrees(lon,lat);
+ const sampledTerrainHeight=v.scene.globe.getHeight(cartographic);
+ if(Number.isFinite(sampledTerrainHeight))model.terrainHeightMeters=sampledTerrainHeight;
+ const terrainHeight=Number.isFinite(model.terrainHeightMeters)?model.terrainHeightMeters:0;
+ const anchorHeight=terrainHeight+Number(site.catalogRecord&&site.catalogRecord.map&&site.catalogRecord.map.modelAnchorHeightMeters||0)+Number(asset.offsetMeters&&asset.offsetMeters.up||0)+LOCAL_MODEL_GROUND_CLEARANCE_METERS;
  const surface=Cesium.Cartesian3.fromDegrees(lon,lat,anchorHeight);
  const cameraDistance=Cesium.Cartesian3.distance(v.camera.positionWC,surface);
  if(!Number.isFinite(cameraDistance)||cameraDistance>180000){wrapper.hidden=true;return}
@@ -217,7 +222,7 @@ function updateGlobeModelOverlay(modelOverride){
  const time=(window.performance&&performance.now?performance.now():Date.now())*0.001;
  if(model.pivot){
   model.pivot.rotation.y=time*0.24;
-  model.pivot.position.y=model.basePivotY+Math.sin(time*1.15)*0.11;
+  model.pivot.position.y=model.basePivotY;
   renderer.render(model.scene,camera);
  }
  const groundPixel=projectWorldToWindow(v.scene,surface);
@@ -311,7 +316,7 @@ function initKomodoMapOverlay(){
  const canvasWidth=1024,canvasHeight=512;
  renderer.setSize(canvasWidth,canvasHeight,false);
  const camera=new THREE.PerspectiveCamera(36,canvasWidth/canvasHeight,.01,1000);
- const modelState={site,asset,scene,renderer,camera,host,wrapper,loaded:false,pivot:null,basePixel:new THREE.Vector2(),canvasWidth,canvasHeight,renderedHeight:180,basePivotY:.08,visualHeightMeters:18,aspect:canvasWidth/canvasHeight};
+ const modelState={site,asset,scene,renderer,camera,host,wrapper,loaded:false,pivot:null,basePixel:new THREE.Vector2(),canvasWidth,canvasHeight,renderedHeight:180,basePivotY:0,terrainHeightMeters:null,visualHeightMeters:18,aspect:canvasWidth/canvasHeight};
  state.komodoOverlay=modelState;
  const prepareModel=(rawModel,source)=>{
   try{
@@ -352,12 +357,16 @@ function updateKomodoMapOverlay(){
  if(!model||!model.loaded||!v)return;
  const {site,wrapper,renderer,camera,pivot}=model;
  const lon=Number(site.coordinates[0]),lat=Number(site.coordinates[1]);
- const anchorHeight=1.5;
+ const cartographic=Cesium.Cartographic.fromDegrees(lon,lat);
+ const sampledTerrainHeight=v.scene.globe.getHeight(cartographic);
+ if(Number.isFinite(sampledTerrainHeight))model.terrainHeightMeters=sampledTerrainHeight;
+ const terrainHeight=Number.isFinite(model.terrainHeightMeters)?model.terrainHeightMeters:0;
+ const anchorHeight=terrainHeight+LOCAL_MODEL_GROUND_CLEARANCE_METERS;
  const surface=Cesium.Cartesian3.fromDegrees(lon,lat,anchorHeight);
  const cameraDistance=Cesium.Cartesian3.distance(v.camera.positionWC,surface);
  if(!Number.isFinite(cameraDistance)||cameraDistance>220000){wrapper.hidden=true;return}
  const time=(window.performance&&performance.now?performance.now():Date.now())*.001;
- if(pivot){pivot.rotation.y=(time*.65)%(Math.PI*2);pivot.position.y=model.basePivotY+Math.sin(time*1.1)*.1;renderer.render(model.scene,camera)}
+ if(pivot){pivot.rotation.y=(time*.65)%(Math.PI*2);pivot.position.y=model.basePivotY;renderer.render(model.scene,camera)}
  const groundPixel=projectWorldToWindow(v.scene,surface);
  const topPixel=projectWorldToWindow(v.scene,Cesium.Cartesian3.fromDegrees(lon,lat,anchorHeight+model.visualHeightMeters));
  if(!groundPixel||!topPixel||![groundPixel.x,groundPixel.y,topPixel.x,topPixel.y].every(Number.isFinite)){wrapper.hidden=true;return}
@@ -465,7 +474,7 @@ async function initOsmBuildings(viewer){
   setBuildingsUi("3D BUILDINGS UNAVAILABLE · Check token, asset access, quota, and network.","error");
  }
 }
-function initMap(){if(!window.Cesium){fallback();return}try{const v=new Cesium.Viewer("cesiumContainer",{animation:false,baseLayer:false,baseLayerPicker:false,geocoder:false,homeButton:false,infoBox:false,sceneModePicker:false,selectionIndicator:false,timeline:false,navigationHelpButton:false,fullscreenButton:false,shouldAnimate:false});state.viewer=v;v.imageryLayers.removeAll();v.imageryLayers.addImageryProvider(new Cesium.OpenStreetMapImageryProvider({url:"https://tile.openstreetmap.org/"}));v.scene.globe.enableLighting=true;v.scene.globe.baseColor=Cesium.Color.fromCssColorString("#78979a");v.scene.backgroundColor=Cesium.Color.fromCssColorString("#071a24");v.scene.globe.show=true;v.scene.globe.depthTestAgainstTerrain=false;v.scene.fog.enabled=false;v.scene.screenSpaceCameraController.enableRotate=true;v.scene.screenSpaceCameraController.enableZoom=true;v.scene.screenSpaceCameraController.enableTilt=true;v.camera.setView({destination:Cesium.Cartesian3.fromDegrees(112,4,22500000),orientation:{heading:0,pitch:Cesium.Math.toRadians(-88),roll:0}});markers();initGlobeModelOverlay();initKomodoMapOverlay();$("#mapStatus").textContent="OPEN MAP · OPENSTREETMAP";initOsmBuildings(v);v.screenSpaceEventHandler.setInputAction(e=>{const p=v.scene.pick(e.position);if(Cesium.defined(p)&&p.id&&p.id.siteId)openSite(p.id.siteId,true)},Cesium.ScreenSpaceEventType.LEFT_CLICK);v.screenSpaceEventHandler.setInputAction(e=>updateMapHover(e.endPosition),Cesium.ScreenSpaceEventType.MOUSE_MOVE);$("#cesiumContainer").addEventListener("mouseleave",()=>{$("#mapHoverTooltip").hidden=true;const old=state.entities.get(state.hovered);if(old&&old.label)old.label.show=state.hovered===state.selected;state.hovered=null;setSelectedMarker(state.selected)});v.scene.globe.tileLoadProgressEvent.addEventListener(n=>{if(n===0&&$("#mapStatus").textContent==="OPEN MAP · OPENSTREETMAP")$("#mapStatus").textContent="3D GLOBE ONLINE · OSM"})}catch(e){console.error("Cesium / OpenStreetMap initialization failed",e);fallback()}}
+function initMap(){if(!window.Cesium){fallback();return}try{const worldTerrain=Cesium.Terrain.fromWorldTerrain({requestVertexNormals:true});const v=new Cesium.Viewer("cesiumContainer",{terrain:worldTerrain,animation:false,baseLayer:false,baseLayerPicker:false,geocoder:false,homeButton:false,infoBox:false,sceneModePicker:false,selectionIndicator:false,timeline:false,navigationHelpButton:false,fullscreenButton:false,shouldAnimate:false});state.viewer=v;state.terrainStatus="loading";worldTerrain.readyEvent.addEventListener(()=>{state.terrainStatus="ready";console.info("[Heritage Atlas] Cesium World Terrain ready; OSM imagery and local models can align to sampled ground heights.");if(state.buildingsStatus==="ready")setBuildingsUi("WORLD TERRAIN + OSM BUILDINGS ACTIVE · Local GLB clearance: 1.2 m.","ok")});worldTerrain.errorEvent.addEventListener(error=>{state.terrainStatus="unavailable";console.warn("[Heritage Atlas] Cesium World Terrain failed. OSM Buildings are aligned to Cesium World Terrain, so access to both terrain and buildings assets is needed.",error);setBuildingsUi("TERRAIN UNAVAILABLE · Allow Cesium World Terrain and OSM Buildings in the ion token asset restrictions.","error")});v.imageryLayers.removeAll();v.imageryLayers.addImageryProvider(new Cesium.OpenStreetMapImageryProvider({url:"https://tile.openstreetmap.org/"}));v.scene.globe.enableLighting=true;v.scene.globe.baseColor=Cesium.Color.fromCssColorString("#78979a");v.scene.backgroundColor=Cesium.Color.fromCssColorString("#071a24");v.scene.globe.show=true;v.scene.globe.depthTestAgainstTerrain=true;v.scene.fog.enabled=false;v.scene.screenSpaceCameraController.enableRotate=true;v.scene.screenSpaceCameraController.enableZoom=true;v.scene.screenSpaceCameraController.enableTilt=true;v.camera.setView({destination:Cesium.Cartesian3.fromDegrees(112,4,22500000),orientation:{heading:0,pitch:Cesium.Math.toRadians(-88),roll:0}});markers();initGlobeModelOverlay();initKomodoMapOverlay();$("#mapStatus").textContent="OPEN MAP · OPENSTREETMAP";initOsmBuildings(v);v.screenSpaceEventHandler.setInputAction(e=>{const p=v.scene.pick(e.position);if(Cesium.defined(p)&&p.id&&p.id.siteId)openSite(p.id.siteId,true)},Cesium.ScreenSpaceEventType.LEFT_CLICK);v.screenSpaceEventHandler.setInputAction(e=>updateMapHover(e.endPosition),Cesium.ScreenSpaceEventType.MOUSE_MOVE);$("#cesiumContainer").addEventListener("mouseleave",()=>{$("#mapHoverTooltip").hidden=true;const old=state.entities.get(state.hovered);if(old&&old.label)old.label.show=state.hovered===state.selected;state.hovered=null;setSelectedMarker(state.selected)});v.scene.globe.tileLoadProgressEvent.addEventListener(n=>{if(n===0&&$("#mapStatus").textContent==="OPEN MAP · OPENSTREETMAP")$("#mapStatus").textContent="3D GLOBE ONLINE · OSM"})}catch(e){console.error("Cesium / OpenStreetMap initialization failed",e);fallback()}}
 function fallback(){$("#mapStatus").textContent="MAP OFFLINE";$("#mapFallback").hidden=false}
 function renderLocalModelPicker(site){
  const zoneButton=$("#zoneToggleBtn");
