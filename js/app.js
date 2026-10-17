@@ -1,5 +1,5 @@
 (() => {"use strict";
-const $=s=>document.querySelector(s),SITE_INTEL_API_URL="https://civilaegis-tinyfish-proxy.conniezz-cool.workers.dev/site-intel",state={filter:"all",search:"",listLimit:60,selected:null,visited:new Set(),xp:0,answered:new Set(),viewer:null,buildingsTileset:null,buildingsStatus:"idle",entities:new Map(),globeModelEntities:new Map(),catalog:null,registryMeta:null,hovered:null,globeOverlay:null,globeOverlays:new Map(),globeOverlayReady:false,globeOverlayCleanup:null,globeOverlayCleanups:[],komodoOverlay:null,komodoOverlayCleanup:null,explorationZones:new Map(),activeZoneId:null,siteIntelCache:new Map(),siteIntelPending:new Map(),siteIntelTab:"overview",toastTimer:null,local3d:null,local3dFrame:null,local3dModel:null},KEY="world-heritage-atlas-progress-v1",cat={culture:"CULTURE",nature:"NATURE",mixed:"MIXED"};
+const $=s=>document.querySelector(s),SITE_INTEL_API_URL="https://civilaegis-tinyfish-proxy.conniezz-cool.workers.dev/site-intel",state={filter:"all",search:"",listLimit:60,selected:null,visited:new Set(),xp:0,answered:new Set(),viewer:null,buildingsTileset:null,buildingsStatus:"idle",terrainStatus:"idle",entities:new Map(),globeModelEntities:new Map(),catalog:null,registryMeta:null,hovered:null,globeOverlay:null,globeOverlays:new Map(),globeOverlayReady:false,globeOverlayCleanup:null,globeOverlayCleanups:[],komodoOverlay:null,komodoOverlayCleanup:null,explorationZones:new Map(),activeZoneId:null,siteIntelCache:new Map(),siteIntelPending:new Map(),siteIntelTab:"overview",toastTimer:null,local3d:null,local3dFrame:null,local3dModel:null},KEY="world-heritage-atlas-progress-v1",cat={culture:"CULTURE",nature:"NATURE",mixed:"MIXED"};
 const LOCAL_MODEL_GROUND_CLEARANCE_METERS=1.2;
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function toast(t){const e=$("#toast");e.textContent=t;e.classList.add("show");clearTimeout(state.toastTimer);state.toastTimer=setTimeout(()=>e.classList.remove("show"),2500)}
@@ -166,14 +166,14 @@ function toggleExplorationZone(site,closeDrawerAfter=true){
   record.entities.forEach(entity=>entity.show=record.visible);
  }else{
   const lon=Number(target.coordinates[0]),lat=Number(target.coordinates[1]);
-  const center=Cesium.Cartesian3.fromDegrees(lon,lat,4);
+  const center=Cesium.Cartesian3.fromDegrees(lon,lat,0);
   const zone=state.viewer.entities.add({
    id:"indicative-exploration-zone-"+target.id,show:true,position:center,
-   ellipse:{semiMajorAxis:radius,semiMinorAxis:radius,height:4,material:Cesium.Color.fromCssColorString("#58d9b5").withAlpha(0.19),outline:true,outlineColor:Cesium.Color.fromCssColorString("#f2c66d").withAlpha(0.95),outlineWidth:3}
+   ellipse:{semiMajorAxis:radius,semiMinorAxis:radius,height:0,heightReference:Cesium.HeightReference.CLAMP_TO_GROUND,material:Cesium.Color.fromCssColorString("#58d9b5").withAlpha(0.19),outline:true,outlineColor:Cesium.Color.fromCssColorString("#f2c66d").withAlpha(0.95),outlineWidth:3}
   });
   const inner=state.viewer.entities.add({
    id:"indicative-exploration-zone-inner-"+target.id,show:true,position:center,
-   ellipse:{semiMajorAxis:radius*0.68,semiMinorAxis:radius*0.68,height:5,material:Cesium.Color.fromCssColorString("#58d9b5").withAlpha(0.05),outline:true,outlineColor:Cesium.Color.fromCssColorString("#62dcb8").withAlpha(0.9),outlineWidth:2}
+   ellipse:{semiMajorAxis:radius*0.68,semiMinorAxis:radius*0.68,height:0,heightReference:Cesium.HeightReference.CLAMP_TO_GROUND,material:Cesium.Color.fromCssColorString("#58d9b5").withAlpha(0.05),outline:true,outlineColor:Cesium.Color.fromCssColorString("#62dcb8").withAlpha(0.9),outlineWidth:2}
   });
   record={entities:[zone,inner],visible:true,radiusMeters:radius};
   state.explorationZones.set(target.id,record);
