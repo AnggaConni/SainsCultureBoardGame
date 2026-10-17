@@ -53,22 +53,22 @@ class TentativeListTests(unittest.TestCase):
     def test_official_report_candidates_are_kept_separate_and_unmapped(self):
         pages = [""] * 7
         pages[4] = (
-            "AFRICA\\n"
-            "Angola 27/08/2025\\n"
-            "Democratic People's Republic of\\n"
+            "AFRICA\n"
+            "Angola 27/08/2025\n"
+            "Democratic People's Republic of\n"
             "Korea 06/02/2026"
         )
-        pages[5] = "ASIA AND THE PACIFIC\\nIndonesia 15/04/2025\\nJapan 01/02/2016"
+        pages[5] = "ASIA AND THE PACIFIC\nIndonesia 15/04/2025\nJapan 01/02/2016"
         pages[6] = (
-            "ANNEX 3\\nWORLD HERITAGE TENTATIVE LISTS BY REGION\\n"
-            "AFRICA\\n"
-            "Angola\\n"
-            "Corredor do Kwanza – Paysage Culturel CN\\n"
-            "A Multi\\nLine Site C\\n"
-            "ASIA AND THE PACIFIC\\n"
-            "Democratic People's Republic of\\nKorea\\n"
-            "Coastal Wetlands in the West Sea N\\n"
-            "Indonesia\\n"
+            "ANNEX 3\nWORLD HERITAGE TENTATIVE LISTS BY REGION\n"
+            "AFRICA\n"
+            "Angola\n"
+            "Corredor do Kwanza – Paysage Culturel CN\n"
+            "A Multi\nLine Site C\n"
+            "ASIA AND THE PACIFIC\n"
+            "Democratic People's Republic of\nKorea\n"
+            "Coastal Wetlands in the West Sea N\n"
+            "Indonesia\n"
             "The Land Below the Wind: Spice Trade Route CN"
         )
         records = parse_tentative_list_pages(pages)
