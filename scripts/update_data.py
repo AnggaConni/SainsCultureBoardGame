@@ -390,7 +390,7 @@ def normalize_world_bank(payload: dict[str, Any]) -> list[dict[str, Any]]:
         country = row.get("country") if isinstance(row.get("country"), dict) else {}
         indicator = row.get("indicator") if isinstance(row.get("indicator"), dict) else {}
         result.append({
-            "countryCode": row.get("countryiso3code") or row.get("country", {}).get("id"),
+            "countryCode": row.get("countryiso3code") or (row.get("country", {}).get("id") if isinstance(row.get("country"), dict) else None),
             "country": country.get("value"),
             "year": int(row["date"]) if str(row.get("date", "")).isdigit() else row.get("date"),
             "indicatorCode": code,
