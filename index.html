@@ -1,14 +1,30 @@
 <!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#071a24"><meta name="description" content="Explore UNESCO-designated places through a playful 3D world map, stories and field missions.">
+<meta name="theme-color" content="#071a24">
+<meta name="color-scheme" content="light">
+<meta name="description" content="Explore UNESCO-designated places through a 3D world map, field journals, cultural stories and environmental missions.">
+<meta name="application-name" content="World Heritage Atlas">
+<meta name="author" content="World Heritage Atlas">
+<meta name="robots" content="index,follow">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="shortcut icon" href="favicon.svg" type="image/svg+xml">
+<link rel="canonical" href="https://anggaconni.github.io/SainsCultureBoardGame/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="World Heritage Atlas">
+<meta property="og:title" content="World Heritage Atlas — Explore, Learn, Protect">
+<meta property="og:description" content="Explore UNESCO-designated places through a 3D world map, cultural stories and environmental missions.">
+<meta property="og:url" content="https://anggaconni.github.io/SainsCultureBoardGame/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="World Heritage Atlas — Explore, Learn, Protect">
+<meta name="twitter:description" content="Explore UNESCO-designated places through a 3D world map, cultural stories and environmental missions.">
 <title>World Heritage Atlas — Explore, Learn, Protect</title>
 <link rel="stylesheet" href="css/atlas.css"><link rel="stylesheet" href="https://unpkg.com/cesium@1.132.0/Build/Cesium/Widgets/widgets.css">
 <script>window.CESIUM_BASE_URL='https://unpkg.com/cesium@1.132.0/Build/Cesium/';</script><script src="https://unpkg.com/cesium@1.132.0/Build/Cesium/Cesium.js"></script>
 </head><body><div class="app-shell">
 <header class="topbar"><a class="brand" href="#"><span class="brand-mark">W<span>✳</span></span><span><b>WORLD HERITAGE</b><small>ATLAS / LEARNING EXPEDITION</small></span></a><div class="top-status"><span class="pulse"></span><span id="mapStatus">PREPARING THE GLOBE</span></div><div class="top-actions"><button id="helpBtn" class="ghost-btn" type="button">How to play ↗</button><button id="soundBtn" class="icon-btn" aria-label="Sound">♫</button></div></header>
 <main class="layout"><section class="map-stage" aria-label="Interactive 3D world map"><div id="cesiumContainer"></div><div class="map-shade"></div>
-<div id="globeModelOverlay" class="globe-model-overlay" hidden aria-hidden="true"><div id="globeModelCanvasHost"></div></div>
+<div id="globeModelOverlay" class="globe-model-overlay" hidden role="button" tabindex="0" aria-label="Click the rotating Borobudur model to show or hide the indicative exploration zone" title="Click the rotating temple to show or hide the exploration zone"><div id="globeModelCanvasHost"></div></div>
 <div id="mapHoverTooltip" class="map-hover-tooltip" hidden role="tooltip">
  <strong id="mapHoverName"></strong>
  <span id="mapHoverType"></span>
@@ -35,6 +51,8 @@
   <p class="local-model-intro">Use a model stored inside this repository. Upload a correctly named <code>.glb</code> file and it becomes available here.</p>
   <div class="model-picker-row"><select id="localModelSelect" aria-label="Choose local 3D model"></select><button id="loadLocalModelBtn" class="model-load-btn" type="button">Open 3D ↗</button></div>
   <div id="localModelExpected" class="model-expected"></div>
+  <button id="zoneToggleBtn" class="zone-toggle-btn" hidden type="button">Show exploration zone on map ↗</button>
+  <p class="zone-disclaimer">Click the rotating temple on the map to toggle the indicative exploration zone. It is not an official UNESCO buffer-zone boundary.</p>
   <div id="localModelStage" class="local-model-stage" hidden><div id="modelCanvasHost" class="model-canvas-host"></div><div class="model-toolbar"><span id="localModelStatus" aria-live="polite">Loading local asset…</span><button id="resetLocalModelBtn" type="button">Reset view</button></div></div>
   <div id="localModelCredit" class="model-credit" hidden></div>
 </section>
