@@ -34,3 +34,9 @@ Serve the repository root over HTTP (e.g. `python -m http.server 8000`) and open
 2. Expand from a verified, provenance-tracked UNESCO data source.
 3. Add search, region explorer and richer source/provenance panel.
 4. In phase two, add lightweight GLB scenes for selected sites and optional PWA app-shell caching.
+
+
+## Basemap / navigation patch
+- Explicitly disables Cesium's default ion-backed base layer and adds OpenStreetMap raster tiles, so the map does not depend on Google Maps or a Google key.
+- Site marker clicks and site-card clicks animate to an oblique close-up; drag rotates, right-drag tilts, and the wheel zooms.
+- This is a 3D globe/camera exploration with a 2D OSM basemap, **not** photogrammetric 3D buildings or detailed elevation. For true site-specific 3D models, use properly licensed GLB assets or a non-Google 3D tiles/terrain source in a later step.
