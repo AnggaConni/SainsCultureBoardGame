@@ -89,7 +89,7 @@
           "label": "Borobudur temple — existing repository model",
           "file": "assets/temples/borobudur_temple.glb",
           "format": "glb",
-          "placement": "globe",
+          "placement": "detail",
           "status": "available",
           "scale": 1,
           "targetSizeMeters": {
@@ -108,7 +108,7 @@
           "creator": "Unknown — inherited repository asset",
           "license": "Unverified — review before public redistribution",
           "sourceUrl": null,
-          "notes": "Existing file is ~2.38 MB. Scale=1 assumes the GLB was exported in metres; inspect the result in-browser and adjust if necessary."
+          "notes": "Shown in the isolated Three.js site viewer by default. Do not add this unverified GLB to Cesium's native model render loop until compatibility is tested; the old native path caused the Cesium render loop to stop."
         },
         {
           "id": "borobudur-relief-detail",
@@ -445,6 +445,7 @@
     "This is a curated starter catalog, not the authoritative complete UNESCO registry.",
     "Multi-component sites and protected areas cannot be represented accurately by a single point; use the point for map navigation only until boundaries are added.",
     "Model target dimensions are planning metadata, not measured facts about the current GLB file. Inspect actual GLB bounds before using it for scale analysis.",
-    "Automated source datasets are stored separately under data/generated and must not overwrite curated designations, model paths, licence reviews, educational copy or coordinates."
+    "Automated source datasets are stored separately under data/generated and must not overwrite curated designations, model paths, licence reviews, educational copy or coordinates.",
+    "GLB model placement mode 'detail' is intentionally used for the current Borobudur asset to isolate it from Cesium's renderer. Once validated or converted, a separate tested globe-model path can be enabled."
   ]
 }

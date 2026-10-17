@@ -52,3 +52,7 @@ Always check the original download page one more time before publishing; model a
 The curated `data/sites.json` now separates site identity from quizzes. A site record can carry a representative WGS84 point, programme/designation information, camera range, and one or more model assets. Models marked `placement: "globe"` can be rendered at map coordinates; `placement: "detail"` is loaded into the separate 3D viewer.
 
 Target sizes such as Borobudur's approximately 35 m display height are sizing targets to normalize the visual model, not a claim that the repository GLB's dimensions have been measured or archaeologically verified. The model's origin/heading/footprint should be checked visually before institutional publication.
+
+
+## Cesium crash-isolation note
+The current Borobudur GLB is listed with `placement: "detail"` and loads through the separate Three.js viewer. It is not attached to Cesium's native model renderer until compatibility is tested. Hover over a map pin for a site tooltip; click the pin to open the site journal and local 3D asset viewer.

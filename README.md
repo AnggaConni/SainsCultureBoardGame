@@ -59,3 +59,7 @@ Serve the repository root over HTTP (e.g. `python -m http.server 8000`) and open
 - Unit tests: `python scripts/test_update_data.py`.
 - World Bank tourism/economy series are country-level context, not site-level economic impact estimates. Intangible heritage elements and some designated areas lack a single point, so records with missing coordinates are retained but not mapped.
 - Review current data licences/attribution and source terms before redistribution. In particular, use UNESCO DataHub's published dataset/API rather than scraping UNESCO World Heritage Centre pages directly; the Centre's own conditions restrict republication and non-syndicated scraping without permission.
+
+
+## Render stability and map hover tooltips
+The inherited Borobudur GLB is isolated in the Three.js site-detail viewer rather than loaded into Cesium's native rendering loop, because the deployed build showed a Cesium render-stopping `RangeError: Invalid array length` after the globe-model integration. Map points stay on the globe and clicking one opens the site journal/model viewer. A custom hover tooltip shows site name, designation, coordinates, and a click-to-explore hint. Re-enable a native Cesium mesh only after validating or converting the GLB with a local browser test.
