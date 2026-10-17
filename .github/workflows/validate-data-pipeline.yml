@@ -54,7 +54,7 @@ jobs:
               for model in site.get("models", []):
                   if model.get("status") == "available":
                       assert (root / model["file"]).is_file(), f"missing available model: {model['file']}"
-          print(f"Validated {len(catalog['sites'])} curated sites and {len(schema.get('properties', {}).get('sites', {}).get('items', {}).get('properties', {}).get('models', {}).get('items', {})) if False else 'model'} schema.")
+          print(f"Validated {len(catalog['sites'])} curated sites and the JSON schema.")
           PY
       - name: Check JavaScript syntax
         run: |
