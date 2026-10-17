@@ -67,3 +67,7 @@ The inherited Borobudur GLB is isolated in the Three.js site-detail viewer rathe
 
 ## Borobudur model on the map
 The Borobudur asset is configured with `placement: "globe"`, but deliberately does **not** use Cesium's native GLB renderer. A transparent Three.js overlay projects the anchor coordinate and a target-height point through the active Cesium camera, then positions/scales the rendered model above the OpenStreetMap tile. This makes the model visible at close site zoom without reintroducing the previous Cesium GLB render-loop crash. The overlay does not provide real terrain occlusion or surveyed footprint alignment; it is a visual MVP and must be inspected in a live browser.
+
+
+## Favicon and page metadata
+The site uses a custom vector temple favicon at `favicon.svg` with an explicit SVG favicon declaration. The document head includes a canonical URL, application name, theme colour, description, author and Open Graph/Twitter summary metadata.
