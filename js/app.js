@@ -411,22 +411,45 @@ function updateMapHover(position){
 }
 async function initOsmBuildings(viewer){
  if(!viewer||!window.Cesium||typeof Cesium.createOsmBuildingsAsync!=="function"){state.buildingsStatus="unsupported";return}
- if(window.CESIUM_ION_ACCESS_TOKEN&&Cesium.Ion)Cesium.Ion.defaultAccessToken=window.CESIUM_ION_ACCESS_TOKEN;
+ const token=String(window.CESIUM_ION_ACCESS_TOKEN||"").trim();
+ const status=$("#mapStatus");
+ if(!token){
+  state.buildingsStatus="token-required";
+  if(status)status.textContent="3D BUILDINGS NEED ION TOKEN";
+  console.warn("Cesium OSM Buildings needs an app-specific Cesium ion access token. Add a restricted public token to js/cesium-config.js; keep only assets:read scope and restrict it to this app and the OSM Buildings asset.");
+  return;
+ }
+ if(!Cesium.Ion){state.buildingsStatus="unsupported";if(status)status.textContent="3D BUILDINGS · CESIUM ION UNAVAILABLE";return}
+ Cesium.Ion.defaultAccessToken=token;
  state.buildingsStatus="loading";
  try{
   const tileset=await Cesium.createOsmBuildingsAsync({enableShowOutline:false});
-  if(state.viewer!==viewer)return;
+  if(state.viewer!==viewer){tileset.destroy();return}
   state.buildingsTileset=tileset;
+  tileset.tileFailed.addEventListener(error=>{
+   state.buildingsStatus="tile-error";
+   const detail=String(error&&error.message||"");
+   const authFailure=/401|403|unauthori[sz]ed|invalid token|access token|forbidden/i.test(detail);
+   const currentStatus=$("#mapStatus");
+   if(currentStatus)currentStatus.textContent=authFailure?"3D BUILDINGS AUTH ERROR · CHECK TOKEN":"3D BUILDINGS TILE ERROR";
+   console.warn("Cesium OSM Buildings tile failed. Check ion token scope, URL restriction, asset access, quota and network.",{message:detail,url:error&&error.url});
+  });
+  tileset.tileLoad.addEventListener(()=>{
+   if(state.buildingsStatus==="ready"||state.buildingsStatus==="loading"){
+    state.buildingsStatus="ready";
+    const currentStatus=$("#mapStatus");
+    if(currentStatus&&["3D BUILDINGS CONNECTED · WAITING FOR TILES","3D BUILDINGS LOADING"].includes(currentStatus.textContent))currentStatus.textContent="3D BUILDINGS LOADED · OSM";
+   }
+  });
   viewer.scene.primitives.add(tileset);
   state.buildingsStatus="ready";
-  const status=$("#mapStatus");
-  if(status&&["OPEN MAP · OPENSTREETMAP","3D GLOBE ONLINE · OSM"].includes(status.textContent))status.textContent="3D BUILDINGS ONLINE · OSM";
-  console.info("Cesium OSM Buildings loaded; coverage and height detail depend on OpenStreetMap data.");
+  if(status)status.textContent="3D BUILDINGS CONNECTED · WAITING FOR TILES";
+  console.info("Cesium OSM Buildings tileset attached. Building visibility depends on tile loading and local data coverage.");
  }catch(error){
   state.buildingsStatus="unavailable";
-  console.warn("Cesium OSM Buildings could not load. The globe and site markers will remain available. Check the Cesium ion access token, streaming quota, network and browser console.",error);
-  const status=$("#mapStatus");
-  if(status&&["OPEN MAP · OPENSTREETMAP","3D GLOBE ONLINE · OSM"].includes(status.textContent))status.textContent="3D GLOBE ONLINE · OSM BUILDINGS UNAVAILABLE";
+  console.warn("Cesium OSM Buildings could not initialize. Check the ion access token, OSM Buildings asset access, streaming quota and network.",error);
+  const currentStatus=$("#mapStatus");
+  if(currentStatus)currentStatus.textContent="3D BUILDINGS UNAVAILABLE · CHECK ION";
  }
 }
 function initMap(){if(!window.Cesium){fallback();return}try{const v=new Cesium.Viewer("cesiumContainer",{animation:false,baseLayer:false,baseLayerPicker:false,geocoder:false,homeButton:false,infoBox:false,sceneModePicker:false,selectionIndicator:false,timeline:false,navigationHelpButton:false,fullscreenButton:false,shouldAnimate:false});state.viewer=v;v.imageryLayers.removeAll();v.imageryLayers.addImageryProvider(new Cesium.OpenStreetMapImageryProvider({url:"https://tile.openstreetmap.org/"}));v.scene.globe.enableLighting=true;v.scene.globe.baseColor=Cesium.Color.fromCssColorString("#78979a");v.scene.backgroundColor=Cesium.Color.fromCssColorString("#071a24");v.scene.globe.show=true;v.scene.globe.depthTestAgainstTerrain=false;v.scene.fog.enabled=false;v.scene.screenSpaceCameraController.enableRotate=true;v.scene.screenSpaceCameraController.enableZoom=true;v.scene.screenSpaceCameraController.enableTilt=true;v.camera.setView({destination:Cesium.Cartesian3.fromDegrees(112,4,22500000),orientation:{heading:0,pitch:Cesium.Math.toRadians(-88),roll:0}});markers();initGlobeModelOverlay();initKomodoMapOverlay();$("#mapStatus").textContent="OPEN MAP · OPENSTREETMAP";initOsmBuildings(v);v.screenSpaceEventHandler.setInputAction(e=>{const p=v.scene.pick(e.position);if(Cesium.defined(p)&&p.id&&p.id.siteId)openSite(p.id.siteId,true)},Cesium.ScreenSpaceEventType.LEFT_CLICK);v.screenSpaceEventHandler.setInputAction(e=>updateMapHover(e.endPosition),Cesium.ScreenSpaceEventType.MOUSE_MOVE);$("#cesiumContainer").addEventListener("mouseleave",()=>{$("#mapHoverTooltip").hidden=true;const old=state.entities.get(state.hovered);if(old&&old.label)old.label.show=state.hovered===state.selected;state.hovered=null;setSelectedMarker(state.selected)});v.scene.globe.tileLoadProgressEvent.addEventListener(n=>{if(n===0&&$("#mapStatus").textContent==="OPEN MAP · OPENSTREETMAP")$("#mapStatus").textContent="3D GLOBE ONLINE · OSM"})}catch(e){console.error("Cesium / OpenStreetMap initialization failed",e);fallback()}}
