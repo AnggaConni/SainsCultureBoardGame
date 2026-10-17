@@ -8,6 +8,12 @@
 </head><body><div class="app-shell">
 <header class="topbar"><a class="brand" href="#"><span class="brand-mark">W<span>✳</span></span><span><b>WORLD HERITAGE</b><small>ATLAS / LEARNING EXPEDITION</small></span></a><div class="top-status"><span class="pulse"></span><span id="mapStatus">PREPARING THE GLOBE</span></div><div class="top-actions"><button id="helpBtn" class="ghost-btn" type="button">How to play ↗</button><button id="soundBtn" class="icon-btn" aria-label="Sound">♫</button></div></header>
 <main class="layout"><section class="map-stage" aria-label="Interactive 3D world map"><div id="cesiumContainer"></div><div class="map-shade"></div>
+<div id="mapHoverTooltip" class="map-hover-tooltip" hidden role="tooltip">
+ <strong id="mapHoverName"></strong>
+ <span id="mapHoverType"></span>
+ <small id="mapHoverCoords"></small>
+ <em>Click to explore this site ↗</em>
+</div>
 <div class="map-heading"><span class="eyebrow">YOUR FIELD JOURNAL · 01</span><h1>One planet.<br><em>Countless stories.</em></h1><p>Travel the map. Discover the places that shape our shared future.</p></div>
 <div class="map-tools"><button id="resetViewBtn" class="map-tool" type="button">◎ <span>WORLD VIEW</span></button><button id="locateBtn" class="map-tool" type="button">⌖ <span>MY LOCATION</span></button></div>
 <div class="map-legend"><span><i class="legend-dot culture"></i>World Heritage</span><span><i class="legend-dot nature"></i>Nature</span><span><i class="legend-dot learning"></i>Learning stop</span></div>
