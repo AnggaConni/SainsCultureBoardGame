@@ -122,3 +122,7 @@ Deploy the separate Worker with `npx wrangler deploy --config wrangler.site-inte
 
 ### Deploy Site Intelligence Worker
 The News and Research dossier tabs use a separate Cloudflare Worker. Set GitHub Actions repository secrets `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, and `TINYFISH_API_KEY` (plus optional `OPENALEX_API_KEY`), then run the [Deploy Site Intelligence Worker workflow](https://github.com/AnggaConni/SainsCultureBoardGame/actions/workflows/deploy-site-intelligence.yml). Follow `SITE_INTELLIGENCE_SETUP.md` for required permissions and diagnosing endpoint/CORS errors. The Environment tab is still a Phase 2 placeholder.
+
+
+## GLB runtime compatibility
+The curated GLB uploads use different glTF extensions: Borobudur requires `KHR_draco_mesh_compression`, Prambanan requires `EXT_meshopt_compression`, and the Komodo dragon model uses `KHR_materials_pbrSpecularGlossiness`. The app pins Three.js r146 because it supports the two geometry decoder workflows while retaining the legacy specular/glossiness material extension; the loader is configured with both the Draco and Meshopt decoders. See the GLB validation step in GitHub Actions.
