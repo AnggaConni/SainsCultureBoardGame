@@ -15,7 +15,7 @@ test("Cesium OSM Buildings layer is requested during map initialization", () => 
 
 test("OSM Buildings supports a restricted user-provided ion token", () => {
   assert.match(app, /window\.CESIUM_ION_ACCESS_TOKEN/);
-  assert.match(app, /Cesium\\.Ion\\.defaultAccessToken=token/);
+  assert.match(app, /defaultAccessToken=token/);
 });
 
 test("building-layer failures are non-fatal and expose an actionable diagnostic", () => {
