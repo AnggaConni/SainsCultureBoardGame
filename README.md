@@ -71,3 +71,9 @@ The Borobudur asset is configured with `placement: "globe"`, but deliberately do
 
 ## Favicon and page metadata
 The site uses a custom vector temple favicon at `favicon.svg` with an explicit SVG favicon declaration. The document head includes a canonical URL, application name, theme colour, description, author and Open Graph/Twitter summary metadata.
+
+
+## Animated Borobudur model and indicative exploration zone
+- The globe overlay rotates slowly and gently bobs vertically while Borobudur is in the visible close-up range.
+- Clicking the transparent model canvas toggles an indicative 350 m exploration zone on the map. The site drawer includes the same control so the zone can be switched while the drawer is open.
+- The circle is explicitly labelled as illustrative, **not the official UNESCO buffer zone**. Replace it with a validated boundary polygon from an authoritative source before presenting it as an official buffer zone.
