@@ -1,6 +1,13 @@
 name: Refresh UNESCO and tourism data
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - "scripts/update_data.py"
+      - "scripts/test_update_data.py"
+      - ".github/workflows/update-unesco-data.yml"
   schedule:
     - cron: "17 3 1 * *"
   workflow_dispatch:
@@ -41,6 +48,8 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Install PDF parser for the official Tentative List report
+        run: python -m pip install --disable-pip-version-check pypdf
       - name: Run offline scraper tests
         run: python scripts/test_update_data.py
       - name: Run data refresh
@@ -68,7 +77,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           # Keep source payloads in the workflow artifact, not in the Git history.
-          for path in data/generated/manifest.json data/generated/site_registry.json data/generated/tourism_economics.json data/generated/unesco; do
+          for path in data/generated/manifest.json data/generated/site_registry.json data/generated/tentative_list.json data/generated/tourism_economics.json data/generated/unesco; do
             if [[ -e "$path" ]]; then git add "$path"; fi
           done
           if git diff --cached --quiet; then
