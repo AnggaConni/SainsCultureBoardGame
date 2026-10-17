@@ -70,10 +70,11 @@ test("Cesium OSM Buildings is paired with Cesium World Terrain", () => {
   assert.doesNotMatch(app, /model\.pivot\.position\.y=model\.basePivotY\+Math\.sin\(time\*1\.15\)\*0\.11/);
 });
 
-test("terrain and building token diagnostics identify both required asset IDs", () => {
-  assert.match(app, /World Terrain \(asset 1\)/);
-  assert.match(app, /OSM Buildings \(asset 96188\)/);
-  assert.match(app, /WORLD TERRAIN \+ OSM BUILDINGS ACTIVE/);
+test("terrain and building status is based on actual local visibility", () => {
+  assert.ok(app.includes("if(state.buildingsVisibilitySync)state.buildingsVisibilitySync()"));
+  assert.ok(app.includes("3D BUILDINGS ACTIVE · Local detail view"));
+  assert.ok(app.includes("3D BUILDINGS READY · Zoom closer to reveal buildings"));
+  assert.ok(!app.includes("WORLD TERRAIN + OSM BUILDINGS ACTIVE · Local GLB clearance: 1.2 m."));
 });
 
 test("Cesium ion token is applied before the world terrain provider is created", () => {
