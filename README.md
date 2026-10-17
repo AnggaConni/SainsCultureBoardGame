@@ -1,50 +1,36 @@
-# Sains & Culture 3D Adventure Board Game
+# World Heritage Atlas — Learning Expedition
 
-An immersive, browser-based educational adventure board game with a winding 500-tile 3D route. The interface is designed as a full-screen Three.js world with lightweight HUD overlays rather than a side command center.
+Browser-based educational exploration prototype: learn about UNESCO-designated places through a 3D globe, location journal, quizzes and lightweight progression.
 
-## Open the game
+Preview: https://anggaconni.github.io/SainsCultureBoardGame/ (after the redesign is merged and Pages is configured).
 
-After GitHub Pages deploys the repository, open:
-https://anggaconni.github.io/SainsCultureBoardGame/
+## Redesign branch
+`redesign/unesco-sites-explorer`. The existing `main` branch and its 3D board-game prototype are preserved.
 
-You can also run it locally from the repository root using a static server, for example `python -m http.server 8000`, and open `http://localhost:8000`.
+## Features
+- Interactive CesiumJS 3D globe with map pins for six Indonesian World Heritage properties.
+- Filter locations by culture, nature or cultural landscape.
+- Short learning notes, inscription year, coordinates, why-it-matters cards and links to official UNESCO records.
+- Site-specific knowledge checks with explanations.
+- Field XP, discovery tracking and badge progression saved locally in the browser.
+- Responsive desktop/mobile interface.
 
-## Prototype features
+## Technology
+Vanilla HTML/CSS/JavaScript; CesiumJS loaded from unpkg CDN; `js/sites.js` is the content dataset; `js/app.js` is application logic; `css/atlas.css` is the redesigned theme.
 
-- Full-screen Three.js 3D scene, perspective camera, orbit and zoom controls.
-- 500 individually numbered tile meshes sampled evenly along a designed serpentine route, with visible gaps and a central rocky clearing.
-- Four themed zones: Ancient Civilization, Ocean World, Jungle Expedition, and Science Frontier.
-- GLB asset loading for Borobudur, beach/education environments, and player tokens, with simple fallback geometry for characters and the temple.
-- Tile hover/click information.
-- Two-player local turn-based dice game.
-- Borobudur quiz and a separate HTML mini-game connected using `postMessage`.
-- On a valid mini-game result, the losing player moves back three tiles.
+## Caveats
+- MVP, not yet browser-tested end-to-end. Verify Cesium imagery/terrain provider behaviour in the deployed environment.
+- Starter set contains six Indonesian World Heritage properties only. World Heritage, Biosphere Reserves, Global Geoparks, Creative Cities and Intangible Cultural Heritage are distinct programmes and should not be conflated.
+- Verify official designation details and learning copy before institutional publication.
+- The prototype does not integrate Google Photorealistic 3D Tiles. That requires separate API configuration, billing and compliance with relevant use and attribution policies.
+- Images load from a third-party source; validate their availability and licensing before publication.
+- Progress stays in localStorage on one browser/device. There are no accounts, analytics, online leaderboard or offline map tiles.
 
-## Main files
+## Run locally
+Serve the repository root over HTTP (e.g. `python -m http.server 8000`) and open `http://localhost:8000`.
 
-```text
-index.html                    Full-screen game shell and HUD
-css/style.css                 Immersive overlay styling
-js/board.js                   Three.js scene, 500 tiles, GLB assets, camera
-js/game.js                    Turns, dice, quiz, mini-game handshake
-minigames/data-test.html      Standalone mini-game test
-js/minigame-data-test.js      Mini-game scoring and result messaging
-data/board-config.json        Board and zone metadata
-data/quizzes/borobudur.json   Starter quiz bank
-assets/temples/               Borobudur and temple GLB assets
-assets/players/               Player GLB assets
-assets/ocean/                 Ocean and beach assets
-assets/nature/                Nature assets
-assets/environment/           Environment assets
-assets/ui/                    UI assets
-assets/audio/                 Audio assets
-assets/placeholders/          Temporary assets
-```
-
-## Interaction
-
-Drag to rotate the camera, scroll to zoom, and click a tile to inspect its zone. Roll the dice to move. Quiz tiles appear on the route; meeting the other player can launch the mini-game duel.
-
-## Notes
-
-This is an early prototype and has not yet been browser-tested end-to-end after the current full-screen 3D update. GLB model scale/orientation and the detailed terrain transitions will need visual tuning. No online multiplayer synchronization is included yet.
+## Next
+1. Verify rendering and choose an explicitly configured base imagery/terrain source.
+2. Expand from a verified, provenance-tracked UNESCO data source.
+3. Add search, region explorer and richer source/provenance panel.
+4. In phase two, add lightweight GLB scenes for selected sites and optional PWA app-shell caching.
