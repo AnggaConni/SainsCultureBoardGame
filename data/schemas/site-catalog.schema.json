@@ -1,0 +1,277 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://anggaconni.github.io/SainsCultureBoardGame/data/schemas/site-catalog.schema.json",
+  "title": "World Heritage Atlas site and 3D asset catalog",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "coordinateSystem",
+    "sites"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date"
+    },
+    "coordinateSystem": {
+      "const": "EPSG:4326"
+    },
+    "coordinateOrder": {
+      "type": "string"
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "sites": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "country",
+          "designations",
+          "location",
+          "models"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]+$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          },
+          "countryCode": {
+            "type": "string"
+          },
+          "designations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "programme"
+              ],
+              "properties": {
+                "programme": {
+                  "type": "string"
+                },
+                "datasetId": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "category": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "inscriptionYear": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "officialUrl": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "uri"
+                }
+              },
+              "additionalProperties": true
+            }
+          },
+          "location": {
+            "type": "object",
+            "required": [
+              "latitude",
+              "longitude"
+            ],
+            "properties": {
+              "latitude": {
+                "type": "number",
+                "minimum": -90,
+                "maximum": 90
+              },
+              "longitude": {
+                "type": "number",
+                "minimum": -180,
+                "maximum": 180
+              },
+              "coordinateOrder": {
+                "type": "string"
+              },
+              "pointRole": {
+                "type": "string"
+              },
+              "horizontalAccuracyMeters": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "source": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": true
+          },
+          "map": {
+            "type": "object",
+            "properties": {
+              "initialCameraRangeMeters": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "modelAnchorHeightMeters": {
+                "type": "number"
+              },
+              "modelHeadingDegrees": {
+                "type": "number"
+              }
+            },
+            "additionalProperties": true
+          },
+          "models": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "file",
+                "format",
+                "placement",
+                "status"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "file": {
+                  "type": "string",
+                  "pattern": "^assets/.+\\.glb$"
+                },
+                "format": {
+                  "const": "glb"
+                },
+                "placement": {
+                  "enum": [
+                    "globe",
+                    "detail",
+                    "site-scene"
+                  ]
+                },
+                "status": {
+                  "enum": [
+                    "available",
+                    "planned",
+                    "verify-license"
+                  ]
+                },
+                "scale": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "targetSizeMeters": {
+                  "type": "object",
+                  "properties": {
+                    "width": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "depth": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "height": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "headingDegrees": {
+                  "type": "number"
+                },
+                "offsetMeters": {
+                  "type": "object",
+                  "properties": {
+                    "east": {
+                      "type": "number"
+                    },
+                    "north": {
+                      "type": "number"
+                    },
+                    "up": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": true
+                },
+                "creator": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "license": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "sourceUrl": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "uri"
+                }
+              },
+              "additionalProperties": true
+            }
+          },
+          "editorial": {
+            "type": "object"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": true
+}
