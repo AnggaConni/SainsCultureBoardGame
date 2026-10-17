@@ -98,3 +98,7 @@ Run locally with python scripts/audit_assets.py. Force a full inventory/checksum
 
 ## Asset audit workflow
 The Monthly 3D Asset Audit workflow scans the unified assets/models/ folder on the first day of each month and can also be forced from GitHub Actions. It only checks assets already uploaded to the repository; it does not automatically search for or download new models. The root ASSET_AUDIT_REPORT.md lists current/missing assets, new unregistered models, moved files, integrity/name checks and size warnings. The previous inventory is stored in data/asset_audit_state.json.
+
+
+## Komodo 3D model
+Komodo National Park now uses a visible 3D Komodo dragon map overlay instead of a generic island placeholder. The app streams a small CC0 GLB preview from 3DAssets.dev and builds a procedural 3D lizard if the remote source fails. The visual size is intentionally exaggerated for map exploration. A local copy at `assets/models/komodo_dragon.glb` is optional for self-hosting/offline use and remains tracked by the asset audit.
