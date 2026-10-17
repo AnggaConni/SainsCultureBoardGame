@@ -113,9 +113,11 @@ test("world view fills the globe while selected site views stay oblique", () => 
 });
 
 test("OSM buildings are hidden at planetary scale and shown only after zoom-in", () => {
-  assert.ok(app.includes("const BUILDINGS_MAX_VISIBLE_CAMERA_HEIGHT_METERS=900000"));
+  assert.ok(app.includes("const BUILDINGS_MAX_VISIBLE_CAMERA_HEIGHT_METERS=500000"));
   assert.ok(app.includes("tileset.show=false"));
   assert.ok(app.includes("viewer.camera.changed.addEventListener(syncBuildingVisibility)"));
+  assert.ok(app.includes("viewer.scene.preRender.addEventListener(syncBuildingVisibility)"));
+  assert.ok(app.includes("viewer.scene.preRender.removeEventListener(syncBuildingVisibility)"));
   assert.ok(app.includes("3D BUILDINGS READY · Zoom closer to reveal buildings"));
 });
 
