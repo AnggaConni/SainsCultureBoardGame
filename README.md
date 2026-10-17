@@ -63,3 +63,7 @@ Serve the repository root over HTTP (e.g. `python -m http.server 8000`) and open
 
 ## Render stability and map hover tooltips
 The inherited Borobudur GLB is isolated in the Three.js site-detail viewer rather than loaded into Cesium's native rendering loop, because the deployed build showed a Cesium render-stopping `RangeError: Invalid array length` after the globe-model integration. Map points stay on the globe and clicking one opens the site journal/model viewer. A custom hover tooltip shows site name, designation, coordinates, and a click-to-explore hint. Re-enable a native Cesium mesh only after validating or converting the GLB with a local browser test.
+
+
+## Borobudur model on the map
+The Borobudur asset is configured with `placement: "globe"`, but deliberately does **not** use Cesium's native GLB renderer. A transparent Three.js overlay projects the anchor coordinate and a target-height point through the active Cesium camera, then positions/scales the rendered model above the OpenStreetMap tile. This makes the model visible at close site zoom without reintroducing the previous Cesium GLB render-loop crash. The overlay does not provide real terrain occlusion or surveyed footprint alignment; it is a visual MVP and must be inspected in a live browser.
