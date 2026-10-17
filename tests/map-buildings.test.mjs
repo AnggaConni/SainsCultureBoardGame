@@ -5,6 +5,7 @@ import { readFile } from "node:fs/promises";
 const app = await readFile(new URL("../js/app.js", import.meta.url), "utf8");
 const config = await readFile(new URL("../js/cesium-config.js", import.meta.url), "utf8");
 const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
+const css = await readFile(new URL("../css/atlas.css", import.meta.url), "utf8");
 
 test("Cesium OSM Buildings layer is requested during map initialization", () => {
   assert.match(app, /async function initOsmBuildings\(viewer\)/);
@@ -39,4 +40,12 @@ test("tile streaming failures produce an actionable diagnostic", () => {
   assert.match(app, /tileset\.tileFailed\.addEventListener/);
   assert.match(app, /3D BUILDINGS AUTH ERROR · CHECK TOKEN/);
   assert.match(app, /3D BUILDINGS TILE ERROR/);
+});
+
+test("persistent map badge explains missing token and is not tied to the header status", () => {
+  assert.match(html, /id="buildingsStatus" class="buildings-status"/);
+  assert.match(app, /function setBuildingsUi\(message,tone\)/);
+  assert.match(app, /setBuildingsUi\("3D BUILDINGS DISABLED · Add a restricted Cesium ion token in js\/cesium-config\.js\.","warn"\)/);
+  assert.match(css, /\.buildings-status\[hidden\]\{display:none\}/);
+  assert.match(css, /\.buildings-status\.error/);
 });
