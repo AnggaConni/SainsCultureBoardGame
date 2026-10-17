@@ -92,13 +92,17 @@ test("terrain shading does not darken the entire OSM basemap", () => {
   assert.match(app, /v\.scene\.globe\.enableLighting=false/);
 });
 
-test("map markers float above terrain and use local-only depth override", () => {
-  assert.ok(app.includes("const MAP_MARKER_GROUND_CLEARANCE_METERS=12"));
-  assert.ok(app.includes("position:Cesium.Cartesian3.fromDegrees(lon,lat,MAP_MARKER_GROUND_CLEARANCE_METERS)"));
-  assert.equal((app.match(/heightReference:Cesium.HeightReference.RELATIVE_TO_GROUND,disableDepthTestDistance:18000/g) || []).length, 1);
-  assert.equal((app.match(/heightReference:Cesium.HeightReference.RELATIVE_TO_GROUND/g) || []).length, 2);
-  assert.ok(app.includes("v.scene.globe.depthTestAgainstTerrain=true"));
-  assert.ok(!app.includes("disableDepthTestDistance:Number.POSITIVE_INFINITY"));
+test("markers use dark cores with bright category-colored glow", () => {
+  assert.ok(app.includes("function markerPalette(site)"));
+  assert.ok(app.includes('world_heritage:{glow:"#FFC857",core:"#101923"}'));
+  assert.ok(app.includes('global_geopark:{glow:"#B7A4FF",core:"#19162F"}'));
+  assert.ok(app.includes('biosphere_reserve:{glow:"#55F2B0",core:"#0D2923"}'));
+  assert.ok(app.includes("function createMarkerImage(site)"));
+  assert.ok(app.includes("ctx.createRadialGradient(32,32,4,32,32,31)"));
+  assert.ok(app.includes("billboard:{image:createMarkerImage(s)"));
+  assert.ok(app.includes("heightReference:Cesium.HeightReference.RELATIVE_TO_GROUND"));
+  assert.ok(app.includes("disableDepthTestDistance:18000"));
+  assert.ok(!app.includes("entity.point.pixelSize"));
 });
 
 test("initial and reset world views use an oblique camera angle", () => {
