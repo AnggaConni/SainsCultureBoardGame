@@ -106,8 +106,15 @@ test("markers use dark cores with bright category-colored glow", () => {
   assert.ok(!app.includes("entity.point.pixelSize"));
 });
 
-test("initial and reset world views use an oblique camera angle", () => {
-  assert.ok(app.includes("pitch:Cesium.Math.toRadians(-68),roll:0}});markers();"));
-  assert.ok(app.includes('$("#resetViewBtn").addEventListener("click",()=>{if(state.viewer)state.viewer.camera.flyTo({destination:Cesium.Cartesian3.fromDegrees(112,4,22500000),orientation:{heading:0,pitch:Cesium.Math.toRadians(-68),roll:0},duration:1.5})'));
+test("world view fills the globe while selected site views stay oblique", () => {
+  assert.ok(app.includes("pitch:Cesium.Math.toRadians(-88),roll:0}});markers();"));
+  assert.ok(app.includes('$("#resetViewBtn").addEventListener("click",()=>{if(state.viewer)state.viewer.camera.flyTo({destination:Cesium.Cartesian3.fromDegrees(112,4,22500000),orientation:{heading:0,pitch:Cesium.Math.toRadians(-88),roll:0},duration:1.5})'));
   assert.ok(app.includes("new Cesium.HeadingPitchRange(Cesium.Math.toRadians(24),Cesium.Math.toRadians(-38),range)"));
+});
+
+test("OSM buildings are hidden at planetary scale and shown only after zoom-in", () => {
+  assert.ok(app.includes("const BUILDINGS_MAX_VISIBLE_CAMERA_HEIGHT_METERS=900000"));
+  assert.ok(app.includes("tileset.show=false"));
+  assert.ok(app.includes("viewer.camera.changed.addEventListener(syncBuildingVisibility)"));
+  assert.ok(app.includes("3D BUILDINGS READY · Zoom closer to reveal buildings"));
 });
