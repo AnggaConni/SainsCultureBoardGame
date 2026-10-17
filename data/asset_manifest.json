@@ -1,0 +1,287 @@
+{
+  "schemaVersion": "1.0.0",
+  "title": "World Heritage Atlas 3D asset manifest",
+  "canonicalDirectory": "assets/models",
+  "fileFormat": "glb",
+  "filenamePattern": "lowercase_snake_case.glb",
+  "maxRecommendedBytes": 5242880,
+  "maxWarnBytes": 10485760,
+  "assets": [
+    {
+      "id": "borobudur_temple",
+      "label": "Borobudur Temple",
+      "path": "assets/models/borobudur_temple.glb",
+      "group": "unesco_site",
+      "requirement": "runtime",
+      "requiredForRuntime": true,
+      "referencedBy": [
+        "js/board.js",
+        "js/sites.js",
+        "data/sites.json"
+      ],
+      "creator": "Unknown; inherited repository model",
+      "license": "Unverified; confirm original licence before redistribution",
+      "sourceUrl": null,
+      "notes": "Existing model used by the site explorer and educational board."
+    },
+    {
+      "id": "artifact",
+      "label": "Board-game artifact token",
+      "path": "assets/models/artifact.glb",
+      "group": "board_game",
+      "requirement": "runtime",
+      "requiredForRuntime": true,
+      "referencedBy": [
+        "js/board.js"
+      ],
+      "creator": "Not documented",
+      "license": "Unverified; confirm original licence",
+      "sourceUrl": null,
+      "notes": "Player token; keep filename stable unless JS reference is updated."
+    },
+    {
+      "id": "statue_of_bastet",
+      "label": "Statue of Bastet player token",
+      "path": "assets/models/statue_of_bastet.glb",
+      "group": "board_game",
+      "requirement": "runtime",
+      "requiredForRuntime": true,
+      "referencedBy": [
+        "js/board.js"
+      ],
+      "creator": "Not documented",
+      "license": "Unverified; confirm original licence",
+      "sourceUrl": null,
+      "notes": "Player token."
+    },
+    {
+      "id": "beach_environment",
+      "label": "Beach / coastal environment",
+      "path": "assets/models/beach_environment.glb",
+      "group": "board_game",
+      "requirement": "runtime",
+      "requiredForRuntime": true,
+      "referencedBy": [
+        "js/board.js"
+      ],
+      "creator": "Not documented",
+      "license": "Unverified; confirm original licence",
+      "sourceUrl": null,
+      "notes": "Renamed from the_beach.glb."
+    },
+    {
+      "id": "school_building",
+      "label": "Low-poly school building",
+      "path": "assets/models/school_building.glb",
+      "group": "board_game",
+      "requirement": "runtime",
+      "requiredForRuntime": true,
+      "referencedBy": [
+        "js/board.js"
+      ],
+      "creator": "Not documented",
+      "license": "Unverified; confirm original licence",
+      "sourceUrl": null,
+      "notes": "Renamed from low_poly__school_building.glb."
+    },
+    {
+      "id": "african_hut",
+      "label": "African hut environment prop",
+      "path": "assets/models/african_hut.glb",
+      "group": "board_game",
+      "requirement": "runtime",
+      "requiredForRuntime": true,
+      "referencedBy": [
+        "js/board.js"
+      ],
+      "creator": "Not documented",
+      "license": "Unverified; confirm original licence",
+      "sourceUrl": null,
+      "notes": "Renamed to remove spaces; currently used by the board scene."
+    },
+    {
+      "id": "egyptian_head",
+      "label": "Egyptian head statue",
+      "path": "assets/models/egyptian_head.glb",
+      "group": "unassigned_existing",
+      "requirement": "archive",
+      "requiredForRuntime": false,
+      "referencedBy": [],
+      "creator": "Not documented",
+      "license": "Unverified; confirm original licence",
+      "sourceUrl": null,
+      "notes": "Existing file not currently referenced by active JS or site catalog; retained to avoid losing the asset."
+    },
+    {
+      "id": "classical_statue",
+      "label": "Classical statue",
+      "path": "assets/models/classical_statue.glb",
+      "group": "unassigned_existing",
+      "requirement": "archive",
+      "requiredForRuntime": false,
+      "referencedBy": [],
+      "creator": "Not documented",
+      "license": "Unverified; confirm original licence",
+      "sourceUrl": null,
+      "notes": "Renamed from statue.glb. Existing file not currently referenced; retained for possible future use."
+    },
+    {
+      "id": "wounded_amazon_statue",
+      "label": "Wounded Amazon statue",
+      "path": "assets/models/wounded_amazon_statue.glb",
+      "group": "unassigned_existing",
+      "requirement": "archive",
+      "requiredForRuntime": false,
+      "referencedBy": [],
+      "creator": "Not documented",
+      "license": "Unverified; confirm original licence",
+      "sourceUrl": null,
+      "notes": "Renamed from wounded_amazon.glb. Existing file not currently referenced; retained for possible future use."
+    },
+    {
+      "id": "borobudur_relief_3rd_floor",
+      "label": "Borobudur relief detail",
+      "path": "assets/models/borobudur_relief_3rd_floor.glb",
+      "group": "unesco_site",
+      "requirement": "optional",
+      "requiredForRuntime": false,
+      "referencedBy": [
+        "js/sites.js",
+        "data/sites.json"
+      ],
+      "creator": "PHAC",
+      "license": "CC BY; verify current terms and attribution at source",
+      "sourceUrl": "https://sketchfab.com/3d-models/borobudur-3rd-floor-relief-pictograph-2c49eeb628684757b8f0f87165a12007",
+      "notes": "Optional detail-learning model; not yet uploaded."
+    },
+    {
+      "id": "prambanan_temple",
+      "label": "Prambanan / Candi Siwa",
+      "path": "assets/models/prambanan_temple.glb",
+      "group": "unesco_site",
+      "requirement": "planned",
+      "requiredForRuntime": false,
+      "referencedBy": [
+        "js/sites.js",
+        "data/sites.json"
+      ],
+      "creator": "PixForge",
+      "license": "CC BY; verify current terms; AI-generated illustrative model, optimize before web deployment",
+      "sourceUrl": "https://sketchfab.com/3d-models/candi-siwa-prambanan-d7d633ba14be4ba7aeef1500f32e13f0",
+      "notes": "Planned model; not yet uploaded."
+    },
+    {
+      "id": "komodo_island",
+      "label": "Komodo island learning environment",
+      "path": "assets/models/komodo_island.glb",
+      "group": "unesco_site",
+      "requirement": "planned",
+      "requiredForRuntime": false,
+      "referencedBy": [
+        "js/sites.js",
+        "data/sites.json"
+      ],
+      "creator": "Elin",
+      "license": "CC BY; attribution required",
+      "sourceUrl": "https://sketchfab.com/3d-models/tropical-island-f91862f8c38b481aa19edccac851eefb",
+      "notes": "Generic tropical island illustration, not a geographically accurate Komodo Island model."
+    },
+    {
+      "id": "komodo_dragon",
+      "label": "Komodo dragon",
+      "path": "assets/models/komodo_dragon.glb",
+      "group": "unesco_site",
+      "requirement": "planned",
+      "requiredForRuntime": false,
+      "referencedBy": [
+        "js/sites.js",
+        "data/sites.json"
+      ],
+      "creator": "all of life",
+      "license": "CC BY; attribution required",
+      "sourceUrl": "https://sketchfab.com/3d-models/komodo-dragon-0b8679521991420a8b48a6e63018f52c",
+      "notes": "Planned local learning model; not yet uploaded."
+    },
+    {
+      "id": "bali_subak_landscape",
+      "label": "Bali subak landscape",
+      "path": "assets/models/bali_subak_landscape.glb",
+      "group": "unesco_site",
+      "requirement": "planned",
+      "requiredForRuntime": false,
+      "referencedBy": [
+        "js/sites.js",
+        "data/sites.json"
+      ],
+      "creator": null,
+      "license": "To be confirmed",
+      "sourceUrl": null,
+      "notes": "Find a properly licensed model of rice terraces/water-management landscape."
+    },
+    {
+      "id": "sangiran_fossil_display",
+      "label": "Sangiran fossil learning display",
+      "path": "assets/models/sangiran_fossil_display.glb",
+      "group": "unesco_site",
+      "requirement": "planned",
+      "requiredForRuntime": false,
+      "referencedBy": [
+        "js/sites.js",
+        "data/sites.json"
+      ],
+      "creator": null,
+      "license": "To be confirmed",
+      "sourceUrl": null,
+      "notes": "Choose a suitable, licensed learning display; avoid implying an unverified archaeological reconstruction."
+    },
+    {
+      "id": "lorentz_highland_forest",
+      "label": "Lorentz highland forest",
+      "path": "assets/models/lorentz_highland_forest.glb",
+      "group": "unesco_site",
+      "requirement": "planned",
+      "requiredForRuntime": false,
+      "referencedBy": [
+        "js/sites.js",
+        "data/sites.json"
+      ],
+      "creator": null,
+      "license": "To be confirmed",
+      "sourceUrl": null,
+      "notes": "Planned stylized ecosystem model; not a real terrain mesh."
+    },
+    {
+      "id": "palm_tree",
+      "label": "Palm tree prop",
+      "path": "assets/models/palm_tree.glb",
+      "group": "optional_prop",
+      "requirement": "optional",
+      "requiredForRuntime": false,
+      "referencedBy": [],
+      "creator": "Free Modular Islands Pack",
+      "license": "CC0 (check exact source item)",
+      "sourceUrl": "https://marina-sunny-girl.itch.io/free-modular-islands-pack",
+      "notes": "Optional environment asset; not yet uploaded."
+    },
+    {
+      "id": "coastal_rock",
+      "label": "Coastal rock prop",
+      "path": "assets/models/coastal_rock.glb",
+      "group": "optional_prop",
+      "requirement": "optional",
+      "requiredForRuntime": false,
+      "referencedBy": [],
+      "creator": "Free Modular Islands Pack",
+      "license": "CC0 (check exact source item)",
+      "sourceUrl": "https://marina-sunny-girl.itch.io/free-modular-islands-pack",
+      "notes": "Optional environment asset; not yet uploaded."
+    }
+  ],
+  "rules": [
+    "All 3D GLB files, regardless of subject, must live directly in assets/models/.",
+    "Do not rename a referenced file without updating data/sites.json, js/sites.js and/or js/board.js.",
+    "Required runtime assets must exist; planned and optional paths are allowed to be missing and must be reported.",
+    "Any GLB added to assets/models/ but absent from this manifest is reported as a new/unregistered asset.",
+    "The audit script checks file presence, GLB container structure, filename, references, size and SHA-256 inventory; it does not validate model geometry quality or licence rights."
+  ]
+}
