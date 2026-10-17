@@ -41,6 +41,7 @@ jobs:
         run: |
           python scripts/test_update_data.py
           python scripts/test_audit_assets.py
+          python scripts/audit_assets.py --force
       - name: Validate JSON and available model paths
         run: |
           python - <<'PY'
