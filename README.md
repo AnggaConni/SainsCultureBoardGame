@@ -111,17 +111,17 @@ The uploaded `komodo_dragon.glb` is now the primary on-map model for Komodo Nati
 ## Site Intelligence dossier
 The site drawer now contains a lazily loaded Site Intelligence dossier. **Overview** uses curated catalogue metadata and official source links; **News** searches via a dedicated Cloudflare Worker + TinyFish; **Research** queries OpenAlex; **Environment** is a clearly marked next-phase connector slot. External calls only run when a user opens News or Research. Provider output is shown with provenance and direct links, and news leads are explicitly not treated as verified facts.
 
-Deploy the separate Worker with `npx wrangler deploy --config wrangler.site-intelligence.jsonc`, then configure `TINYFISH_API_KEY` and optional `OPENALEX_API_KEY` as Cloudflare Worker secrets. See `SITE_INTELLIGENCE_SETUP.md`. The public app never contains provider keys.
+Deploy the shared Worker from the Aegis repository with `npx wrangler deploy --config wrangler.jsonc` after updating its route, then configure `TINYFISH_API_KEY` and optional `OPENALEX_API_KEY` as Cloudflare Worker secrets. See `SITE_INTELLIGENCE_SETUP.md`. The public app never contains provider keys.
 
 
 ## Site Intelligence dossier
 The site drawer includes a lazily loaded Site Intelligence dossier. **Overview** uses curated catalogue metadata and official source links; **News** searches via a dedicated Cloudflare Worker + TinyFish; **Research** queries OpenAlex; **Environment** is a clearly marked next-phase connector slot. External calls only run when a user opens News or Research. Provider output is shown with provenance and direct links, and news leads are explicitly not treated as verified facts.
 
-Deploy the separate Worker with `npx wrangler deploy --config wrangler.site-intelligence.jsonc`, then configure `TINYFISH_API_KEY` and optional `OPENALEX_API_KEY` as Cloudflare Worker secrets. See `SITE_INTELLIGENCE_SETUP.md`. The public app never contains provider keys.
+Deploy the shared Worker from the Aegis repository with `npx wrangler deploy --config wrangler.jsonc` after updating its route, then configure `TINYFISH_API_KEY` and optional `OPENALEX_API_KEY` as Cloudflare Worker secrets. See `SITE_INTELLIGENCE_SETUP.md`. The public app never contains provider keys.
 
 
 ### Deploy Site Intelligence Worker
-The News and Research dossier tabs use a separate Cloudflare Worker. Set GitHub Actions repository secrets `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, and `TINYFISH_API_KEY` (plus optional `OPENALEX_API_KEY`), then run the [Deploy Site Intelligence Worker workflow](https://github.com/AnggaConni/SainsCultureBoardGame/actions/workflows/deploy-site-intelligence.yml). Follow `SITE_INTELLIGENCE_SETUP.md` for required permissions and diagnosing endpoint/CORS errors. The Environment tab is still a Phase 2 placeholder.
+The News and Research dossier tabs use the shared CivilAegis TinyFish proxy via `/site-intel`; the existing CivilAegis `/nearby-intel` safety endpoint remains unchanged. The News and Research tabs call the shared CivilAegis Worker route. Follow `SITE_INTELLIGENCE_SETUP.md` to deploy and verify the shared endpoint, and diagnose endpoint/CORS errors. The Environment tab is still a Phase 2 placeholder.
 
 
 ## GLB runtime compatibility
