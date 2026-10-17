@@ -5,6 +5,10 @@ on:
     branches: [main]
     paths:
       - "js/app.js"
+      - "js/cesium-config.js"
+      - "index.html"
+      - "css/atlas.css"
+      - ".github/workflows/deploy-pages-with-cesium-token.yml"
       - "tests/map-buildings.test.mjs"
       - ".github/workflows/map-buildings-check.yml"
   pull_request:
