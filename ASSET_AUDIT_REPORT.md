@@ -106,7 +106,13 @@ Full filename list and upload steps: ASSET_UPLOAD_GUIDE.md. Canonical metadata: 
 The app now streams a small CC0 Komodo dragon GLB from 3DAssets.dev with a procedural 3D lizard fallback. The local file `assets/models/komodo_dragon.glb` remains an optional self-hosted copy; the monthly audit reports it if it is not uploaded locally.
 
 
-## Recently uploaded Komodo models
+## Uploaded site models
 - `assets/models/komodo_dragon.glb` — present (6,139,136 bytes); used by the on-map Komodo overlay. Above the recommended 5 MiB budget; optimize if browser loading is slow.
 - `assets/models/komodo_island.glb` — renamed from `elin.glb` (14,913,384 bytes); available to the Komodo site-detail viewer as an illustrative tropical-island scene. Above the recommended size; optimize for web before broad public rollout.
 - The names in this report are based on the latest repository inventory. A fresh scheduled/manual audit will verify GLB chunk integrity and refresh the SHA-256 baseline.
+
+
+## Prambanan model status
+- `assets/models/prambanan_temple.glb` — present (867,204 bytes) and now marked runtime-available in the curated catalog. The application loads separate map-anchored GLB overlays for both Borobudur and Prambanan, rather than only the first model in the list.
+- Komodo Dragon now uses continuous yaw rotation through a full 360° revolution, with a subtle vertical bob. The previous code only rocked it through a small angle, which looked like it was not rotating.
+- Run the monthly asset audit to regenerate the inventory baseline and exact size/integrity checks.
