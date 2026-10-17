@@ -34,3 +34,6 @@
 .buildings-status.error{color:#ffd1c9;border-color:#ca7969}
 .buildings-status.ok{color:#a7f0d5;border-color:#5fbd9f}
 @media(max-width:760px){.buildings-status{left:11px;right:11px;top:150px;max-width:none;font-size:9px;padding:8px 10px}}
+
+/* Tentative List marker/legend cue: warm orange distinct from inscribed World Heritage. */
+.legend-dot.tentative{background:#ff8a4c;box-shadow:0 0 8px #ff8a4c}
