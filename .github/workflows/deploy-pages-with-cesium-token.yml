@@ -1,0 +1,65 @@
+name: Deploy World Heritage Atlas with Cesium token
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate Cesium token secret
+        env:
+          CESIUM_ION_ACCESS_TOKEN: ${{ secrets.CESIUM_ION_ACCESS_TOKEN }}
+        run: |
+          if [ -z "$CESIUM_ION_ACCESS_TOKEN" ]; then
+            echo "::error::Missing repository secret CESIUM_ION_ACCESS_TOKEN."
+            exit 1
+          fi
+          case "$CESIUM_ION_ACCESS_TOKEN" in
+            *$'\n'*|*$'\r'*)
+              echo "::error::CESIUM_ION_ACCESS_TOKEN must be a single-line token."
+              exit 1
+              ;;
+          esac
+          echo "Cesium ion token secret is present; value will not be printed."
+
+      - name: Generate browser config for deployment artifact
+        env:
+          CESIUM_ION_ACCESS_TOKEN: ${{ secrets.CESIUM_ION_ACCESS_TOKEN }}
+        run: |
+          node <<'NODE'
+          const fs = require("node:fs");
+          const token = process.env.CESIUM_ION_ACCESS_TOKEN;
+          if (!token || !token.trim()) throw new Error("CESIUM_ION_ACCESS_TOKEN is missing.");
+          if (/[\r\n]/.test(token)) throw new Error("CESIUM_ION_ACCESS_TOKEN must be a single-line token.");
+          const output = "window.CESIUM_ION_ACCESS_TOKEN = " + JSON.stringify(token) + ";\n";
+          fs.writeFileSync("js/cesium-config.js", output, { encoding: "utf8", mode: 0o644 });
+          console.log("Generated Cesium browser config in the deployment workspace (token value redacted).");
+          NODE
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload static site artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: .
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
