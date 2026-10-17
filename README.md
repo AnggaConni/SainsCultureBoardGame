@@ -8,7 +8,7 @@ Preview: https://anggaconni.github.io/SainsCultureBoardGame/ (after the redesign
 `redesign/unesco-sites-explorer`. The existing `main` branch and its 3D board-game prototype are preserved.
 
 ## Features
-- Interactive CesiumJS 3D globe with map pins for six Indonesian World Heritage properties.
+- Interactive CesiumJS 3D globe with map pins for six Indonesian World Heritage properties, plus a streamed Cesium OSM Buildings layer for 3D building geometry where OpenStreetMap data is available.
 - Filter locations by culture, nature or cultural landscape.
 - Short learning notes, inscription year, coordinates, why-it-matters cards and links to official UNESCO records.
 - Site-specific knowledge checks with explanations.
@@ -22,9 +22,17 @@ Vanilla HTML/CSS/JavaScript; CesiumJS loaded from unpkg CDN; `js/sites.js` is th
 - MVP, not yet browser-tested end-to-end. Verify Cesium imagery/terrain provider behaviour in the deployed environment.
 - Starter set contains six Indonesian World Heritage properties only. World Heritage, Biosphere Reserves, Global Geoparks, Creative Cities and Intangible Cultural Heritage are distinct programmes and should not be conflated.
 - Verify official designation details and learning copy before institutional publication.
-- The prototype does not integrate Google Photorealistic 3D Tiles. That requires separate API configuration, billing and compliance with relevant use and attribution policies.
+- Cesium OSM Buildings is an extruded/vector-style building dataset, not photogrammetric imagery; coverage, heights and roof detail vary by place. Google Photorealistic 3D Tiles are still not integrated and require separate API configuration, billing and compliance with relevant use and attribution policies.
 - Images load from a third-party source; validate their availability and licensing before publication.
 - Progress stays in localStorage on one browser/device. There are no accounts, analytics, online leaderboard or offline map tiles.
+
+## Cesium OSM Buildings layer
+
+The app calls `Cesium.createOsmBuildingsAsync({ enableShowOutline: false })` during globe initialization. Failure to load the buildings layer is non-fatal: the OSM basemap, camera, markers and site models remain usable.
+
+For reliable public deployment, create a Cesium ion access token for this app and restrict it to the required asset access and your site origin in Cesium ion. The frontend optionally reads `window.CESIUM_ION_ACCESS_TOKEN` before requesting the tileset. Because a static GitHub Pages app runs in the browser, that token is client-visible; restrict its scope/origin and never give it administrative permissions. Without a configured token, the Cesium SDK's default evaluation token may be used for evaluation only.
+
+The Cesium ion Community plan is free for individual personal/non-commercial use and has a streaming quota; check [current plan and quotas](https://cesium.com/platform/cesium-ion/pricing/) before wider distribution. Cesium automatically provides the required OpenStreetMap attribution for this asset; see [Cesium OSM Buildings terms](https://cesium.com/platform/cesium-ion/content/cesium-osm-buildings/).
 
 ## Run locally
 Serve the repository root over HTTP (e.g. `python -m http.server 8000`) and open `http://localhost:8000`.
@@ -37,9 +45,9 @@ Serve the repository root over HTTP (e.g. `python -m http.server 8000`) and open
 
 
 ## Basemap / navigation patch
-- Explicitly disables Cesium's default ion-backed base layer and adds OpenStreetMap raster tiles, so the map does not depend on Google Maps or a Google key.
+- Explicitly disables Cesium's default ion-backed base layer and adds OpenStreetMap raster tiles, so the basemap does not depend on Google Maps or a Google key. The separate Cesium OSM Buildings layer streams through Cesium ion.
 - Site marker clicks and site-card clicks animate to an oblique close-up; drag rotates, right-drag tilts, and the wheel zooms.
-- This is a 3D globe/camera exploration with a 2D OSM basemap, **not** photogrammetric 3D buildings or detailed elevation. For true site-specific 3D models, use properly licensed GLB assets or a non-Google 3D tiles/terrain source in a later step.
+- The map now combines a 3D globe/camera, a 2D OSM raster basemap, and Cesium OSM Buildings geometry where available. OSM building models may be simple blocks and are not a guaranteed representation of every monument. Keep using properly licensed GLB assets for site-specific heritage models.
 
 
 ## Map readability patch
