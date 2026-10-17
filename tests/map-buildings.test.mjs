@@ -113,8 +113,13 @@ test("world view fills the globe while selected site views stay oblique", () => 
 });
 
 test("OSM buildings are hidden at planetary scale and shown only after zoom-in", () => {
-  assert.ok(app.includes("const BUILDINGS_MAX_VISIBLE_CAMERA_HEIGHT_METERS=500000"));
+  assert.ok(app.includes("const BUILDINGS_MAX_VISIBLE_CAMERA_HEIGHT_METERS=350000"));
   assert.ok(app.includes("tileset.show=false"));
+  assert.ok(app.includes("function cameraAltitudeMeters(viewer)"));
+  assert.ok(app.includes("Cesium.Cartesian3.magnitude(worldPosition)-Cesium.Ellipsoid.WGS84.maximumRadius"));
+  assert.ok(app.includes("viewer.scene.primitives.add(tileset)"));
+  assert.ok(app.includes("OSM Buildings added only at local camera height"));
+  assert.ok(app.includes("OSM Buildings tileset prepared; it remains outside the render scene until local zoom."));
   assert.ok(app.includes("viewer.camera.changed.addEventListener(syncBuildingVisibility)"));
   assert.ok(app.includes("viewer.scene.preRender.addEventListener(syncBuildingVisibility)"));
   assert.ok(app.includes("viewer.scene.preRender.removeEventListener(syncBuildingVisibility)"));
