@@ -102,3 +102,7 @@ The Monthly 3D Asset Audit workflow scans the unified assets/models/ folder on t
 
 ## Komodo 3D model
 Komodo National Park now uses a visible 3D Komodo dragon map overlay instead of a generic island placeholder. The app streams a small CC0 GLB preview from 3DAssets.dev and builds a procedural 3D lizard if the remote source fails. The visual size is intentionally exaggerated for map exploration. A local copy at `assets/models/komodo_dragon.glb` is optional for self-hosting/offline use and remains tracked by the asset audit.
+
+
+## Uploaded Komodo models
+The uploaded `komodo_dragon.glb` is now the primary on-map model for Komodo National Park. The file previously named `elin.glb` is renamed to `komodo_island.glb` and exposed as an optional local site-detail scene. Both are self-hosted under `assets/models/`; the Komodo map overlay no longer depends on a third-party GLB preview URL. Their current sizes exceed the recommended 5 MiB web asset budget, so consider mesh/texture optimisation later.
