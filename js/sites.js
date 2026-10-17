@@ -1,0 +1,1 @@
+window.HERITAGE_SITES=[];
