@@ -234,25 +234,43 @@
       "models": [
         {
           "id": "komodo-dragon",
-          "label": "Komodo dragon — CC0 3D preview",
+          "label": "Komodo dragon — local 3D model",
           "file": "assets/models/komodo_dragon.glb",
           "format": "glb",
           "placement": "globe",
-          "status": "planned",
-          "previewUrl": "https://cdn.3dassets.dev/assets/22431/v1/model.glb",
-          "previewSourceUrl": "https://3dassets.dev/assets/reptiles-amphibians-and-minibeasts-komodo-dragon-9ed37a2d",
+          "status": "available",
           "scale": 1,
           "targetSizeMeters": {
             "width": 2.5,
             "depth": 1.224,
             "height": 0.568
           },
-          "sizeStatus": "dimensions reported by the source; verify axis order before physical-scale use",
+          "sizeStatus": "source dimensions; visual map scale is enlarged for gameplay",
           "headingDegrees": 0,
-          "creator": "3DAssets.dev community model",
-          "license": "CC0 1.0 Universal",
-          "sourceUrl": "https://3dassets.dev/assets/reptiles-amphibians-and-minibeasts-komodo-dragon-9ed37a2d",
-          "notes": "The small CC0 GLB is streamed from the provider until a local copy is uploaded. If the CDN fails, a procedural 3D monitor-lizard fallback is shown. Map display is visually enlarged for game readability; it is not a precise animal position."
+          "creator": "all of life",
+          "license": "CC BY; attribution required",
+          "sourceUrl": "https://sketchfab.com/3d-models/komodo-dragon-0b8679521991420a8b48a6e63018f52c",
+          "notes": "Uploaded local model, rendered over the approximate park reference point for educational discovery. The on-map visual scale is deliberately enlarged and does not represent the actual position of a wild Komodo dragon."
+        },
+        {
+          "id": "komodo-island-demo",
+          "label": "Komodo island — Elin model",
+          "file": "assets/models/komodo_island.glb",
+          "format": "glb",
+          "placement": "detail",
+          "status": "available",
+          "scale": 1,
+          "targetSizeMeters": {
+            "width": null,
+            "depth": null,
+            "height": null
+          },
+          "sizeStatus": "not measured",
+          "headingDegrees": 0,
+          "creator": "Elin",
+          "license": "CC BY; attribution required",
+          "sourceUrl": "https://sketchfab.com/3d-models/tropical-island-f91862f8c38b481aa19edccac851eefb",
+          "notes": "Generic island learning scene uploaded locally. It is an illustrative environment, not a geographically accurate model or boundary of Komodo National Park."
         }
       ],
       "editorial": {

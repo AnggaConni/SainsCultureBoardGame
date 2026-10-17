@@ -267,7 +267,7 @@ function initKomodoMapOverlay(){
  const site=HERITAGE_SITES.find(s=>s.id==="komodo");
  const asset=site&&Array.isArray(site.models)?site.models.find(m=>m.id==="komodo-dragon"||m.id==="komodo_dragon"):null;
  const wrapper=$("#komodoModelOverlay"),host=$("#komodoModelCanvasHost");
- if(!site||!asset||!asset.previewUrl||!wrapper||!host||!window.THREE||!THREE.GLTFLoader)return;
+ if(!site||!asset||!(asset.file||asset.localPath||asset.previewUrl)||!wrapper||!host||!window.THREE||!THREE.GLTFLoader)return;
  wrapper.hidden=true;
  wrapper.setAttribute("role","button");wrapper.setAttribute("tabindex","0");
  wrapper.setAttribute("aria-label","Explore the Komodo dragon at Komodo National Park");
@@ -311,14 +311,15 @@ function initKomodoMapOverlay(){
    modelState.basePixel.set((baseProjected.x+1)*canvasWidth*.5,(1-baseProjected.y)*canvasHeight*.5);
    modelState.renderedHeight=Math.max(40,Math.abs((new THREE.Vector3(0,4.6,0).project(camera).y-baseProjected.y)*canvasHeight*.5));
    modelState.loaded=true;modelState.source=source;wrapper.hidden=false;
-   console.info("[Heritage Atlas] Komodo dragon model ready",{source,asset:asset.previewUrl,sourceBounds:{x:size.x,y:size.y,z:size.z}});
+   console.info("[Heritage Atlas] Komodo dragon model ready",{source,asset:modelPath,sourceBounds:{x:size.x,y:size.y,z:size.z}});
    updateKomodoMapOverlay();
   }catch(error){console.error("[Heritage Atlas] Could not prepare Komodo model",error);wrapper.hidden=true}
  };
  const loader=new THREE.GLTFLoader();
- loader.load(asset.previewUrl,gltf=>prepareModel(gltf.scene,"remote CC0 GLB"),undefined,error=>{
-  console.warn("[Heritage Atlas] Remote Komodo GLB unavailable; using procedural fallback",error);
-  prepareModel(createProceduralKomodoModel(),"procedural fallback (remote GLB unavailable)");
+ const modelPath=asset.file||asset.localPath||asset.previewUrl;
+ loader.load(modelPath,gltf=>prepareModel(gltf.scene,modelPath.startsWith("assets/")?"local uploaded GLB":"remote GLB preview"),undefined,error=>{
+  console.warn("[Heritage Atlas] Komodo GLB unavailable; using procedural fallback",modelPath,error);
+  prepareModel(createProceduralKomodoModel(),"procedural fallback (GLB unavailable)");
  });
  const onPostRender=()=>{try{updateKomodoMapOverlay()}catch(error){console.warn("[Heritage Atlas] Komodo overlay update skipped",error);wrapper.hidden=true}};
  state.viewer.scene.postRender.addEventListener(onPostRender);

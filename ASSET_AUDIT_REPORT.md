@@ -53,7 +53,7 @@ Upload each file to the exact path shown. Use a single .glb with embedded textur
 | Expected filename | Priority | Subject | Source / note |
 |---|---|---|---|
 | assets/models/prambanan_temple.glb | planned | Prambanan / Candi Siwa | [Source](https://sketchfab.com/3d-models/candi-siwa-prambanan-d7d633ba14be4ba7aeef1500f32e13f0) — CC BY; verify current terms; AI-generated illustrative model, optimize before web deployment |
-| assets/models/komodo_island.glb | planned | Komodo island learning environment | [Source](https://sketchfab.com/3d-models/tropical-island-f91862f8c38b481aa19edccac851eefb) — CC BY; attribution required |
+| assets/models/komodo_island.glb | present — optional detail model | Elin tropical island scene | [Source](https://sketchfab.com/3d-models/tropical-island-f91862f8c38b481aa19edccac851eefb) — CC BY; attribution required |
 | assets/models/komodo_dragon.glb | optional local copy | Komodo dragon map model (remote CC0 preview active) | [3DAssets.dev model and CC0 1.0 licence](https://3dassets.dev/assets/reptiles-amphibians-and-minibeasts-komodo-dragon-9ed37a2d) |
 | assets/models/bali_subak_landscape.glb | planned | Bali subak landscape | Source to be identified — To be confirmed |
 | assets/models/sangiran_fossil_display.glb | planned | Sangiran fossil learning display | Source to be identified — To be confirmed |
@@ -104,3 +104,9 @@ Full filename list and upload steps: ASSET_UPLOAD_GUIDE.md. Canonical metadata: 
 
 ## Komodo dragon preview note
 The app now streams a small CC0 Komodo dragon GLB from 3DAssets.dev with a procedural 3D lizard fallback. The local file `assets/models/komodo_dragon.glb` remains an optional self-hosted copy; the monthly audit reports it if it is not uploaded locally.
+
+
+## Recently uploaded Komodo models
+- `assets/models/komodo_dragon.glb` — present (6,139,136 bytes); used by the on-map Komodo overlay. Above the recommended 5 MiB budget; optimize if browser loading is slow.
+- `assets/models/komodo_island.glb` — renamed from `elin.glb` (14,913,384 bytes); available to the Komodo site-detail viewer as an illustrative tropical-island scene. Above the recommended size; optimize for web before broad public rollout.
+- The names in this report are based on the latest repository inventory. A fresh scheduled/manual audit will verify GLB chunk integrity and refresh the SHA-256 baseline.
