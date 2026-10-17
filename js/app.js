@@ -1,5 +1,5 @@
 (() => {"use strict";
-const $=s=>document.querySelector(s),state={filter:"all",search:"",listLimit:60,selected:null,visited:new Set(),xp:0,answered:new Set(),viewer:null,entities:new Map(),globeModelEntities:new Map(),catalog:null,registryMeta:null,hovered:null,globeOverlay:null,globeOverlayReady:false,globeOverlayCleanup:null,explorationZones:new Map(),activeZoneId:null,toastTimer:null,local3d:null,local3dFrame:null,local3dModel:null},KEY="world-heritage-atlas-progress-v1",cat={culture:"CULTURE",nature:"NATURE",mixed:"MIXED"};
+const $=s=>document.querySelector(s),state={filter:"all",search:"",listLimit:60,selected:null,visited:new Set(),xp:0,answered:new Set(),viewer:null,entities:new Map(),globeModelEntities:new Map(),catalog:null,registryMeta:null,hovered:null,globeOverlay:null,globeOverlayReady:false,globeOverlayCleanup:null,komodoOverlay:null,komodoOverlayCleanup:null,explorationZones:new Map(),activeZoneId:null,toastTimer:null,local3d:null,local3dFrame:null,local3dModel:null},KEY="world-heritage-atlas-progress-v1",cat={culture:"CULTURE",nature:"NATURE",mixed:"MIXED"};
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function toast(t){const e=$("#toast");e.textContent=t;e.classList.add("show");clearTimeout(state.toastTimer);state.toastTimer=setTimeout(()=>e.classList.remove("show"),2500)}
 function save(){try{localStorage.setItem(KEY,JSON.stringify({visited:[...state.visited],answered:[...state.answered],xp:state.xp}));$("#saveStatus").textContent="PROGRESS SAVED LOCALLY"}catch(e){$("#saveStatus").textContent="LOCAL SAVE UNAVAILABLE"}}
@@ -37,7 +37,7 @@ function renderSites(){
 }
 function progress(){const n=state.xp%500;$("#xpValue").textContent=state.xp;$("#xpBar").style.width=n/500*100+"%";$("#levelValue").textContent=String(Math.floor(state.xp/500)+1).padStart(2,"0");$("#discoveriesValue").textContent=state.visited.size+" "+(state.visited.size===1?"discovery":"discoveries");$("#badgeValue").textContent=state.visited.size>=6?"Heritage Guardian":state.visited.size>=3?"Curious Cartographer":state.visited.size?"Field Observer":"First steps";const yes=state.visited.size>0;$("#missionProgressBar").style.width=yes?"100%":"0%";$("#missionProgressText").textContent=yes?"1 / 1 completed":"0 / 1 completed";$("#missionTitle").textContent=yes?"Field notes updated":"The curious traveller";$("#missionDescription").textContent=yes?"Your first discovery is recorded. Pick another site to continue.":"Visit a designated site and complete its knowledge check.";renderSites()}
 function fly(s){if(!state.viewer||!hasCoordinates(s)){toast("This record does not yet have a reliable map coordinate.");return}const ranges={borobudur:9000,prambanan:9000,"bali-cultural-landscape":20000,komodo:32000,sangiran:10000,lorentz:70000};const target=state.entities.get(s.id);const range=Number(s.mapRange)||ranges[s.id]||(s.programmeKey==="global_geopark"||s.programmeKey==="biosphere_reserve"?65000:14000);if(target){state.viewer.flyTo(target,{duration:2.0,offset:new Cesium.HeadingPitchRange(Cesium.Math.toRadians(24),Cesium.Math.toRadians(-38),range)})}else{const [lon,lat]=s.coordinates;state.viewer.camera.flyTo({destination:Cesium.Cartesian3.fromDegrees(lon,lat,range),orientation:{heading:Cesium.Math.toRadians(24),pitch:Cesium.Math.toRadians(-65),roll:0},duration:2.0})}$("#coordReadout").textContent=s.coordinates[1].toFixed(3)+"°, "+s.coordinates[0].toFixed(3)+"°";$("#mapStatus").textContent="EXPLORING · "+s.name.toUpperCase()}
-function setSelectedMarker(id){state.entities.forEach((entity,key)=>{const active=key===id,hovered=key===state.hovered,coveredByModel=!!(state.globeOverlay&&state.globeOverlay.loaded&&state.globeOverlay.site.id===key);if(entity.label)entity.label.show=(active||hovered)&&!coveredByModel;if(entity.point){entity.point.pixelSize=active?17:hovered?14:8;entity.point.outlineWidth=active?3:hovered?2.5:1.5;entity.point.outlineColor=active||hovered?Cesium.Color.fromCssColorString("#ffffff"):Cesium.Color.fromCssColorString("#dcece7")}})}
+function setSelectedMarker(id){state.entities.forEach((entity,key)=>{const active=key===id,hovered=key===state.hovered,coveredByModel=!!((state.globeOverlay&&state.globeOverlay.loaded&&state.globeOverlay.site.id===key)||(state.komodoOverlay&&state.komodoOverlay.loaded&&state.komodoOverlay.site.id===key));if(entity.label)entity.label.show=(active||hovered)&&!coveredByModel;if(entity.point){entity.point.pixelSize=active?17:hovered?14:8;entity.point.outlineWidth=active?3:hovered?2.5:1.5;entity.point.outlineColor=active||hovered?Cesium.Color.fromCssColorString("#ffffff"):Cesium.Color.fromCssColorString("#dcece7")}})}
 function markers(){
  HERITAGE_SITES.forEach(s=>{
   if(!hasCoordinates(s))return;
@@ -225,6 +225,131 @@ function updateGlobeModelOverlay(){
  wrapper.style.width=Math.round(displayWidth)+"px";wrapper.style.height=Math.round(canvasHeight*cssScale)+"px";
  wrapper.hidden=false;
 }
+function createProceduralKomodoModel(){
+ const root=new THREE.Group();
+ const hideScale=new THREE.MeshStandardMaterial({color:0x877957,roughness:.92});
+ const upper=new THREE.MeshStandardMaterial({color:0x746548,roughness:.9});
+ const belly=new THREE.MeshStandardMaterial({color:0xb9a17a,roughness:.94});
+ const eyeMat=new THREE.MeshStandardMaterial({color:0x171b16,roughness:.5});
+ const goldEye=new THREE.MeshStandardMaterial({color:0xc8aa53,roughness:.55});
+ const addEllipsoid=(parent,mat,position,scale,rotation)=>{const mesh=new THREE.Mesh(new THREE.SphereGeometry(1,10,7),mat);mesh.position.set(position[0],position[1],position[2]);mesh.scale.set(scale[0],scale[1],scale[2]);if(rotation)mesh.rotation.set(rotation[0]||0,rotation[1]||0,rotation[2]||0);mesh.castShadow=true;mesh.receiveShadow=true;parent.add(mesh);return mesh};
+ // A simple low-poly fallback ensures Komodo is never represented by an empty patch of map
+ // if the remote GLB host is unavailable. It is an educational illustration, not a scan.
+ addEllipsoid(root,upper,[0,.56,0],[.7,.34,1.22]);
+ addEllipsoid(root,belly,[0,.36,-.02],[.55,.16,.98]);
+ addEllipsoid(root,upper,[0,.55,.98],[.32,.23,.52]);
+ addEllipsoid(root,upper,[0,.61,1.36],[.33,.22,.39]);
+ addEllipsoid(root,hideScale,[0,.52,1.64],[.23,.12,.42]);
+ // Four sprawled, short limbs and broad feet.
+ for(const side of [-1,1]){
+  for(const z of [-.78,.75]){
+   addEllipsoid(root,upper,[side*.51,.38,z],[.19,.22,.35],[0,side*.25,side*.42]);
+   addEllipsoid(root,upper,[side*.69,.19,z+side*.08],[.22,.105,.25],[0,side*.15,0]);
+   for(let toe=0;toe<3;toe++)addEllipsoid(root,hideScale,[side*(.78+toe*.035),.135,z+.18+toe*.08],[.055,.04,.12]);
+  }
+  addEllipsoid(root,eyeMat,[side*.255,.76,1.48],[.055,.055,.06]);
+  addEllipsoid(root,goldEye,[side*.271,.774,1.495],[.027,.027,.028]);
+  addEllipsoid(root,eyeMat,[side*.145,.55,1.91],[.026,.018,.035]);
+ }
+ // Long tapered, segmented tail.
+ for(let i=0;i<8;i++){
+  const t=i/8, radius=.235*(1-t)+.018;
+  addEllipsoid(root,i%2?upper:hideScale,[Math.sin(i*.42)*.09,.48-t*.12,-1.05-i*.31],[radius*.82,radius*.55,.34*(1-t)+.055],[0,Math.sin(i*.42)*.035,0]);
+ }
+ // Small dorsal scutes make the silhouette read as a monitor lizard.
+ for(let i=0;i<10;i++){
+  const cone=new THREE.Mesh(new THREE.ConeGeometry(.075,.16,5),hideScale);
+  cone.position.set(0,.88,-.78+i*.19);cone.castShadow=true;root.add(cone);
+ }
+ return root;
+}
+function initKomodoMapOverlay(){
+ const site=HERITAGE_SITES.find(s=>s.id==="komodo");
+ const asset=site&&Array.isArray(site.models)?site.models.find(m=>m.id==="komodo-dragon"||m.id==="komodo_dragon"):null;
+ const wrapper=$("#komodoModelOverlay"),host=$("#komodoModelCanvasHost");
+ if(!site||!asset||!asset.previewUrl||!wrapper||!host||!window.THREE||!THREE.GLTFLoader)return;
+ wrapper.hidden=true;
+ wrapper.setAttribute("role","button");wrapper.setAttribute("tabindex","0");
+ wrapper.setAttribute("aria-label","Explore the Komodo dragon at Komodo National Park");
+ wrapper.title="Komodo dragon 3D preview · click to open the site journal";
+ if(!wrapper.dataset.interactionBound){
+  const activate=event=>{event.preventDefault();event.stopPropagation();openSite("komodo",true)};
+  wrapper.addEventListener("click",activate);
+  wrapper.addEventListener("keydown",event=>{if(event.key==="Enter"||event.key===" "){activate(event)}});
+  wrapper.dataset.interactionBound="true";
+ }
+ const scene=new THREE.Scene();scene.background=null;
+ scene.add(new THREE.HemisphereLight(0xfff1d5,0x3b4537,2.15));
+ const keyLight=new THREE.DirectionalLight(0xffffff,2.3);keyLight.position.set(4,7,5);scene.add(keyLight);
+ const fill=new THREE.DirectionalLight(0xa7d6a6,.95);fill.position.set(-4,3,-5);scene.add(fill);
+ const renderer=new THREE.WebGLRenderer({alpha:true,antialias:true,powerPreference:"low-power"});
+ renderer.setPixelRatio(1);renderer.setClearColor(0x000000,0);renderer.outputEncoding=THREE.sRGBEncoding;
+ renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.08;
+ host.innerHTML="";host.appendChild(renderer.domElement);
+ const canvasWidth=1024,canvasHeight=512;
+ renderer.setSize(canvasWidth,canvasHeight,false);
+ const camera=new THREE.PerspectiveCamera(36,canvasWidth/canvasHeight,.01,1000);
+ const modelState={site,asset,scene,renderer,camera,host,wrapper,loaded:false,pivot:null,basePixel:new THREE.Vector2(),canvasWidth,canvasHeight,renderedHeight:180,basePivotY:.08,visualHeightMeters:18,aspect:canvasWidth/canvasHeight};
+ state.komodoOverlay=modelState;
+ const prepareModel=(rawModel,source)=>{
+  try{
+   const bounds=new THREE.Box3().setFromObject(rawModel);const size=bounds.getSize(new THREE.Vector3());const center=bounds.getCenter(new THREE.Vector3());
+   const maxDim=Math.max(size.x,size.y,size.z);
+   if(!Number.isFinite(maxDim)||maxDim<=0)throw new Error("Komodo GLB has empty/invalid bounds");
+   const normalizingScale=4.6/maxDim;
+   rawModel.scale.setScalar(normalizingScale);
+   rawModel.position.set(-center.x*normalizingScale,-bounds.min.y*normalizingScale,-center.z*normalizingScale);
+   const pivot=new THREE.Group();pivot.add(rawModel);pivot.position.y=modelState.basePivotY;scene.add(pivot);modelState.pivot=pivot;
+   const fitBounds=new THREE.Box3().setFromObject(pivot),sphere=new THREE.Sphere();fitBounds.getBoundingSphere(sphere);
+   const target=new THREE.Vector3(0,Math.max(.35,size.y*normalizingScale*.45),0);
+   camera.aspect=canvasWidth/canvasHeight;camera.fov=36;camera.updateProjectionMatrix();
+   const vfov=THREE.MathUtils.degToRad(camera.fov),hfov=2*Math.atan(Math.tan(vfov/2)*camera.aspect);
+   const distance=Math.max(4,sphere.radius*1.22/Math.sin(Math.min(vfov,hfov)/2));
+   camera.position.copy(target).addScaledVector(new THREE.Vector3(.6,.38,1).normalize(),distance);
+   camera.lookAt(target);camera.updateProjectionMatrix();renderer.render(scene,camera);
+   const baseWorld=pivot.localToWorld(new THREE.Vector3(0,0,0)),baseProjected=baseWorld.clone().project(camera);
+   modelState.basePixel.set((baseProjected.x+1)*canvasWidth*.5,(1-baseProjected.y)*canvasHeight*.5);
+   modelState.renderedHeight=Math.max(40,Math.abs((new THREE.Vector3(0,4.6,0).project(camera).y-baseProjected.y)*canvasHeight*.5));
+   modelState.loaded=true;modelState.source=source;wrapper.hidden=false;
+   console.info("[Heritage Atlas] Komodo dragon model ready",{source,asset:asset.previewUrl,sourceBounds:{x:size.x,y:size.y,z:size.z}});
+   updateKomodoMapOverlay();
+  }catch(error){console.error("[Heritage Atlas] Could not prepare Komodo model",error);wrapper.hidden=true}
+ };
+ const loader=new THREE.GLTFLoader();
+ loader.load(asset.previewUrl,gltf=>prepareModel(gltf.scene,"remote CC0 GLB"),undefined,error=>{
+  console.warn("[Heritage Atlas] Remote Komodo GLB unavailable; using procedural fallback",error);
+  prepareModel(createProceduralKomodoModel(),"procedural fallback (remote GLB unavailable)");
+ });
+ const onPostRender=()=>{try{updateKomodoMapOverlay()}catch(error){console.warn("[Heritage Atlas] Komodo overlay update skipped",error);wrapper.hidden=true}};
+ state.viewer.scene.postRender.addEventListener(onPostRender);
+ state.komodoOverlayCleanup=()=>{try{state.viewer&&state.viewer.scene.postRender.removeEventListener(onPostRender)}catch(_){};renderer.dispose();state.komodoOverlay=null};
+}
+function updateKomodoMapOverlay(){
+ const model=state.komodoOverlay,v=state.viewer;
+ if(!model||!model.loaded||!v)return;
+ const {site,wrapper,renderer,camera,pivot}=model;
+ const lon=Number(site.coordinates[0]),lat=Number(site.coordinates[1]);
+ const surface=Cesium.Cartesian3.fromDegrees(lon,lat,1.5);
+ const cameraDistance=Cesium.Cartesian3.distance(v.camera.positionWC,surface);
+ if(!Number.isFinite(cameraDistance)||cameraDistance>220000){wrapper.hidden=true;return}
+ const time=(window.performance&&performance.now?performance.now():Date.now())*.001;
+ if(pivot){pivot.rotation.y=Math.sin(time*.24)*.36;pivot.position.y=model.basePivotY+Math.sin(time*1.1)*.1;renderer.render(model.scene,camera)}
+ const groundPixel=projectWorldToWindow(v.scene,surface);
+ const topPixel=projectWorldToWindow(v.scene,Cesium.Cartesian3.fromDegrees(lon,lat,surface.height+model.visualHeightMeters));
+ if(!groundPixel||!topPixel||![groundPixel.x,groundPixel.y,topPixel.x,topPixel.y].every(Number.isFinite)){wrapper.hidden=true;return}
+ const width=v.container.clientWidth,height=v.container.clientHeight;
+ if(groundPixel.x<-120||groundPixel.x>width+120||groundPixel.y<-170||groundPixel.y>height+170){wrapper.hidden=true;return}
+ const projectedHeight=Math.hypot(topPixel.x-groundPixel.x,topPixel.y-groundPixel.y);
+ if(!Number.isFinite(projectedHeight)||projectedHeight<.4){wrapper.hidden=true;return}
+ const displayHeight=Math.max(32,Math.min(projectedHeight,94));
+ const cssScale=displayHeight/model.renderedHeight;
+ const displayWidth=model.canvasWidth*cssScale;
+ const left=groundPixel.x-model.basePixel.x*cssScale;
+ const top=groundPixel.y-model.basePixel.y*cssScale;
+ wrapper.style.left=Math.round(left)+"px";wrapper.style.top=Math.round(top)+"px";
+ wrapper.style.width=Math.max(42,Math.round(displayWidth))+"px";wrapper.style.height=Math.round(model.canvasHeight*cssScale)+"px";
+ wrapper.hidden=false;
+}
 function updateMapHover(position){
  if(!state.viewer)return;
  let entity=null;
@@ -241,7 +366,7 @@ function updateMapHover(position){
   if(next&&next.label){
    const site=HERITAGE_SITES.find(s=>s.id===nextId);
    next.label.text=site?site.name:"";
-   const coveredByModel=!!(state.globeOverlay&&state.globeOverlay.loaded&&state.globeOverlay.site.id===nextId);
+   const coveredByModel=!!((state.globeOverlay&&state.globeOverlay.loaded&&state.globeOverlay.site.id===nextId)||(state.komodoOverlay&&state.komodoOverlay.loaded&&state.komodoOverlay.site.id===nextId));
    next.label.show=!coveredByModel;
   }
   setSelectedMarker(state.selected);
@@ -260,7 +385,7 @@ function updateMapHover(position){
  tooltip.style.left=Math.max(8,Math.min(position.x+15,maxX))+"px";
  tooltip.style.top=Math.max(8,Math.min(position.y+15,maxY))+"px";
 }
-function initMap(){if(!window.Cesium){fallback();return}try{const v=new Cesium.Viewer("cesiumContainer",{animation:false,baseLayer:false,baseLayerPicker:false,geocoder:false,homeButton:false,infoBox:false,sceneModePicker:false,selectionIndicator:false,timeline:false,navigationHelpButton:false,fullscreenButton:false,shouldAnimate:false});state.viewer=v;v.imageryLayers.removeAll();v.imageryLayers.addImageryProvider(new Cesium.OpenStreetMapImageryProvider({url:"https://tile.openstreetmap.org/"}));v.scene.globe.enableLighting=true;v.scene.globe.baseColor=Cesium.Color.fromCssColorString("#78979a");v.scene.backgroundColor=Cesium.Color.fromCssColorString("#071a24");v.scene.globe.show=true;v.scene.globe.depthTestAgainstTerrain=false;v.scene.fog.enabled=false;v.scene.screenSpaceCameraController.enableRotate=true;v.scene.screenSpaceCameraController.enableZoom=true;v.scene.screenSpaceCameraController.enableTilt=true;v.camera.setView({destination:Cesium.Cartesian3.fromDegrees(112,4,22500000),orientation:{heading:0,pitch:Cesium.Math.toRadians(-88),roll:0}});markers();initGlobeModelOverlay();$("#mapStatus").textContent="OPEN MAP · OPENSTREETMAP";v.screenSpaceEventHandler.setInputAction(e=>{const p=v.scene.pick(e.position);if(Cesium.defined(p)&&p.id&&p.id.siteId)openSite(p.id.siteId,true)},Cesium.ScreenSpaceEventType.LEFT_CLICK);v.screenSpaceEventHandler.setInputAction(e=>updateMapHover(e.endPosition),Cesium.ScreenSpaceEventType.MOUSE_MOVE);$("#cesiumContainer").addEventListener("mouseleave",()=>{$("#mapHoverTooltip").hidden=true;const old=state.entities.get(state.hovered);if(old&&old.label)old.label.show=state.hovered===state.selected;state.hovered=null;setSelectedMarker(state.selected)});v.scene.globe.tileLoadProgressEvent.addEventListener(n=>{if(n===0&&$("#mapStatus").textContent==="OPEN MAP · OPENSTREETMAP")$("#mapStatus").textContent="3D GLOBE ONLINE · OSM"})}catch(e){console.error("Cesium / OpenStreetMap initialization failed",e);fallback()}}
+function initMap(){if(!window.Cesium){fallback();return}try{const v=new Cesium.Viewer("cesiumContainer",{animation:false,baseLayer:false,baseLayerPicker:false,geocoder:false,homeButton:false,infoBox:false,sceneModePicker:false,selectionIndicator:false,timeline:false,navigationHelpButton:false,fullscreenButton:false,shouldAnimate:false});state.viewer=v;v.imageryLayers.removeAll();v.imageryLayers.addImageryProvider(new Cesium.OpenStreetMapImageryProvider({url:"https://tile.openstreetmap.org/"}));v.scene.globe.enableLighting=true;v.scene.globe.baseColor=Cesium.Color.fromCssColorString("#78979a");v.scene.backgroundColor=Cesium.Color.fromCssColorString("#071a24");v.scene.globe.show=true;v.scene.globe.depthTestAgainstTerrain=false;v.scene.fog.enabled=false;v.scene.screenSpaceCameraController.enableRotate=true;v.scene.screenSpaceCameraController.enableZoom=true;v.scene.screenSpaceCameraController.enableTilt=true;v.camera.setView({destination:Cesium.Cartesian3.fromDegrees(112,4,22500000),orientation:{heading:0,pitch:Cesium.Math.toRadians(-88),roll:0}});markers();initGlobeModelOverlay();initKomodoMapOverlay();$("#mapStatus").textContent="OPEN MAP · OPENSTREETMAP";v.screenSpaceEventHandler.setInputAction(e=>{const p=v.scene.pick(e.position);if(Cesium.defined(p)&&p.id&&p.id.siteId)openSite(p.id.siteId,true)},Cesium.ScreenSpaceEventType.LEFT_CLICK);v.screenSpaceEventHandler.setInputAction(e=>updateMapHover(e.endPosition),Cesium.ScreenSpaceEventType.MOUSE_MOVE);$("#cesiumContainer").addEventListener("mouseleave",()=>{$("#mapHoverTooltip").hidden=true;const old=state.entities.get(state.hovered);if(old&&old.label)old.label.show=state.hovered===state.selected;state.hovered=null;setSelectedMarker(state.selected)});v.scene.globe.tileLoadProgressEvent.addEventListener(n=>{if(n===0&&$("#mapStatus").textContent==="OPEN MAP · OPENSTREETMAP")$("#mapStatus").textContent="3D GLOBE ONLINE · OSM"})}catch(e){console.error("Cesium / OpenStreetMap initialization failed",e);fallback()}}
 function fallback(){$("#mapStatus").textContent="MAP OFFLINE";$("#mapFallback").hidden=false}
 function renderLocalModelPicker(site){
  const zoneButton=$("#zoneToggleBtn");
@@ -270,12 +395,13 @@ function renderLocalModelPicker(site){
  select.innerHTML="";
  if(!models.length){select.disabled=true;$("#loadLocalModelBtn").disabled=true;$("#loadLocalModelBtn").textContent="No model";expected.textContent="Belum ada model lokal untuk situs ini. Lihat ASSET_CATALOG.md untuk rencana aset berikutnya.";$("#localModelStage").hidden=true;$("#localModelCredit").hidden=true;return}
  select.disabled=false;$("#loadLocalModelBtn").disabled=false;$("#loadLocalModelBtn").textContent="Open 3D ↗";
- models.forEach((m,i)=>{const o=document.createElement("option");o.value=m.path;o.textContent=m.label;select.appendChild(o)});
- expected.textContent="Upload path: "+models[0].path;
+ models.forEach((m,i)=>{const o=document.createElement("option");o.value=m.path;o.textContent=m.previewUrl&&m.status!=="available"?m.label+" · live preview":m.label;select.appendChild(o)});
  const active=models[0];
+ const uploadHint=m=>m.previewUrl&&m.status!=="available"?"Live preview: "+m.previewUrl+" · optional local copy: "+(m.localPath||m.file||m.path):"Repository path: "+(m.localPath||m.file||m.path);
+ expected.textContent=uploadHint(active);
  $("#localModelCredit").hidden=!active.credit;
  $("#localModelCredit").textContent=active.credit||"";
- select.onchange=()=>{const m=models.find(x=>x.path===select.value)||models[0];expected.textContent="Upload path: "+m.path;$("#localModelCredit").hidden=!m.credit;$("#localModelCredit").textContent=m.credit||"";$("#localModelStage").hidden=true};
+ select.onchange=()=>{const m=models.find(x=>x.path===select.value)||models[0];expected.textContent=uploadHint(m);$("#localModelCredit").hidden=!m.credit;$("#localModelCredit").textContent=m.credit||"";$("#localModelStage").hidden=true};
 }
 function disposeLocal3D(){
  if(state.local3dFrame)cancelAnimationFrame(state.local3dFrame);
@@ -363,7 +489,7 @@ function openSite(id,zoom){
 function answer(s,i){const ok=i===s.challenge.answer;$("#quizOptions").querySelectorAll("button").forEach((b,n)=>{b.disabled=true;if(n===s.challenge.answer)b.classList.add("correct");else if(n===i)b.classList.add("incorrect")});$("#quizFeedback").hidden=false;if(ok){if(!state.answered.has(s.id)){state.answered.add(s.id);state.xp+=100;save();progress()}$("#quizFeedback").textContent="Correct! +100 Field XP. "+s.challenge.explanation;toast("Knowledge unlocked · +100 Field XP")}else $("#quizFeedback").textContent="Not quite. "+s.challenge.explanation+" Try another challenge.";$("#visitedPill").textContent="CHALLENGE COMPLETED";$("#visitedPill").classList.add("done")}
 function visit(s){if(!state.visited.has(s.id)){state.visited.add(s.id);state.xp+=50;save();progress();toast("Discovery recorded · +50 Field XP")}$("#visitedPill").textContent="DISCOVERY RECORDED";$("#visitedPill").classList.add("done");$("#visitBtn").textContent="Discovery recorded ✓"}
 function close(id){$("#"+id).hidden=true}
-function bind(){$("#programmeFilter").addEventListener("change",()=>{state.filter=$("#programmeFilter").value;state.listLimit=60;renderSites()});$("#siteSearch").addEventListener("input",()=>{state.search=$("#siteSearch").value;state.listLimit=60;renderSites()});$("#loadMoreSites").addEventListener("click",()=>{state.listLimit+=60;renderSites()});document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>close(b.dataset.close)));["siteDrawer","helpModal"].forEach(id=>$("#"+id).addEventListener("click",e=>{if(e.target.id===id)close(id)}));$("#resetViewBtn").addEventListener("click",()=>{if(state.viewer)state.viewer.camera.flyHome(1.5);$("#coordReadout").textContent="SELECT A PIN TO BEGIN"});$("#retryMapBtn").addEventListener("click",()=>{if(state.viewer){state.viewer.destroy();state.viewer=null}$("#mapFallback").hidden=true;initMap()});$("#helpBtn").addEventListener("click",()=>$("#helpModal").hidden=false);$("#missionGoBtn").addEventListener("click",()=>{const s=HERITAGE_SITES.find(x=>!state.visited.has(x.id))||HERITAGE_SITES[0];openSite(s.id,true)});$("#locateBtn").addEventListener("click",()=>{if(!navigator.geolocation){toast("Location is not available in this browser.");return}navigator.geolocation.getCurrentPosition(p=>{if(state.viewer){state.viewer.camera.flyTo({destination:Cesium.Cartesian3.fromDegrees(p.coords.longitude,p.coords.latitude,25000),duration:1.6});$("#coordReadout").textContent=p.coords.latitude.toFixed(3)+"°, "+p.coords.longitude.toFixed(3)+"°"}},()=>toast("Location permission was not granted."),{timeout:8000})});$("#loadLocalModelBtn").addEventListener("click",loadLocal3D);$("#zoneToggleBtn").addEventListener("click",()=>toggleExplorationZone(HERITAGE_SITES.find(s=>s.id===state.selected),true));$("#zoneMapCardClose").addEventListener("click",()=>{const active=HERITAGE_SITES.find(s=>s.id===state.activeZoneId)||state.globeOverlay&&state.globeOverlay.site;if(active)toggleExplorationZone(active,false)});$("#resetLocalModelBtn").addEventListener("click",()=>{if(state.local3d){const {camera,controls}=state.local3d;camera.position.set(4.8,3.5,5.5);controls.target.set(0,1.4,0);controls.update()}});window.addEventListener("resize",()=>{resizeLocal3D();if(state.globeOverlay&&state.globeOverlay.loaded){const m=state.globeOverlay;m.renderer.render(m.scene,m.camera);updateGlobeModelOverlay()}});$("#soundBtn").addEventListener("click",()=>toast("Ambient sound is not included in this prototype."));document.addEventListener("keydown",e=>{if(e.key==="Escape"){close("siteDrawer");close("helpModal")}})}
+function bind(){$("#programmeFilter").addEventListener("change",()=>{state.filter=$("#programmeFilter").value;state.listLimit=60;renderSites()});$("#siteSearch").addEventListener("input",()=>{state.search=$("#siteSearch").value;state.listLimit=60;renderSites()});$("#loadMoreSites").addEventListener("click",()=>{state.listLimit+=60;renderSites()});document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>close(b.dataset.close)));["siteDrawer","helpModal"].forEach(id=>$("#"+id).addEventListener("click",e=>{if(e.target.id===id)close(id)}));$("#resetViewBtn").addEventListener("click",()=>{if(state.viewer)state.viewer.camera.flyHome(1.5);$("#coordReadout").textContent="SELECT A PIN TO BEGIN"});$("#retryMapBtn").addEventListener("click",()=>{if(state.viewer){state.viewer.destroy();state.viewer=null}$("#mapFallback").hidden=true;initMap()});$("#helpBtn").addEventListener("click",()=>$("#helpModal").hidden=false);$("#missionGoBtn").addEventListener("click",()=>{const s=HERITAGE_SITES.find(x=>!state.visited.has(x.id))||HERITAGE_SITES[0];openSite(s.id,true)});$("#locateBtn").addEventListener("click",()=>{if(!navigator.geolocation){toast("Location is not available in this browser.");return}navigator.geolocation.getCurrentPosition(p=>{if(state.viewer){state.viewer.camera.flyTo({destination:Cesium.Cartesian3.fromDegrees(p.coords.longitude,p.coords.latitude,25000),duration:1.6});$("#coordReadout").textContent=p.coords.latitude.toFixed(3)+"°, "+p.coords.longitude.toFixed(3)+"°"}},()=>toast("Location permission was not granted."),{timeout:8000})});$("#loadLocalModelBtn").addEventListener("click",loadLocal3D);$("#zoneToggleBtn").addEventListener("click",()=>toggleExplorationZone(HERITAGE_SITES.find(s=>s.id===state.selected),true));$("#zoneMapCardClose").addEventListener("click",()=>{const active=HERITAGE_SITES.find(s=>s.id===state.activeZoneId)||state.globeOverlay&&state.globeOverlay.site;if(active)toggleExplorationZone(active,false)});$("#resetLocalModelBtn").addEventListener("click",()=>{if(state.local3d){const {camera,controls}=state.local3d;camera.position.set(4.8,3.5,5.5);controls.target.set(0,1.4,0);controls.update()}});window.addEventListener("resize",()=>{resizeLocal3D();if(state.globeOverlay&&state.globeOverlay.loaded){const m=state.globeOverlay;m.renderer.render(m.scene,m.camera);updateGlobeModelOverlay()}if(state.komodoOverlay&&state.komodoOverlay.loaded){const m=state.komodoOverlay;m.renderer.render(m.scene,m.camera);updateKomodoMapOverlay()}});$("#soundBtn").addEventListener("click",()=>toast("Ambient sound is not included in this prototype."));document.addEventListener("keydown",e=>{if(e.key==="Escape"){close("siteDrawer");close("helpModal")}})}
 const PROGRAMMES=[
  {key:"world_heritage",label:"UNESCO World Heritage Site",short:"World Heritage",plural:"World Heritage Sites",icon:"🏛️",color:"#efbd6b",dataset:"whc001",range:14000},
  {key:"global_geopark",label:"UNESCO Global Geopark",short:"Global Geopark",plural:"UNESCO Global Geoparks",icon:"🌋",color:"#a6a5f2",dataset:"eg0001",range:65000},
@@ -414,8 +540,8 @@ async function loadSiteCatalog(){
     if(Number.isFinite(lon)&&Number.isFinite(lat))site.coordinates=[lon,lat];
     site.catalogRecord=item;
     site.mapRange=item.map&&item.map.initialCameraRangeMeters;
-    site.models=(item.models||[]).map(m=>({...m,path:m.file||m.path,label:m.label||m.id,credit:[m.creator||"Creator not recorded",m.license||"License to verify",m.sourceUrl||""].filter(Boolean).join(" · ")}));
-    site.globeModel=site.models.find(m=>m.placement==="globe"&&m.status==="available")||null;
+    site.models=(item.models||[]).map(m=>({...m,path:m.status==="available"?(m.file||m.path):(m.previewUrl||m.file||m.path),localPath:m.file||m.path,label:m.label||m.id,credit:[m.creator||"Creator not recorded",m.license||"License to verify",m.sourceUrl||""].filter(Boolean).join(" · ")}));
+    site.globeModel=site.models.find(m=>m.placement==="globe"&&(m.status==="available"||m.previewUrl))||null;
    }
    site.programmeKey="world_heritage";site.programmeLabel="UNESCO World Heritage Site";site.programmeShort="World Heritage";site.isCurated=true;
    const designation=(item&&item.designations||[]).find(d=>d.datasetId==="whc001");
