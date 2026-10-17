@@ -75,3 +75,15 @@ test("terrain and building token diagnostics identify both required asset IDs", 
   assert.match(app, /OSM Buildings \(asset 96188\)/);
   assert.match(app, /WORLD TERRAIN \+ OSM BUILDINGS ACTIVE/);
 });
+
+test("Cesium ion token is applied before the world terrain provider is created", () => {
+  const tokenIndex = app.indexOf("if(appIonToken&&Cesium.Ion)Cesium.Ion.defaultAccessToken=appIonToken");
+  const terrainIndex = app.indexOf("Cesium.Terrain.fromWorldTerrain", tokenIndex);
+  assert.ok(tokenIndex >= 0, "token assignment is present in initMap");
+  assert.ok(terrainIndex > tokenIndex, "ion token is assigned before terrain creation");
+});
+
+test("terrain failures fall back to ellipsoid instead of leaving a black globe", () => {
+  assert.match(app, /v\.scene\.setTerrain\(new Cesium\.Terrain\(Promise\.resolve\(new Cesium\.EllipsoidTerrainProvider\(\)\)\)\)/);
+  assert.match(app, /Globe restored with a smooth ellipsoid/);
+});
