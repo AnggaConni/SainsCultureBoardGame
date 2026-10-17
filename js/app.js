@@ -122,11 +122,18 @@ function initGlobeModelForSite(site,wrapper,host){
    modelState.basePixel.set((baseProjected.x+1)*canvasWidth*.5,(1-baseProjected.y)*canvasHeight*.5);
    const topWorld=pivot.localToWorld(new THREE.Vector3(0,normalizedHeight,0)),topProjected=topWorld.clone().project(camera);
    modelState.renderedHeight=Math.max(1,Math.abs(modelState.basePixel.y-(1-topProjected.y)*canvasHeight*.5));
-   modelState.loaded=true;wrapper.hidden=false;setSelectedMarker(state.selected);
+   modelState.loaded=true;wrapper.hidden=false;clearModelLoadDiagnostic(site);setSelectedMarker(state.selected);
    console.info("[Heritage Atlas] GLB loaded for geospatial overlay",site.name,{asset:asset.path,sourceBounds:{width:size.x,depth:size.z,height:size.y},targetHeightMeters:targetHeight});
    updateGlobeModelOverlay(modelState);
   }catch(error){console.error("[Heritage Atlas] Could not prepare GLB overlay",site.name,asset.path,error);hideGlobeOverlay(modelState)}
- },undefined,error=>{console.error("[Heritage Atlas] GLB overlay failed to load",site.name,asset.path,error);hideGlobeOverlay(modelState)});
+ },progress=>{
+  if(progress&&progress.total)console.debug("[Heritage Atlas] GLB loading",site.name,Math.round(progress.loaded/progress.total*100)+"%");
+ },error=>{
+  modelState.loadError=String(error&&error.message||error||"Unknown GLB loader error");
+  console.error("[Heritage Atlas] GLB overlay failed to load",site.name,asset.path,error);
+  showModelLoadDiagnostic(site,modelState.loadError);
+  hideGlobeOverlay(modelState)
+ });
  const onPostRender=()=>{try{updateGlobeModelOverlay(modelState)}catch(error){console.error("[Heritage Atlas] 3D overlay update failed",site.name,error);hideGlobeOverlay(modelState)}};
  state.viewer.scene.postRender.addEventListener(onPostRender);
  state.globeOverlayCleanups.push(()=>{try{state.viewer&&state.viewer.scene.postRender.removeEventListener(onPostRender)}catch(_){};try{renderer.dispose()}catch(_){}});
@@ -183,6 +190,19 @@ function projectWorldToWindow(scene,position){
  if(typeof fn!=="function")return undefined;
  try{return fn.call(transforms,scene,position,new Cesium.Cartesian2())}
  catch(error){console.warn("[Heritage Atlas] Map coordinate projection failed",error);return undefined}
+}
+function showModelLoadDiagnostic(site,message){
+ const stage=$(".map-stage");if(!stage)return;
+ let badge=$("#modelLoadDiagnostic");
+ if(!badge){badge=document.createElement("div");badge.id="modelLoadDiagnostic";badge.className="model-load-diagnostic";badge.setAttribute("role","status");stage.appendChild(badge)}
+ badge.textContent="3D model failed · "+site.name+" · check Console for GLB load details";
+ badge.title=String(message||"GLB loader failed").slice(0,400);
+ badge.hidden=false;
+ console.error("[Heritage Atlas] Model diagnostic",site.id,site.globeModel&&site.globeModel.path,message);
+}
+function clearModelLoadDiagnostic(site){
+ const badge=$("#modelLoadDiagnostic");
+ if(badge&&badge.textContent.includes(site.name))badge.hidden=true;
 }
 function updateGlobeModelOverlay(modelOverride){
  const model=modelOverride||state.globeOverlay,v=state.viewer;
