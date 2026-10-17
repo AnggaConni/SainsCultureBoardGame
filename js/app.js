@@ -11,7 +11,7 @@ function filterMatchesSite(site){
  const filter=state.filter;
  if(filter==="mapped"&&!hasCoordinates(site))return false;
  if(filter==="unmapped"&&hasCoordinates(site))return false;
- if(["world_heritage","global_geopark","biosphere_reserve","intangible_cultural_heritage","creative_cities"].includes(filter)&&site.programmeKey!==filter)return false;
+ if(["world_heritage","world_heritage_tentative","global_geopark","biosphere_reserve","intangible_cultural_heritage","creative_cities"].includes(filter)&&site.programmeKey!==filter)return false;
  if(["culture","nature","mixed"].includes(filter)&&site.category!==filter)return false;
  const q=state.search.trim().toLocaleLowerCase();
  if(q){
@@ -44,6 +44,7 @@ const markerImageCache=new Map();
 function markerPalette(site){
  const palette={
   world_heritage:{glow:"#FFC857",core:"#101923"},
+  world_heritage_tentative:{glow:"#FF8A4C",core:"#2E170E"},
   global_geopark:{glow:"#B7A4FF",core:"#19162F"},
   biosphere_reserve:{glow:"#55F2B0",core:"#0D2923"},
   intangible_cultural_heritage:{glow:"#58DDFF",core:"#0B2633"},
@@ -717,6 +718,7 @@ function close(id){$("#"+id).hidden=true}
 function bind(){document.querySelectorAll("[data-intel-tab]").forEach(button=>button.addEventListener("click",()=>{const site=HERITAGE_SITES.find(item=>item.id===state.selected);if(site)renderSiteIntelligence(site,button.dataset.intelTab)}));$("#programmeFilter").addEventListener("change",()=>{state.filter=$("#programmeFilter").value;state.listLimit=60;renderSites()});$("#siteSearch").addEventListener("input",()=>{state.search=$("#siteSearch").value;state.listLimit=60;renderSites()});$("#loadMoreSites").addEventListener("click",()=>{state.listLimit+=60;renderSites()});document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>close(b.dataset.close)));["siteDrawer","helpModal"].forEach(id=>$("#"+id).addEventListener("click",e=>{if(e.target.id===id)close(id)}));$("#resetViewBtn").addEventListener("click",()=>{if(state.viewer)state.viewer.camera.flyTo({destination:Cesium.Cartesian3.fromDegrees(112,4,22500000),orientation:{heading:0,pitch:Cesium.Math.toRadians(-88),roll:0},duration:1.5});$("#coordReadout").textContent="SELECT A PIN TO BEGIN"});$("#retryMapBtn").addEventListener("click",()=>{if(state.viewer){state.viewer.destroy();state.viewer=null}$("#mapFallback").hidden=true;initMap()});$("#helpBtn").addEventListener("click",()=>$("#helpModal").hidden=false);$("#missionGoBtn").addEventListener("click",()=>{const s=HERITAGE_SITES.find(x=>!state.visited.has(x.id))||HERITAGE_SITES[0];openSite(s.id,true)});$("#locateBtn").addEventListener("click",()=>{if(!navigator.geolocation){toast("Location is not available in this browser.");return}navigator.geolocation.getCurrentPosition(p=>{if(state.viewer){state.viewer.camera.flyTo({destination:Cesium.Cartesian3.fromDegrees(p.coords.longitude,p.coords.latitude,25000),duration:1.6});$("#coordReadout").textContent=p.coords.latitude.toFixed(3)+"°, "+p.coords.longitude.toFixed(3)+"°"}},()=>toast("Location permission was not granted."),{timeout:8000})});$("#loadLocalModelBtn").addEventListener("click",loadLocal3D);$("#zoneToggleBtn").addEventListener("click",()=>toggleExplorationZone(HERITAGE_SITES.find(s=>s.id===state.selected),true));$("#zoneMapCardClose").addEventListener("click",()=>{const active=HERITAGE_SITES.find(s=>s.id===state.activeZoneId)||state.globeOverlay&&state.globeOverlay.site;if(active)toggleExplorationZone(active,false)});$("#resetLocalModelBtn").addEventListener("click",()=>{if(state.local3d){const {camera,controls}=state.local3d;camera.position.set(4.8,3.5,5.5);controls.target.set(0,1.4,0);controls.update()}});window.addEventListener("resize",()=>{resizeLocal3D();if(state.globeOverlay&&state.globeOverlay.loaded){const m=state.globeOverlay;m.renderer.render(m.scene,m.camera);updateGlobeModelOverlay()}if(state.komodoOverlay&&state.komodoOverlay.loaded){const m=state.komodoOverlay;m.renderer.render(m.scene,m.camera);updateKomodoMapOverlay()}});$("#soundBtn").addEventListener("click",()=>toast("Ambient sound is not included in this prototype."));document.addEventListener("keydown",e=>{if(e.key==="Escape"){close("siteDrawer");close("helpModal")}})}
 const PROGRAMMES=[
  {key:"world_heritage",label:"UNESCO World Heritage Site",short:"World Heritage",plural:"World Heritage Sites",icon:"🏛️",color:"#efbd6b",dataset:"whc001",range:14000},
+ {key:"world_heritage_tentative",label:"World Heritage Tentative List",short:"Tentative List",plural:"Tentative List sites",icon:"🧭",color:"#ff8a4c",dataset:"whc_tentative_2026",range:14000},
  {key:"global_geopark",label:"UNESCO Global Geopark",short:"Global Geopark",plural:"UNESCO Global Geoparks",icon:"🌋",color:"#a6a5f2",dataset:"eg0001",range:65000},
  {key:"biosphere_reserve",label:"UNESCO Biosphere Reserve",short:"Biosphere Reserve",plural:"Biosphere Reserves",icon:"🌿",color:"#68d0a6",dataset:"mab001",range:65000},
  {key:"intangible_cultural_heritage",label:"Intangible Cultural Heritage element",short:"Intangible Heritage",plural:"Intangible Cultural Heritage",icon:"🎭",color:"#7ec4f5",dataset:"ich001",range:14000},
@@ -724,6 +726,10 @@ const PROGRAMMES=[
 ];
 function countryLabel(value){return Array.isArray(value)?value.filter(Boolean).join(", "):String(value||"");}
 function normalizedCategory(record,programme){
+ if(programme==="world_heritage_tentative"){
+  const value=String(record.category||"").toLowerCase();
+  return value==="n"||value.includes("natural")?"nature":value==="cn"||value.includes("mixed")?"mixed":"culture";
+ }
  if(programme==="world_heritage"){
   const value=String(record.category||"").toLowerCase();
   return value.includes("natural")?"nature":value.includes("mixed")?"mixed":"culture";
@@ -736,18 +742,22 @@ function makeRegistrySite(record){
  const country=countryLabel(record.country);
  const category=normalizedCategory(record,programme.key);
  const options=PROGRAMMES.map(p=>p.label);
- const year=record.year?String(record.year):"Not provided";
+ const year=record.year?String(record.year):(programme.key==="world_heritage_tentative"?"Tentative · as of 15 Apr 2026":"Not provided");
+ const isTentative=programme.key==="world_heritage_tentative";
+ const sourceAttribution=record.source&&record.source.attribution||(isTentative?"UNESCO World Heritage Centre":"UNESCO DataHub");
+ const sourceUrl=record.source&&(record.source.datasetUrl||record.source.sourceUrl)||"https://data.unesco.org/";
+ const challenge=isTentative?{question:"What does a World Heritage Tentative List entry mean?",options:["Already inscribed as World Heritage","A potential future nomination","A Biosphere Reserve"],answer:1,explanation:"A Tentative List is an inventory of sites a State Party may consider for nomination. It is not an inscription on the World Heritage List."}:{question:"Which UNESCO programme is this record associated with?",options,answer:Math.max(0,PROGRAMMES.findIndex(p=>p.key===programme.key)),explanation:programme.label+" is a distinct UNESCO designation/list. It should not be conflated with the other programmes shown in this explorer."};
  return {
   id:record.id,name:record.name||"Unnamed UNESCO record",country,location:country||"Location not specified",region:country||"UNESCO designation",
   programmeKey:programme.key,programmeLabel:programme.label,programmeShort:programme.short,designation:programme.label,category,icon:programme.icon,color:programme.color,
   coordinates:coords,year,official:record.officialUrl||record.source&&record.source.recordUrl||record.source&&record.source.datasetUrl||"https://data.unesco.org/",
-  sourceAttribution:record.source&&record.source.attribution||"UNESCO DataHub",sourceUrl:record.source&&record.source.datasetUrl||"https://data.unesco.org/",
+  sourceAttribution,sourceUrl,
   sourceRecord:record,sourceDatasetId:record.source&&record.source.datasetId||programme.dataset,isCurated:false,
-  tags:[programme.label,record.category].filter(Boolean),image:null,mapRange:programme.range,
-  description:"This entry comes from the UNESCO DataHub registry. Use the linked source record for authoritative designation details; coordinate availability and record completeness vary by programme.",
-  why:record.category?"Source category: "+record.category:"Programme record: "+programme.label,
-  fact:record.year?"Year in source dataset: "+record.year:"The source record does not provide a year.",
-  challenge:{question:"Which UNESCO programme is this record associated with?",options,answer:Math.max(0,PROGRAMMES.findIndex(p=>p.key===programme.key)),explanation:programme.label+" is a distinct UNESCO designation/list. It should not be conflated with the other programmes shown in this explorer."},
+  tags:[isTentative?"Tentative List — not inscribed":programme.label,record.category].filter(Boolean),image:null,mapRange:programme.range,
+  description:isTentative?"This property appears in the official World Heritage Tentative List snapshot as of 15 April 2026. Tentative status means a State Party may consider a future nomination; it is not an inscription. The report does not provide a central point coordinate here, so no map marker is plotted until coordinates can be verified.":"This entry comes from the UNESCO DataHub registry. Use the linked source record for authoritative designation details; coordinate availability and record completeness vary by programme.",
+  why:isTentative?"Candidate category in the official Tentative List: "+record.category:(record.category?"Source category: "+record.category:"Programme record: "+programme.label),
+  fact:isTentative?"Status: Tentative List (snapshot as of 15 April 2026), not inscribed.":(record.year?"Year in source dataset: "+record.year:"The source record does not provide a year."),
+  challenge,
   catalogRecord:null,models:[]
  };
 }
