@@ -15,13 +15,13 @@ test("Cesium OSM Buildings layer is requested during map initialization", () => 
 
 test("OSM Buildings supports a restricted user-provided ion token", () => {
   assert.match(app, /window\.CESIUM_ION_ACCESS_TOKEN/);
-  assert.match(app, /Cesium\.Ion\.defaultAccessToken=window\.CESIUM_ION_ACCESS_TOKEN/);
+  assert.match(app, /Cesium\\.Ion\\.defaultAccessToken=token/);
 });
 
 test("building-layer failures are non-fatal and expose an actionable diagnostic", () => {
   assert.match(app, /state\.buildingsStatus="unavailable"/);
-  assert.match(app, /Cesium OSM Buildings could not load/);
-  assert.match(app, /The globe and site markers will remain available/);
+  assert.match(app, /Cesium OSM Buildings could not initialize/);
+  assert.match(app, /3D BUILDINGS UNAVAILABLE · CHECK ION/);
 });
 
 test("Cesium token config loads before CesiumJS and is explicit", () => {
