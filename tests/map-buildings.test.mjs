@@ -6,6 +6,7 @@ const app = await readFile(new URL("../js/app.js", import.meta.url), "utf8");
 const config = await readFile(new URL("../js/cesium-config.js", import.meta.url), "utf8");
 const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
 const css = await readFile(new URL("../css/atlas.css", import.meta.url), "utf8");
+const deployWorkflow = await readFile(new URL("../.github/workflows/deploy-pages-with-cesium-token.yml", import.meta.url), "utf8");
 
 test("Cesium OSM Buildings layer is requested during map initialization", () => {
   assert.match(app, /async function initOsmBuildings\(viewer\)/);
@@ -48,4 +49,14 @@ test("persistent map badge explains missing token and is not tied to the header 
   assert.match(app, /setBuildingsUi\("3D BUILDINGS DISABLED · Add a restricted Cesium ion token in js\/cesium-config\.js\.","warn"\)/);
   assert.match(css, /\.buildings-status\[hidden\]\{display:none\}/);
   assert.match(css, /\.buildings-status\.error/);
+});
+
+test("Pages deployment injects the GitHub secret only into the generated artifact", () => {
+  assert.match(deployWorkflow, /workflow_dispatch/);
+  assert.match(deployWorkflow, /CESIUM_ION_ACCESS_TOKEN: \$\{\{ secrets\.CESIUM_ION_ACCESS_TOKEN \}\}/);
+  assert.match(deployWorkflow, /Generate browser config for deployment artifact/);
+  assert.match(deployWorkflow, /JSON\.stringify\(token\)/);
+  assert.match(deployWorkflow, /actions\/upload-pages-artifact@v4/);
+  assert.match(deployWorkflow, /actions\/deploy-pages@v4/);
+  assert.match(deployWorkflow, /value will not be printed/);
 });
