@@ -43,8 +43,6 @@ jobs:
           python-version: "3.12"
       - name: Run offline scraper tests
         run: python scripts/test_update_data.py
-      - name: Run offline scraper tests
-        run: python scripts/test_update_data.py
       - name: Run data refresh
         env:
           EVENT_NAME: ${{ github.event_name }}
@@ -57,14 +55,38 @@ jobs:
             ARGS+=(--force)
           fi
           python scripts/update_data.py "${ARGS[@]}"
-      - name: Commit updated data snapshots
+      - name: Archive raw source snapshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: raw-source-snapshots-${{ github.run_id }}
+          path: data/generated/raw/
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Commit compact normalized datasets
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/generated
+          # Keep source payloads in the workflow artifact, not in the Git history.
+          for path in data/generated/manifest.json data/generated/site_registry.json data/generated/tourism_economics.json data/generated/unesco; do
+            if [[ -e "$path" ]]; then git add "$path"; fi
+          done
           if git diff --cached --quiet; then
-            echo "No generated data changes to commit."
+            echo "No normalized data changes to commit."
             exit 0
           fi
-          git commit -m "chore(data): refresh UNESCO and tourism datasets"
-          git push origin HEAD:main
+          git commit -m "chore(data): refresh normalized UNESCO and tourism datasets"
+          # Raw snapshots are archived separately; retry a transient push timeout.
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            echo "Push attempt $attempt failed; refetching main before retry."
+            sleep $((attempt * 5))
+            git fetch origin main
+            if ! git merge-base --is-ancestor origin/main HEAD; then
+              git rebase origin/main
+            fi
+          done
+          echo "Push failed after 3 attempts."
+          exit 1
