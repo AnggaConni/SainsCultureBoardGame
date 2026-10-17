@@ -532,7 +532,7 @@ function renderSiteIntelligence(site,tab){
   .catch(error=>{
    if(state.selected!==site.id||state.siteIntelTab!==scope)return;
    status.textContent="CONNECTOR UNAVAILABLE";
-   content.innerHTML=renderIntelMessage("Site Intelligence Worker is not reachable","Deploy the separate Cloudflare Worker and configure its TinyFish secret for news. Details: SITE_INTELLIGENCE_SETUP.md. Technical message: "+String(error&&error.message||error).slice(0,160),"error")+'<p class="intel-worker-link"><a href="https://github.com/AnggaConni/SainsCultureBoardGame/blob/main/SITE_INTELLIGENCE_SETUP.md" target="_blank" rel="noopener noreferrer">Open setup guide ↗</a></p>';
+   content.innerHTML=renderIntelMessage("Site Intelligence endpoint cannot be reached","News and Research use the same separate Cloudflare Worker. First open its /health URL: if the health check also fails, deploy the Worker or correct its workers.dev URL. If health works, check CORS / ALLOWED_ORIGINS. A missing TinyFish secret causes a provider-status message rather than a network failure. Technical message: "+String(error&&error.message||error).slice(0,160),"error")+'<div class="intel-worker-links"><a href="https://heritage-site-intelligence.conniezz-cool.workers.dev/health" target="_blank" rel="noopener noreferrer">Check Worker health ↗</a><a href="https://github.com/AnggaConni/SainsCultureBoardGame/actions/workflows/deploy-site-intelligence.yml" target="_blank" rel="noopener noreferrer">Deploy from GitHub Actions ↗</a><a href="https://github.com/AnggaConni/SainsCultureBoardGame/blob/main/SITE_INTELLIGENCE_SETUP.md" target="_blank" rel="noopener noreferrer">Open setup guide ↗</a></div>';
   })
   .finally(()=>state.siteIntelPending.delete(key));
  state.siteIntelPending.set(key,pending);
