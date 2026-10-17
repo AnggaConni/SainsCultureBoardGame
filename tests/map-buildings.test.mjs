@@ -92,11 +92,17 @@ test("terrain shading does not darken the entire OSM basemap", () => {
   assert.match(app, /v\.scene\.globe\.enableLighting=false/);
 });
 
-test("map markers float slightly above terrain but remain occluded by globe", () => {
+test("map markers float above terrain and use local-only depth override", () => {
   assert.ok(app.includes("const MAP_MARKER_GROUND_CLEARANCE_METERS=12"));
   assert.ok(app.includes("position:Cesium.Cartesian3.fromDegrees(lon,lat,MAP_MARKER_GROUND_CLEARANCE_METERS)"));
-  assert.equal((app.match(/heightReference:Cesium.HeightReference.RELATIVE_TO_GROUND,disableDepthTestDistance:0/g) || []).length, 1);
+  assert.equal((app.match(/heightReference:Cesium.HeightReference.RELATIVE_TO_GROUND,disableDepthTestDistance:18000/g) || []).length, 1);
   assert.equal((app.match(/heightReference:Cesium.HeightReference.RELATIVE_TO_GROUND/g) || []).length, 2);
   assert.ok(app.includes("v.scene.globe.depthTestAgainstTerrain=true"));
   assert.ok(!app.includes("disableDepthTestDistance:Number.POSITIVE_INFINITY"));
+});
+
+test("initial and reset world views use an oblique camera angle", () => {
+  assert.ok(app.includes("pitch:Cesium.Math.toRadians(-68),roll:0}});markers();"));
+  assert.ok(app.includes('$("#resetViewBtn").addEventListener("click",()=>{if(state.viewer)state.viewer.camera.flyTo({destination:Cesium.Cartesian3.fromDegrees(112,4,22500000),orientation:{heading:0,pitch:Cesium.Math.toRadians(-68),roll:0},duration:1.5})'));
+  assert.ok(app.includes("new Cesium.HeadingPitchRange(Cesium.Math.toRadians(24),Cesium.Math.toRadians(-38),range)"));
 });
