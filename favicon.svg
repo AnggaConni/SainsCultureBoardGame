@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+<title id="title">World Heritage Atlas temple icon</title>
+<desc id="desc">A stylized Indonesian temple silhouette on a deep teal rounded square.</desc>
+<defs>
+ <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0a2832"/><stop offset="1" stop-color="#14594f"/></linearGradient>
+ <linearGradient id="stone" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#ffe8b6"/><stop offset="1" stop-color="#d5aa62"/></linearGradient>
+</defs>
+<rect x="2" y="2" width="60" height="60" rx="15" fill="url(#bg)"/>
+<circle cx="47" cy="15" r="8" fill="#7fd3bb" opacity=".13"/>
+<g fill="none" stroke="#f3dca6" stroke-width="1" opacity=".65"><path d="M12 50H52"/><path d="M16 54H48"/></g>
+<g fill="url(#stone)" stroke="#f7e6c2" stroke-linejoin="round" stroke-width=".65">
+ <path d="M13 49h38l-3-5H16z"/>
+ <path d="M16 43h32l-3-4H19z"/>
+ <path d="M19 38h26l-3-4H22z"/>
+ <path d="M22 33h20l-3-4H25z"/>
+ <path d="M25 28h14l-3-5h-8z"/>
+ <path d="M28 23h8l-4-7z"/>
+ <path d="M9 49h46v3H9z"/>
+</g>
+<g fill="#0e3d3c"><rect x="23" y="39" width="3" height="4" rx=".5"/><rect x="29" y="39" width="3" height="4" rx=".5"/><rect x="35" y="39" width="3" height="4" rx=".5"/><rect x="41" y="39" width="3" height="4" rx=".5"/><rect x="28" y="30" width="3" height="3" rx=".5"/><rect x="33" y="30" width="3" height="3" rx=".5"/></g>
+<path d="M32 12v-3M30 10h4" stroke="#8cdec6" stroke-width="1.5" stroke-linecap="round"/>
+</svg>
