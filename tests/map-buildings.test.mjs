@@ -118,3 +118,10 @@ test("OSM buildings are hidden at planetary scale and shown only after zoom-in",
   assert.ok(app.includes("viewer.camera.changed.addEventListener(syncBuildingVisibility)"));
   assert.ok(app.includes("3D BUILDINGS READY · Zoom closer to reveal buildings"));
 });
+
+test("Tentative List is a distinct selectable status, not an inscribed World Heritage site", () => {
+  assert.ok(app.includes('key:"world_heritage_tentative",label:"World Heritage Tentative List"'));
+  assert.ok(app.includes('programme==="world_heritage_tentative"'));
+  assert.ok(app.includes("Tentative status means a State Party may consider a future nomination; it is not an inscription."));
+  assert.ok(app.includes("no map marker is plotted until coordinates can be verified"));
+});
