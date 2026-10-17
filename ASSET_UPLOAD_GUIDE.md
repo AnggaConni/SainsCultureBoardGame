@@ -28,14 +28,13 @@ All 3D models belong in one folder: assets/models/. We keep temples, protected l
 | Final filename to upload | Site / use | Suggested source or status |
 |---|---|---|
 | assets/models/prambanan_temple.glb | Prambanan / Candi Siwa | [Sketchfab — PixForge](https://sketchfab.com/3d-models/candi-siwa-prambanan-d7d633ba14be4ba7aeef1500f32e13f0), CC BY; AI-generated illustrative model; optimise before use |
-| assets/models/komodo_island.glb | Komodo learning scene | [Sketchfab — Tropical Island](https://sketchfab.com/3d-models/tropical-island-f91862f8c38b481aa19edccac851eefb), CC BY; generic island, not accurate geography |
-| assets/models/komodo_dragon.glb | Komodo wildlife | [Sketchfab — all of life](https://sketchfab.com/3d-models/komodo-dragon-0b8679521991420a8b48a6e63018f52c), CC BY |
+| assets/models/komodo_dragon.glb | Main Komodo National Park model. The app streams a small preview directly from [3DAssets.dev](https://3dassets.dev/assets/reptiles-amphibians-and-minibeasts-komodo-dragon-9ed37a2d) under CC0 1.0. | [Open CC0 model and direct preview](https://cdn.3dassets.dev/assets/22431/v1/model.glb). A local copy is optional for self-hosting/offline use; if you add it, retain this exact filename. |
 | assets/models/bali_subak_landscape.glb | Bali cultural landscape / subak | Find a suitable model and verify licence |
 | assets/models/sangiran_fossil_display.glb | Sangiran fossil learning display | Find a suitable model and verify provenance/licence |
 | assets/models/lorentz_highland_forest.glb | Lorentz highland ecosystem | Find a suitable model and verify licence |
 | assets/models/borobudur_relief_3rd_floor.glb | Optional Borobudur relief close-up | [Sketchfab — PHAC](https://sketchfab.com/3d-models/borobudur-3rd-floor-relief-pictograph-2c49eeb628684757b8f0f87165a12007), CC BY; optional detail asset |
 
-The island model is illustrative, not a geographic terrain reconstruction. For accurate island shape/elevation, a terrain mesh derived from open elevation data is a separate task.
+The Komodo dragon appears as a map-anchored 3D model at the park's approximate reference point. The visual scale is exaggerated for game discoverability and is not a survey-grade geospatial animal location. A procedural lizard illustration is used if the remote CC0 GLB preview cannot load. A true island/park terrain model is not included.
 
 ## C. Optional environment props
 
