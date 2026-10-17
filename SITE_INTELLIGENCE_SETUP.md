@@ -13,11 +13,28 @@ The frontend calls sources lazily (only when the respective tab is opened). The 
 
 ## Deploy to Cloudflare
 
-Run from the repository root with Node.js installed:
+### Option A — Deploy through GitHub Actions (recommended)
+
+1. In GitHub, open **Settings → Secrets and variables → Actions → New repository secret**.
+2. Add the following repository secrets:
+   - `CLOUDFLARE_API_TOKEN`: Cloudflare API token with permission to edit Workers Scripts for the correct account.
+   - `CLOUDFLARE_ACCOUNT_ID`: the Cloudflare account ID.
+   - `TINYFISH_API_KEY`: the TinyFish API key (required for News).
+   - `OPENALEX_API_KEY`: optional; improves the OpenAlex API budget when using a verified key.
+3. Open [Deploy Site Intelligence Worker](https://github.com/AnggaConni/SainsCultureBoardGame/actions/workflows/deploy-site-intelligence.yml), choose **Run workflow**, and run it on `main`.
+4. The workflow deploys the Worker, attaches the secrets to the Worker, and checks the `/health` endpoint. Do not put any provider keys in frontend files or commit them.
+
+### Option B — Deploy from a local terminal
+
+Run from the repository root with Node.js installed and authenticated Cloudflare credentials:
 
 ```bash
 npx wrangler deploy --config wrangler.site-intelligence.jsonc
+npx wrangler secret put TINYFISH_API_KEY --config wrangler.site-intelligence.jsonc
+npx wrangler secret put OPENALEX_API_KEY --config wrangler.site-intelligence.jsonc
 ```
+
+The secret commands prompt for the key; paste each key privately. The OpenAlex key is optional.
 
 The default worker name is heritage-site-intelligence. The existing Aegis deployment uses the Cloudflare workers.dev subdomain conniezz-cool.workers.dev; after deployment, the frontend expects:
 
@@ -67,3 +84,10 @@ Each result contains schemaVersion, site, scope, provider, status, fetchedAt, co
 - The map coordinates for large/serial UNESCO properties can be representative anchors rather than official property boundaries.
 - The current Environment tab is not yet querying GBIF/EONET. It describes the next connector stage rather than fabricating results.
 - Third-party availability, API limits, terms and prices can change. Cache and monitor usage.
+
+
+## Diagnosing “Failed to fetch”
+- If `/health` fails to load or DNS returns an error, the Worker is not deployed at that hostname or the hostname is incorrect. Deploy the Worker, then copy the active workers.dev URL from Cloudflare.
+- If `/health` works when opened directly but the app cannot fetch it, verify `ALLOWED_ORIGINS` includes exactly `https://anggaconni.github.io` and check the browser console for CORS errors.
+- If the Worker returns JSON with `status: "not_configured"`, the service is reachable, but the `TINYFISH_API_KEY` secret is missing. This is different from “Failed to fetch”.
+- The Environment tab is an explicitly unimplemented Phase 2 connector; it does not make a live API request yet.
