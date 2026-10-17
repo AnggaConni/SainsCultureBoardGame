@@ -112,3 +112,9 @@ The uploaded `komodo_dragon.glb` is now the primary on-map model for Komodo Nati
 The site drawer now contains a lazily loaded Site Intelligence dossier. **Overview** uses curated catalogue metadata and official source links; **News** searches via a dedicated Cloudflare Worker + TinyFish; **Research** queries OpenAlex; **Environment** is a clearly marked next-phase connector slot. External calls only run when a user opens News or Research. Provider output is shown with provenance and direct links, and news leads are explicitly not treated as verified facts.
 
 Deploy the separate Worker with `npx wrangler deploy --config wrangler.site-intelligence.jsonc`, then configure `TINYFISH_API_KEY` and optional `OPENALEX_API_KEY` as Cloudflare Worker secrets. See `SITE_INTELLIGENCE_SETUP.md`. The public app never contains provider keys.
+
+
+## Site Intelligence dossier
+The site drawer includes a lazily loaded Site Intelligence dossier. **Overview** uses curated catalogue metadata and official source links; **News** searches via a dedicated Cloudflare Worker + TinyFish; **Research** queries OpenAlex; **Environment** is a clearly marked next-phase connector slot. External calls only run when a user opens News or Research. Provider output is shown with provenance and direct links, and news leads are explicitly not treated as verified facts.
+
+Deploy the separate Worker with `npx wrangler deploy --config wrangler.site-intelligence.jsonc`, then configure `TINYFISH_API_KEY` and optional `OPENALEX_API_KEY` as Cloudflare Worker secrets. See `SITE_INTELLIGENCE_SETUP.md`. The public app never contains provider keys.
