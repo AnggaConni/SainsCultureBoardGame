@@ -37,7 +37,7 @@ function addGlobeModels(){
 }
 function fitGlobeModelToTarget(site,asset,entity){
  const targetHeight=Number(asset.targetSizeMeters&&asset.targetSizeMeters.height);
- if(!asset.autoScaleToTargetHeight||!targetHeight||!window.THREE||!THREE.GLTFLoader)return;
+ if(asset.autoScaleToTargetHeight===false||!targetHeight||!window.THREE||!THREE.GLTFLoader)return;
  const loader=new THREE.GLTFLoader();
  loader.load(asset.path,gltf=>{
   if(!state.globeModelEntities.has(site.id))return;
