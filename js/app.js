@@ -330,13 +330,14 @@ function updateKomodoMapOverlay(){
  if(!model||!model.loaded||!v)return;
  const {site,wrapper,renderer,camera,pivot}=model;
  const lon=Number(site.coordinates[0]),lat=Number(site.coordinates[1]);
- const surface=Cesium.Cartesian3.fromDegrees(lon,lat,1.5);
+ const anchorHeight=1.5;
+ const surface=Cesium.Cartesian3.fromDegrees(lon,lat,anchorHeight);
  const cameraDistance=Cesium.Cartesian3.distance(v.camera.positionWC,surface);
  if(!Number.isFinite(cameraDistance)||cameraDistance>220000){wrapper.hidden=true;return}
  const time=(window.performance&&performance.now?performance.now():Date.now())*.001;
  if(pivot){pivot.rotation.y=Math.sin(time*.24)*.36;pivot.position.y=model.basePivotY+Math.sin(time*1.1)*.1;renderer.render(model.scene,camera)}
  const groundPixel=projectWorldToWindow(v.scene,surface);
- const topPixel=projectWorldToWindow(v.scene,Cesium.Cartesian3.fromDegrees(lon,lat,surface.height+model.visualHeightMeters));
+ const topPixel=projectWorldToWindow(v.scene,Cesium.Cartesian3.fromDegrees(lon,lat,anchorHeight+model.visualHeightMeters));
  if(!groundPixel||!topPixel||![groundPixel.x,groundPixel.y,topPixel.x,topPixel.y].every(Number.isFinite)){wrapper.hidden=true;return}
  const width=v.container.clientWidth,height=v.container.clientHeight;
  if(groundPixel.x<-120||groundPixel.x>width+120||groundPixel.y<-170||groundPixel.y>height+170){wrapper.hidden=true;return}
