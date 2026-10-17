@@ -138,7 +138,7 @@
       ],
       "editorial": {
         "summary": "A monumental Buddhist complex with terraces, stupas and narrative reliefs.",
-        "verifiedAgainstOfficialRecord": true
+        "reviewStatus": "starter summary; verify official record before institutional/public release"
       },
       "updatedAt": "2026-10-17"
     },
@@ -200,7 +200,7 @@
       ],
       "editorial": {
         "summary": "A monumental Hindu temple complex in Central Java and the Yogyakarta region.",
-        "verifiedAgainstOfficialRecord": true
+        "reviewStatus": "starter summary; verify official record before institutional/public release"
       },
       "updatedAt": "2026-10-17"
     },
@@ -274,7 +274,7 @@
       ],
       "editorial": {
         "summary": "Protected terrestrial and marine ecosystems, including habitat for the Komodo dragon.",
-        "verifiedAgainstOfficialRecord": true
+        "reviewStatus": "starter summary; verify official record before institutional/public release"
       },
       "updatedAt": "2026-10-17"
     },
@@ -328,7 +328,7 @@
       ],
       "editorial": {
         "summary": "A cultural landscape that includes rice terraces, water temples and the subak water-management tradition.",
-        "verifiedAgainstOfficialRecord": true
+        "reviewStatus": "starter summary; verify official record before institutional/public release"
       },
       "updatedAt": "2026-10-17"
     },
@@ -382,7 +382,7 @@
       ],
       "editorial": {
         "summary": "Important fossil and geological evidence for studies of human evolution.",
-        "verifiedAgainstOfficialRecord": true
+        "reviewStatus": "starter summary; verify official record before institutional/public release"
       },
       "updatedAt": "2026-10-17"
     },
@@ -436,7 +436,7 @@
       ],
       "editorial": {
         "summary": "A large protected landscape containing a wide range of tropical habitats and high mountain ecosystems.",
-        "verifiedAgainstOfficialRecord": true
+        "reviewStatus": "starter summary; verify official record before institutional/public release"
       },
       "updatedAt": "2026-10-17"
     }
