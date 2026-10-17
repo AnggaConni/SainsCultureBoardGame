@@ -27,7 +27,7 @@ All 3D models belong in one folder: assets/models/. We keep temples, protected l
 
 | Final filename to upload | Site / use | Suggested source or status |
 |---|---|---|
-| assets/models/prambanan_temple.glb | Prambanan / Candi Siwa | [Sketchfab — PixForge](https://sketchfab.com/3d-models/candi-siwa-prambanan-d7d633ba14be4ba7aeef1500f32e13f0), CC BY; AI-generated illustrative model; optimise before use |
+| assets/models/prambanan_temple.glb | Uploaded and used as the Prambanan / Candi Siwa map model. | [Sketchfab source — PixForge](https://sketchfab.com/3d-models/candi-siwa-prambanan-d7d633ba14be4ba7aeef1500f32e13f0), CC BY; AI-generated illustrative model; attribution required. |
 | assets/models/komodo_dragon.glb | Uploaded local 3D model used as the main Komodo National Park map model. | [Sketchfab source — all of life](https://sketchfab.com/3d-models/komodo-dragon-0b8679521991420a8b48a6e63018f52c), CC BY; attribution required. |
 | assets/models/bali_subak_landscape.glb | Bali cultural landscape / subak | Find a suitable model and verify licence |
 | assets/models/sangiran_fossil_display.glb | Sangiran fossil learning display | Find a suitable model and verify provenance/licence |
