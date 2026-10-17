@@ -94,7 +94,7 @@ function initGlobeModelForSite(site,wrapper,host){
  const keyLight=new THREE.DirectionalLight(0xffffff,2.4);keyLight.position.set(5,8,6);scene.add(keyLight);
  const fillLight=new THREE.DirectionalLight(0x9bd9ce,.9);fillLight.position.set(-5,4,-5);scene.add(fillLight);
  const renderer=new THREE.WebGLRenderer({alpha:true,antialias:true,powerPreference:"low-power"});
- renderer.setPixelRatio(1);renderer.setClearColor(0x000000,0);renderer.outputEncoding=THREE.sRGBEncoding;
+ renderer.setPixelRatio(1);renderer.setClearColor(0x000000,0);renderer.outputColorSpace=THREE.SRGBColorSpace;
  renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.08;
  host.innerHTML="";host.appendChild(renderer.domElement);
  const canvasWidth=768,canvasHeight=768;renderer.setSize(canvasWidth,canvasHeight,false);
@@ -305,7 +305,7 @@ function initKomodoMapOverlay(){
  const keyLight=new THREE.DirectionalLight(0xffffff,2.3);keyLight.position.set(4,7,5);scene.add(keyLight);
  const fill=new THREE.DirectionalLight(0xa7d6a6,.95);fill.position.set(-4,3,-5);scene.add(fill);
  const renderer=new THREE.WebGLRenderer({alpha:true,antialias:true,powerPreference:"low-power"});
- renderer.setPixelRatio(1);renderer.setClearColor(0x000000,0);renderer.outputEncoding=THREE.sRGBEncoding;
+ renderer.setPixelRatio(1);renderer.setClearColor(0x000000,0);renderer.outputColorSpace=THREE.SRGBColorSpace;
  renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.08;
  host.innerHTML="";host.appendChild(renderer.domElement);
  const canvasWidth=1024,canvasHeight=512;
@@ -453,7 +453,7 @@ function loadLocal3D(){
   const grid=new THREE.GridHelper(12,12,0x315c5b,0x1c393d);grid.position.y=-0.02;scene.add(grid);
   const camera=new THREE.PerspectiveCamera(42,w/h,0.01,1000);camera.position.set(5,3.5,6);
   const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:"low-power"});
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.6));renderer.setSize(w,h);renderer.outputEncoding=THREE.sRGBEncoding;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.6));renderer.setSize(w,h);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;
   host.innerHTML="";host.appendChild(renderer.domElement);
   const controls=new THREE.OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.dampingFactor=0.07;controls.target.set(0,1.4,0);controls.minDistance=1.1;controls.maxDistance=18;
   state.local3d={scene,camera,renderer,controls,host};
