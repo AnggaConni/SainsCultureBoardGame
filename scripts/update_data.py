@@ -355,10 +355,15 @@ def get_world_bank_indicator(code: str, years: str, force: bool, max_age_days: i
         params = urlencode({"format": "json", "date": years, "per_page": 20000, "page": page})
         url = f"{WORLD_BANK_API}/country/all/indicator/{safe_code}?{params}"
         payload = get_json(url)
-        if not isinstance(payload, list) or len(payload) < 2 or not isinstance(payload[1], list):
+        if not isinstance(payload, list) or len(payload) < 2:
             raise ValueError(f"Unexpected World Bank response for indicator {code}")
         meta = payload[0] if isinstance(payload[0], dict) else {}
-        records.extend(payload[1])
+        page_records = payload[1]
+        if page_records is None:
+            page_records = []
+        if not isinstance(page_records, list):
+            raise ValueError(f"Unexpected World Bank record list for indicator {code}")
+        records.extend(page_records)
         pages = int(meta.get("pages", 1))
         page += 1
         if page <= pages:
@@ -451,10 +456,12 @@ def run(args: argparse.Namespace) -> int:
                 manifest["sources"].append({"sourceId": dataset_id, "url": conf["url"], "status": "error", "error": str(exc)})
     if args.scope in ("all", "economy"):
         economic_records: list[dict[str, Any]] = []
+        successful_indicator_codes: set[str] = set()
         for code, label in WORLD_BANK_INDICATORS.items():
             try:
                 payload, changed = get_world_bank_indicator(code, args.years, args.force, args.max_age_days)
                 changed_count += int(changed)
+                successful_indicator_codes.add(code)
                 economic_records.extend(normalize_world_bank(payload))
                 manifest["sources"].append({
                     "sourceId": code, "sourceType": "world_bank_indicator",
@@ -473,7 +480,7 @@ def run(args: argparse.Namespace) -> int:
         # Preserve observations from indicators outside the current scope/run, then replace
         # the indicator codes refreshed by this run.
         previous_records = previous.get("records", []) if isinstance(previous, dict) else []
-        refreshed_codes = set(WORLD_BANK_INDICATORS)
+        refreshed_codes = successful_indicator_codes
         merged = [r for r in previous_records if r.get("indicatorCode") not in refreshed_codes] + economic_records
         write_json(economics_path, {
             "schemaVersion": "1.0.0", "title": "Tourism and country-level economic context",
