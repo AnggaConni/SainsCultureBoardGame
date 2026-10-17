@@ -118,3 +118,7 @@ Deploy the separate Worker with `npx wrangler deploy --config wrangler.site-inte
 The site drawer includes a lazily loaded Site Intelligence dossier. **Overview** uses curated catalogue metadata and official source links; **News** searches via a dedicated Cloudflare Worker + TinyFish; **Research** queries OpenAlex; **Environment** is a clearly marked next-phase connector slot. External calls only run when a user opens News or Research. Provider output is shown with provenance and direct links, and news leads are explicitly not treated as verified facts.
 
 Deploy the separate Worker with `npx wrangler deploy --config wrangler.site-intelligence.jsonc`, then configure `TINYFISH_API_KEY` and optional `OPENALEX_API_KEY` as Cloudflare Worker secrets. See `SITE_INTELLIGENCE_SETUP.md`. The public app never contains provider keys.
+
+
+### Deploy Site Intelligence Worker
+The News and Research dossier tabs use a separate Cloudflare Worker. Set GitHub Actions repository secrets `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, and `TINYFISH_API_KEY` (plus optional `OPENALEX_API_KEY`), then run the [Deploy Site Intelligence Worker workflow](https://github.com/AnggaConni/SainsCultureBoardGame/actions/workflows/deploy-site-intelligence.yml). Follow `SITE_INTELLIGENCE_SETUP.md` for required permissions and diagnosing endpoint/CORS errors. The Environment tab is still a Phase 2 placeholder.
