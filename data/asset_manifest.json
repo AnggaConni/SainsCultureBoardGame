@@ -175,17 +175,17 @@
       "label": "Komodo dragon",
       "path": "assets/models/komodo_dragon.glb",
       "group": "unesco_site",
-      "requirement": "optional",
-      "requiredForRuntime": false,
+      "requirement": "runtime",
+      "requiredForRuntime": true,
       "referencedBy": [
+        "js/app.js",
         "js/sites.js",
         "data/sites.json"
       ],
-      "creator": "3DAssets.dev community model",
-      "license": "CC0 1.0 Universal",
-      "sourceUrl": "https://3dassets.dev/assets/reptiles-amphibians-and-minibeasts-komodo-dragon-9ed37a2d",
-      "notes": "Remote preview is currently used for the on-map model, with a procedural fallback. A local copy at this path is optional for self-hosting/offline use; the audit will still report if the local file is absent.",
-      "previewUrl": "https://cdn.3dassets.dev/assets/22431/v1/model.glb"
+      "creator": "all of life",
+      "license": "CC BY; attribution required",
+      "sourceUrl": "https://sketchfab.com/3d-models/komodo-dragon-0b8679521991420a8b48a6e63018f52c",
+      "notes": "Uploaded local GLB used as the Komodo National Park map model. Current file size exceeds the recommended 5 MiB web asset budget; optimize if startup performance suffers."
     },
     {
       "id": "bali_subak_landscape",
@@ -260,6 +260,22 @@
       "license": "CC0 (check exact source item)",
       "sourceUrl": "https://marina-sunny-girl.itch.io/free-modular-islands-pack",
       "notes": "Optional environment asset; not yet uploaded."
+    },
+    {
+      "id": "komodo_island",
+      "label": "Komodo island — Elin model",
+      "path": "assets/models/komodo_island.glb",
+      "group": "unesco_site",
+      "requirement": "optional",
+      "requiredForRuntime": false,
+      "referencedBy": [
+        "js/sites.js",
+        "data/sites.json"
+      ],
+      "creator": "Elin",
+      "license": "CC BY; attribution required",
+      "sourceUrl": "https://sketchfab.com/3d-models/tropical-island-f91862f8c38b481aa19edccac851eefb",
+      "notes": "Uploaded local illustrative island environment. Not a geographic representation of the park boundary."
     }
   ],
   "rules": [
@@ -268,6 +284,6 @@
     "Required runtime assets must exist; planned and optional paths are allowed to be missing and must be reported.",
     "Any GLB added to assets/models/ but absent from this manifest is reported as a new/unregistered asset.",
     "The audit script checks file presence, GLB container structure, filename, references, size and SHA-256 inventory; it does not validate model geometry quality or licence rights.",
-    "A model with previewUrl can be displayed from its external GLB while a local self-hosted copy is missing. The audit still reports the local copy as missing if its manifest path does not exist."
+    "Uploaded Komodo models are self-hosted at assets/models/komodo_dragon.glb and assets/models/komodo_island.glb; external preview URLs are not required."
   ]
 }
