@@ -69,3 +69,9 @@ test("Cesium OSM Buildings is paired with Cesium World Terrain", () => {
   assert.match(app, /LOCAL_MODEL_GROUND_CLEARANCE_METERS=1\.2/);
   assert.doesNotMatch(app, /model\.pivot\.position\.y=model\.basePivotY\+Math\.sin\(time\*1\.15\)\*0\.11/);
 });
+
+test("terrain and building token diagnostics identify both required asset IDs", () => {
+  assert.match(app, /World Terrain \(asset 1\)/);
+  assert.match(app, /OSM Buildings \(asset 96188\)/);
+  assert.match(app, /WORLD TERRAIN \+ OSM BUILDINGS ACTIVE/);
+});
