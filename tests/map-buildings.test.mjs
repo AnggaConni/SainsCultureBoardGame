@@ -87,3 +87,12 @@ test("terrain failures fall back to ellipsoid instead of leaving a black globe",
   assert.match(app, /v\.scene\.setTerrain\(new Cesium\.Terrain\(Promise\.resolve\(new Cesium\.EllipsoidTerrainProvider\(\)\)\)\)/);
   assert.match(app, /Globe restored with a smooth ellipsoid/);
 });
+
+test("terrain shading does not darken the entire OSM basemap", () => {
+  assert.match(app, /v\.scene\.globe\.enableLighting=false/);
+});
+
+test("map markers and labels remain visible above terrain tiles", () => {
+  assert.match(app, /heightReference:Cesium\.HeightReference\.CLAMP_TO_GROUND,disableDepthTestDistance:Number\.POSITIVE_INFINITY\},label:/);
+  assert.match(app, /distanceDisplayCondition:new Cesium\.DistanceDisplayCondition\(0,450000\),disableDepthTestDistance:Number\.POSITIVE_INFINITY/);
+});
