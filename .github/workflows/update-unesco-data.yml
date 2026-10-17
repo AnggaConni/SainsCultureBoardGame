@@ -43,6 +43,8 @@ jobs:
           python-version: "3.12"
       - name: Run offline scraper tests
         run: python scripts/test_update_data.py
+      - name: Run offline scraper tests
+        run: python scripts/test_update_data.py
       - name: Run data refresh
         env:
           EVENT_NAME: ${{ github.event_name }}
