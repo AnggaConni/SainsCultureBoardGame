@@ -47,7 +47,7 @@ function markerPalette(site){
   global_geopark:{glow:"#B7A4FF",core:"#19162F"},
   biosphere_reserve:{glow:"#55F2B0",core:"#0D2923"},
   intangible_cultural_heritage:{glow:"#58DDFF",core:"#0B2633"},
-  creative_city:{glow:"#FF86AA",core:"#321725"}
+  creative_cities:{glow:"#FF86AA",core:"#321725"}
  };
  return palette[site.programmeKey]||{glow:site.color||"#74E8C7",core:"#101923"};
 }
