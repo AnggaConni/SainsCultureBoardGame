@@ -87,7 +87,7 @@
         {
           "id": "borobudur-main",
           "label": "Borobudur temple — existing repository model",
-          "file": "assets/temples/borobudur_temple.glb",
+          "file": "assets/models/borobudur_temple.glb",
           "format": "glb",
           "placement": "globe",
           "status": "available",
@@ -114,7 +114,7 @@
         {
           "id": "borobudur-relief-detail",
           "label": "Borobudur relief detail (optional)",
-          "file": "assets/temples/borobudur_relief_3rd_floor.glb",
+          "file": "assets/models/borobudur_relief_3rd_floor.glb",
           "format": "glb",
           "placement": "detail",
           "status": "planned",
@@ -175,7 +175,7 @@
         {
           "id": "prambanan-main",
           "label": "Prambanan — Candi Siwa model",
-          "file": "assets/temples/prambanan_temple.glb",
+          "file": "assets/models/prambanan_temple.glb",
           "format": "glb",
           "placement": "globe",
           "status": "planned",
@@ -235,7 +235,7 @@
         {
           "id": "komodo-island-demo",
           "label": "Tropical island — illustrative scene",
-          "file": "assets/landscapes/komodo_island.glb",
+          "file": "assets/models/komodo_island.glb",
           "format": "glb",
           "placement": "detail",
           "status": "planned",
@@ -255,7 +255,7 @@
         {
           "id": "komodo-dragon",
           "label": "Komodo dragon",
-          "file": "assets/nature/komodo_dragon.glb",
+          "file": "assets/models/komodo_dragon.glb",
           "format": "glb",
           "placement": "detail",
           "status": "planned",
@@ -309,7 +309,7 @@
         {
           "id": "bali-subak-demo",
           "label": "Bali subak landscape (planned)",
-          "file": "assets/landscapes/bali_subak_landscape.glb",
+          "file": "assets/models/bali_subak_landscape.glb",
           "format": "glb",
           "placement": "detail",
           "status": "planned",
@@ -363,7 +363,7 @@
         {
           "id": "sangiran-display",
           "label": "Sangiran fossil learning display (planned)",
-          "file": "assets/heritage/sangiran_fossil_display.glb",
+          "file": "assets/models/sangiran_fossil_display.glb",
           "format": "glb",
           "placement": "detail",
           "status": "planned",
@@ -417,7 +417,7 @@
         {
           "id": "lorentz-forest-demo",
           "label": "Lorentz highland forest (planned)",
-          "file": "assets/landscapes/lorentz_highland_forest.glb",
+          "file": "assets/models/lorentz_highland_forest.glb",
           "format": "glb",
           "placement": "detail",
           "status": "planned",
