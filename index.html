@@ -40,8 +40,23 @@
 <aside class="side-panel"><div class="panel-scroll"><div class="expedition-row"><div><span class="eyebrow">CURRENT EXPEDITION</span><h2>World Explorer</h2></div><div class="level-badge"><span>LVL</span><b id="levelValue">01</b></div></div>
 <div class="xp-card"><div class="xp-line"><span>FIELD XP</span><b><span id="xpValue">0</span> <small>/ 500</small></b></div><div class="xp-track"><span id="xpBar"></span></div><div class="xp-foot"><span id="discoveriesValue">0 discoveries</span><span id="badgeValue">First steps</span></div></div>
 <div class="section-heading"><div><span class="eyebrow">PICK YOUR NEXT STOP</span><h3>Explore designated sites</h3></div><span class="count-pill" id="siteCount">06 SITES</span></div>
-<div class="filter-row" role="group" aria-label="Filter sites"><button class="filter-chip active" data-filter="all" type="button">All</button><button class="filter-chip" data-filter="culture" type="button">Culture</button><button class="filter-chip" data-filter="nature" type="button">Nature</button><button class="filter-chip" data-filter="mixed" type="button">Mixed</button></div>
+<div class="site-search-wrap"><icon class="search-icon">⌕</icon><input id="siteSearch" type="search" autocomplete="off" placeholder="Search site, country, programme…" aria-label="Search all UNESCO records"></div>
+<div class="programme-filter-row"><select id="programmeFilter" class="programme-select" aria-label="Filter records by UNESCO programme">
+<option value="all">All programmes</option>
+<option data-programme="world_heritage" data-label="World Heritage" value="world_heritage">World Heritage Sites</option>
+<option data-programme="global_geopark" data-label="Global Geoparks" value="global_geopark">Global Geoparks</option>
+<option data-programme="biosphere_reserve" data-label="Biosphere Reserves" value="biosphere_reserve">Biosphere Reserves</option>
+<option data-programme="intangible_cultural_heritage" data-label="Intangible Heritage" value="intangible_cultural_heritage">Intangible Cultural Heritage</option>
+<option data-programme="creative_cities" data-label="Creative Cities" value="creative_cities">Creative Cities</option>
+<option value="mapped">Records with map coordinates</option>
+<option value="unmapped">Records needing geocoding</option>
+<option value="culture">Cultural category</option>
+<option value="nature">Natural category</option>
+<option value="mixed">Mixed category</option>
+</select></div>
+<div id="datasetStatus" class="dataset-status">Loading UNESCO designation records…</div>
 <div id="siteList" class="site-list" aria-live="polite"></div>
+<button id="loadMoreSites" class="load-more-sites" type="button" hidden>Load more sites</button>
 <div class="mission-card"><div class="mission-icon">✦</div><div class="mission-copy"><span class="eyebrow">FIELD CHALLENGE</span><h3 id="missionTitle">The curious traveller</h3><p id="missionDescription">Visit a designated site and complete its knowledge check.</p><div class="mission-progress"><span id="missionProgressBar"></span></div><small id="missionProgressText">0 / 1 completed</small></div><button id="missionGoBtn" class="mission-go" type="button">↗</button></div>
 <div class="source-note">Learning notes are introductory summaries. Consult the linked UNESCO or official site record for authoritative details.</div></div></aside></main>
 <footer class="footer"><span>WORLD HERITAGE ATLAS <b>·</b> AN EDUCATIONAL PROTOTYPE</span><span>Map imagery and services may be provided by third parties.</span><span id="saveStatus">PROGRESS SAVED LOCALLY</span></footer></div>
