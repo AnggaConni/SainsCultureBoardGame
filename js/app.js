@@ -691,12 +691,20 @@ function envWeatherLabel(code){
 }
 async function fetchEnvironmentJson(url,label){
  const response=await fetch(url,{method:"GET",headers:{Accept:"application/json"},signal:AbortSignal.timeout(18000)});
- if(!response.ok)throw new Error(label+" returned HTTP "+response.status);
- return response.json();
+ const body=await response.text();
+ if(!response.ok){
+  let detail=body;
+  try{const parsed=JSON.parse(body);detail=parsed.message||parsed.error||parsed.title||body}catch(e){}
+  throw new Error(label+" returned HTTP "+response.status+(detail?": "+String(detail).replace(/\s+/g," ").slice(0,160):""));
+ }
+ try{return JSON.parse(body)}catch(e){throw new Error(label+" returned an invalid JSON response")}
 }
 async function fetchSiteEnvironment(site){
  const lon=Number(site.coordinates[0]),lat=Number(site.coordinates[1]);
  const gbifUrl=new URL("https://api.gbif.org/v1/occurrence/search");
+ // GBIF expects the decimal latitude/longitude context alongside geo_distance.
+ gbifUrl.searchParams.set("decimalLatitude",String(lat));
+ gbifUrl.searchParams.set("decimalLongitude",String(lon));
  gbifUrl.searchParams.set("geo_distance","25km,"+lat+","+lon);
  gbifUrl.searchParams.set("hasCoordinate","true");
  gbifUrl.searchParams.set("limit","12");
