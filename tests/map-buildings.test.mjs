@@ -172,7 +172,7 @@ test("ambient player starts after first interaction and exposes pause shuffle an
   assert.ok(app.includes("music/🇪🇸 Free Spanish Music"));
   assert.ok(app.includes('document.addEventListener("pointerdown",firstInteraction,{capture:true})'));
   assert.ok(app.includes('document.addEventListener("keydown",firstInteraction,{capture:true})'));
-  assert.ok(app.includes("audio.volume=0.4"));
+  assert.ok(app.includes("ambientAudio.volume=0.4"));
   assert.ok(app.includes('$("#musicNextBtn").addEventListener("click",()=>playNextAmbientTrack(true))'));
   assert.ok(app.includes('$("#musicVolume").addEventListener("input"'));
   assert.ok(app.includes('playButton.textContent=playing?"Ⅱ Pause":"▶ Play"'));
