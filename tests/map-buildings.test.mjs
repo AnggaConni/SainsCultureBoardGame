@@ -30,7 +30,7 @@ test("building-layer failures are non-fatal and expose an actionable diagnostic"
 });
 
 test("Cesium token config loads before CesiumJS and is explicit", () => {
-  assert.match(html, /src="js\/cesium-config\.js"><\/script><script src="https:\/\/unpkg\.com\/cesium@1\.132\.0\/Build\/Cesium\/Cesium\.js"/);
+  assert.match(html, /src="js\/cesium-config\.js"><\/script><script src="https:\/\/unpkg\.com\/cesium@1\.134\.0\/Build\/Cesium\/Cesium\.js"/);
   assert.match(config, /window\.CESIUM_ION_ACCESS_TOKEN = ""/);
 });
 
