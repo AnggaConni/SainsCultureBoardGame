@@ -93,10 +93,10 @@ test("terrain failures fall back to ellipsoid instead of leaving a black globe",
 });
 
 test("terrain and building access errors expose HTTP diagnostics and redact tokens", () => {
-  assert.match(app, /function cesiumErrorSummary\\(error\\)/);
+  assert.ok(app.includes("function cesiumErrorSummary(error)"));
   assert.ok(app.includes('WORLD TERRAIN UNAVAILABLE · "+cesiumErrorSummary(error)'));
   assert.ok(app.includes('3D BUILDINGS UNAVAILABLE · "+cesiumErrorSummary(error)'));
-  assert.match(app, /HTTP "\\+status\\+/);
+  assert.ok(app.includes('return (status?"HTTP "+status+" · ":"")+detail;'));
   assert.ok(app.includes("[redacted]"));
 });
 
