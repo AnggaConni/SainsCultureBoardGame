@@ -285,5 +285,5 @@ test("Map mode toggle switches between OSM navigation and Google satellite image
 test("Google imagery attribution is visible when Earth View is active and token scope is documented", () => {
   assert.match(css, /\.map-stage\.earth-mode #cesiumContainer \.cesium-viewer-bottom\{display:block!important/);
   assert.match(css, /\.map-stage\.earth-mode #cesiumContainer \.cesium-widget-credits/);
-  assert.match(cesiumConfig, /Google 2D imagery service (asset 3830184)/);
+  assert.ok(cesiumConfig.includes("Google 2D imagery service (asset 3830184)"));
 });
