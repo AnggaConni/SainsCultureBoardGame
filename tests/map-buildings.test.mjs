@@ -92,6 +92,14 @@ test("terrain failures fall back to ellipsoid instead of leaving a black globe",
   assert.match(app, /Globe restored with a smooth ellipsoid/);
 });
 
+test("terrain and building access errors expose HTTP diagnostics and redact tokens", () => {
+  assert.match(app, /function cesiumErrorSummary\\(error\\)/);
+  assert.ok(app.includes('WORLD TERRAIN UNAVAILABLE · "+cesiumErrorSummary(error)'));
+  assert.ok(app.includes('3D BUILDINGS UNAVAILABLE · "+cesiumErrorSummary(error)'));
+  assert.match(app, /HTTP "\\+status\\+/);
+  assert.ok(app.includes("[redacted]"));
+});
+
 test("terrain shading does not darken the entire OSM basemap", () => {
   assert.match(app, /v\.scene\.globe\.enableLighting=false/);
 });

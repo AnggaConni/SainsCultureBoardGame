@@ -6,7 +6,8 @@
  * Recommended restrictions:
  *   - Scope: assets:read only
  *   - Allowed URL/origin: https://anggaconni.github.io (default cross-origin Referrer-Policy may omit the path)
- *   - Allowed assets: Cesium World Terrain (asset 1), Cesium OSM Buildings (asset 96188), and Google 2D imagery service (asset 3830184) if the Earth View toggle is enabled
+ *   - Account assets: add Cesium World Terrain and Cesium OSM Buildings from Asset Depot to My Assets first; add Google 2D imagery if offered for this account. assets:read only reads available account assets.
+ *   - Token resource access: All assets while testing, or Selected assets including 1 (terrain), 96188 (OSM buildings), and 3830184 (Google 2D imagery).
  *
  * Leave empty until a restricted token has been created. The app will show a visible
  * status message rather than silently using Cesium's limited demo token.

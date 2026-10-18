@@ -5,7 +5,7 @@ The map boots in **Street Map** mode using OpenStreetMap imagery with Cesium Wor
 ## Requirements
 
 - The website pins CesiumJS 1.134.0, which includes `Google2DImageryProvider`.
-- The deployed Cesium ion token needs the public `assets:read` scope.
+- The deployed Cesium ion token needs the public `assets:read` scope. **Important:** a recent Cesium ion account change means an `assets:read` token only reads assets available in your account under **My Assets**. Open **Asset Depot**, search for and click **Add to My Assets** for **Cesium World Terrain** and **Cesium OSM Buildings**. Then check that they appear under **My Assets**. If a Google Maps 2D Tiles asset is available in Asset Depot for your account, add that too. Keep the token resource setting at **All assets** while testing (that means all assets in your account, not every global asset in the depot).
 - For GitHub Pages, start with the Allowed URL origin `https://anggaconni.github.io`. Browser referrer policies can omit URL paths on cross-origin requests, so a path-only restriction may reject otherwise valid requests.
 - Leave **All assets** enabled while testing. If using **Selected assets**, allow Cesium World Terrain (asset `1`), Cesium OSM Buildings (asset `96188`) and the Google 2D imagery service (asset `3830184`).
 
@@ -20,7 +20,7 @@ Cesium.Google2DImageryProvider.fromIonAssetId({
 });
 ```
 
-If the imagery provider fails, the toggle preserves the current base imagery and displays the provider error. If World Terrain or OSM Buildings fails, inspect the Cesium ion token, asset access, quota and network separately; a successful imagery switch does not prove that the terrain/building assets are accessible.
+If the imagery provider fails, the toggle preserves the current base imagery and displays the provider error. Terrain and building errors now include the HTTP status and a shortened detail, with token-like strings redacted. If World Terrain or OSM Buildings fails, inspect the Cesium ion token, asset access, quota and network separately; a successful imagery switch does not prove that the terrain/building assets are accessible.
 
 Keep Cesium's Google imagery attribution visible whenever Earth View is active.
 
