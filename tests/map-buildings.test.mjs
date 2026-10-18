@@ -102,6 +102,15 @@ test("terrain and building access errors expose HTTP diagnostics and redact toke
   assert.ok(app.includes("[redacted]"));
 });
 
+test("right-drag rotates the camera, while wheel and pinch remain zoom controls", () => {
+  assert.match(app, /screenSpaceCameraController\.rotateEventTypes=\[Cesium\.CameraEventType\.LEFT_DRAG,Cesium\.CameraEventType\.RIGHT_DRAG\]/);
+  assert.match(app, /screenSpaceCameraController\.zoomEventTypes=\[Cesium\.CameraEventType\.WHEEL,Cesium\.CameraEventType\.PINCH\]/);
+  assert.match(app, /screenSpaceCameraController\.enableTilt=true/);
+  assert.match(app, /addEventListener\("contextmenu",event=>event\.preventDefault\(\)\)/);
+  assert.match(html, /right-drag to rotate/);
+  assert.match(html, /Ctrl\+drag or middle-drag to tilt/);
+});
+
 test("terrain shading does not darken the entire OSM basemap", () => {
   assert.match(app, /v\.scene\.globe\.enableLighting=false/);
 });
