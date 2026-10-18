@@ -29,7 +29,9 @@ A Tentative List record uses world_heritage_tentative and must not be treated as
 
 ## Current coverage
 
-The JSON bank currently contains 24 `general`, 24 `specialized`, and 24 `site_type` questions. Specialized coverage initially focuses on Borobudur, Prambanan, Komodo National Park, the Cultural Landscape of Bali Province, Sangiran, and Lorentz National Park; additional site-specific questions can be added by providing the exact `site.id`.
+The JSON bank currently contains **72 questions: 24 `general`, 24 `specialized`, and 24 `site_type`**. Specialized coverage initially focuses on Borobudur, Prambanan, Komodo National Park, the Cultural Landscape of Bali Province, Sangiran, and Lorentz National Park; additional site-specific questions can be added by providing the exact `site.id`.
+
+Correct answer positions are distributed across the available options, so the first option is not always correct.
 
 ## Example field values
 
