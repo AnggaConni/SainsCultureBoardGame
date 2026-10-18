@@ -205,6 +205,8 @@ test("ambient player loads playlist JSON and keeps playback controls", () => {
   assert.match(app, /document\.addEventListener\("pointerdown",firstInteraction,\{capture:true\}\)/);
   assert.match(app, /document\.addEventListener\("keydown",firstInteraction,\{capture:true\}\)/);
   assert.match(app, /ambientAudio\.volume=AMBIENT_DEFAULT_VOLUME/);
+  assert.match(app, /volumeControl\.value=String\(AMBIENT_DEFAULT_VOLUME\)/);
+  assert.match(app, /event\.currentTarget\.dataset\.userAdjusted="true"/);
   assert.match(app, /"#musicNextBtn"\)\.addEventListener\("click"/);
   assert.match(app, /"#musicVolume"\)\.addEventListener\("input"/);
   assert.match(app, /playButton\.textContent=playing\?"Ⅱ Pause":"▶ Play"/);
