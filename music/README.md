@@ -1,27 +1,28 @@
 # Ambient music
 
-The World Heritage Atlas background soundtrack is organised by permission/source. The player chooses a random track from the eligible playlist and derives the attribution and usage note from that track's folder group.
+The playlist is configured in **`music/playlist.json`**. The player does not maintain a separate hard-coded track list in JavaScript.
 
-## Folder rules
+## Add a track
 
-- framelens/ — only Framelens ID MP3 tracks for which the creator has confirmed non-commercial, standard/non-HD use. The player uses the creator's requested credit, “Music by framelens_id”.
-- cc4/ — tracks explicitly released under Creative Commons Attribution 4.0 International (CC BY 4.0). The player displays the specific track credit and links to that track's source.
+1. Upload the audio file to the correct folder:
+   - `music/framelens/` for a track whose owner has confirmed non-commercial standard/non-HD use.
+   - `music/cc4/` for a track that is individually licensed under CC BY 4.0.
+2. Edit `music/playlist.json` and append an entry under `tracks`. The `src` value is relative to the `music/` folder, for example `cc4/my-track.mp3`—do not prefix it with `music/`.
+3. Add a unique `id`, a title, source URL, credit, and a short detail. The app automatically shows the folder-level Framelens credit or the individual CC BY track credit according to `folders[folder].creditMode`.
+4. Commit the MP3 and JSON together. GitHub Pages will then publish the file and the player will load it from the playlist.
 
-At present the playlist includes Sound of Orchestra Java, Fiddle-De-Dee, and Al Andalus. Only add future MP3s to one of these two folders after checking the source and permission. Tracks outside these folders are not part of the playlist.
+## Playlist file structure
 
-The background player starts after the first user interaction if the browser permits it, at 40% volume, with play/pause, random next, and volume controls. The music is background audio; the site does not provide a standalone audio download interface.
+- `defaultVolume`: initial player volume from 0 to 1 (currently 0.4 = 40%).
+- `folders`: attribution display rules for `framelens` and `cc4`.
+- `tracks`: editable list of track metadata. Each track's `src` must point inside the matching subfolder.
 
+## Current playlist
 
-### All The Tea In China
-- File: `cc4/all-the-tea-in-china.mp3`
-- Creator: Shane Ivers
-- Required attribution: Music: All The Tea In China by Shane Ivers - https://www.silvermansound.com
-- Licence: CC BY 4.0
-- Track page: https://www.silvermansound.com/free-music/all-the-tea-in-china
+1. Sound of Orchestra Java — Framelens ID, standard MP3/non-commercial permission.
+2. Fiddle-De-Dee — Shane Ivers, CC BY 4.0.
+3. Al Andalus — Shane Ivers, CC BY 4.0.
+4. All The Tea In China — Shane Ivers, CC BY 4.0.
+5. The Medieval Banquet — Shane Ivers, CC BY 4.0.
 
-### The Medieval Banquet
-- File: `cc4/the-medieval-banquet.mp3`
-- Creator: Shane Ivers
-- Required attribution: Music: The Medieval Banquet by Shane Ivers - https://www.silvermansound.com
-- Licence: CC BY 4.0
-- Track page: https://www.silvermansound.com/free-music/the-medieval-banquet
+Every CC BY track must retain its individual attribution. A “no copyright” title alone does not establish a licence.

@@ -204,10 +204,10 @@ test("ambient player has accessible controls, responsive styling and visible att
   assert.match(css, /\.music-panel\[hidden\]\{display:none!important\}/);
   assert.match(css, /#soundBtn\.is-playing/);
   assert.match(css, /@media\(max-width:760px\)\{\s*#soundBtn\{display:grid/);
-  assert.ok(app.includes('credit:"Music by framelens_id"'));
-  assert.ok(app.includes('credit:"Music: Al Andalus by Shane Ivers - https://www.silvermansound.com"'));
-  assert.ok(app.includes('credit:"Music: All The Tea In China by Shane Ivers - https://www.silvermansound.com"'));
-  assert.ok(app.includes('credit:"Music: The Medieval Banquet by Shane Ivers - https://www.silvermansound.com"'));
+  assert.ok(musicPlaylist.folders.framelens.credit.includes("framelens_id"));
+  assert.ok(musicPlaylist.tracks.some(track => track.title === "Al Andalus" && track.credit.includes(track.title)));
+  assert.ok(musicPlaylist.tracks.some(track => track.title === "All The Tea In China" && track.credit.includes(track.title)));
+  assert.ok(musicPlaylist.tracks.some(track => track.title === "The Medieval Banquet" && track.credit.includes(track.title)));
   assert.ok(app.includes('folder.creditMode==="folder"?folder.credit:track.credit'));
   assert.ok(app.includes('name:"Framelens ID · non-commercial"'));
   assert.ok(app.includes('name:"Creative Commons Attribution 4.0 International"'));

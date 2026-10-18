@@ -29,3 +29,6 @@ When adding tracks, retain the creator's requested credit, keep the track page i
 - Required attribution: Music: The Medieval Banquet by Shane Ivers - https://www.silvermansound.com
 - Licence: CC BY 4.0
 - Source: https://www.silvermansound.com/free-music/the-medieval-banquet
+
+
+The active playlist is controlled by `../playlist.json`. When adding CC BY tracks, update that JSON with the track-specific credit and source URL as well as this credits document.

@@ -1070,39 +1070,59 @@ function answerSiteQuiz(site,quiz,selectedIndex){
 function visit(s){if(!state.visited.has(s.id)){state.visited.add(s.id);state.xp+=50;save();progress();toast("Discovery recorded · +50 Field XP")}$("#visitedPill").textContent="DISCOVERY RECORDED";$("#visitedPill").classList.add("done");$("#visitBtn").textContent="Discovery recorded ✓"}
 function close(id){$("#"+id).hidden=true}
 
-const AMBIENT_FOLDERS={
- framelens:{
-  name:"Framelens ID · non-commercial",
-  credit:"Music by framelens_id",
-  sourceLabel:"Framelens ID · non-commercial terms",
-  terms:"Creator-confirmed non-commercial use of the standard MP3 only. Do not use the paid HD/commercial version.",
-  creditMode:"folder"
- },
- cc4:{
-  name:"Creative Commons Attribution 4.0 International",
-  sourceLabel:"CC BY 4.0 · track source",
-  terms:"Attribution 4.0 International (CC BY 4.0); keep the track-specific credit shown here.",
-  licenseUrl:"https://creativecommons.org/licenses/by/4.0/",
-  creditMode:"track"
- }
-};
-const AMBIENT_TRACKS=[
- {id:"java",folder:"framelens",title:"Sound of Orchestra Java",src:"music/framelens/java.mp3",credit:"Music by framelens_id",detail:"Composer Ridha Fahrezi · Producer Roby Ardiyansah",sourceUrl:"https://www.youtube.com/watch?v=u8ZaMQIF9uM"},
- {id:"fiddle",folder:"cc4",title:"Fiddle-De-Dee",src:"music/cc4/fiddle-de-dee.mp3",credit:"Music: Fiddle-De-Dee by Shane Ivers – https://silvermansound.com",detail:"Composer Shane Ivers · credit required",sourceUrl:"https://www.silvermansound.com/free-music/fiddle-de-dee"},
- {id:"andalus",folder:"cc4",title:"Al Andalus",src:"music/cc4/al-andalus.mp3",credit:"Music: Al Andalus by Shane Ivers - https://www.silvermansound.com",detail:"Composer Shane Ivers · CC BY 4.0 attribution required",sourceUrl:"https://www.silvermansound.com/free-music/al-andalus"},
- {id:"tea-china",folder:"cc4",title:"All The Tea In China",src:"music/cc4/all-the-tea-in-china.mp3",credit:"Music: All The Tea In China by Shane Ivers - https://www.silvermansound.com",detail:"Composer Shane Ivers · CC BY 4.0 attribution required",sourceUrl:"https://www.silvermansound.com/free-music/all-the-tea-in-china"},
- {id:"medieval-banquet",folder:"cc4",title:"The Medieval Banquet",src:"music/cc4/the-medieval-banquet.mp3",credit:"Music: The Medieval Banquet by Shane Ivers - https://www.silvermansound.com",detail:"Composer Shane Ivers · CC BY 4.0 attribution required",sourceUrl:"https://www.silvermansound.com/free-music/the-medieval-banquet"}
-];
+let AMBIENT_FOLDERS={};
+let AMBIENT_TRACKS=[];
+let AMBIENT_DEFAULT_VOLUME=0.4;
+let ambientPlaylistPromise=null;
+function loadAmbientPlaylist(){
+ if(ambientPlaylistPromise)return ambientPlaylistPromise;
+ const playlistUrl=new URL("music/playlist.json",document.baseURI);
+ ambientPlaylistPromise=(async()=>{
+  try{
+   const response=await fetch(playlistUrl.href,{cache:"no-cache"});
+   if(!response.ok)throw new Error("music/playlist.json returned HTTP "+response.status);
+   const payload=await response.json();
+   if(!payload||typeof payload.folders!=="object"||!Array.isArray(payload.tracks))throw new Error("Playlist JSON needs folders and tracks.");
+   const folders=payload.folders;
+   const ids=new Set();
+   const tracks=payload.tracks.filter(track=>{
+    if(!track||typeof track.id!=="string"||!track.id.trim()||ids.has(track.id)||typeof track.title!=="string"||typeof track.folder!=="string"||!folders[track.folder]||typeof track.src!=="string")return false;
+    const relativePath=track.src.replace(/\\/g,"/");
+    if(relativePath!==track.src||!relativePath.startsWith(track.folder+"/")||relativePath.split("/").length!==2||!/\.(mp3|ogg|wav|m4a|aac|opus)$/i.test(relativePath))return false;
+    if(typeof track.sourceUrl!=="string"||!/^https:\/\//i.test(track.sourceUrl))return false;
+    if(folders[track.folder].creditMode==="track"&&(!track.credit||typeof track.credit!=="string"))return false;
+    ids.add(track.id);
+    return true;
+   });
+   if(!tracks.length)throw new Error("Playlist JSON contains no valid audio tracks.");
+   const folderKeys=Object.keys(folders);
+   if(folderKeys.some(key=>!folders[key]||!["folder","track"].includes(folders[key].creditMode)))throw new Error("A folder has an invalid creditMode.");
+   AMBIENT_FOLDERS=folders;
+   AMBIENT_TRACKS=tracks;
+   AMBIENT_DEFAULT_VOLUME=Number.isFinite(Number(payload.defaultVolume))?Math.max(0,Math.min(1,Number(payload.defaultVolume))):0.4;
+   console.info("[Heritage Atlas] loaded",AMBIENT_TRACKS.length,"music tracks from music/playlist.json");
+   return true;
+  }catch(error){
+   ambientPlaylistPromise=null;
+   console.error("[Heritage Atlas] Could not load music/playlist.json.",error);
+   const status=$("#musicStatus"),detail=$("#musicTrackDetail");
+   if(status)status.textContent="PLAYLIST UNAVAILABLE";
+   if(detail)detail.textContent="Could not load music/playlist.json. "+String(error&&error.message||error).slice(0,150);
+   return false;
+  }
+ })();
+ return ambientPlaylistPromise;
+}
 let ambientAudio=null,ambientTrackIndex=0,ambientUserStarted=false;
 function ensureAmbientAudio(){
  if(ambientAudio)return ambientAudio;
  ambientAudio=new Audio();
  ambientAudio.preload="metadata";
- ambientAudio.volume=0.4;
+ ambientAudio.volume=AMBIENT_DEFAULT_VOLUME;
  ambientAudio.addEventListener("play",updateAmbientMusicUi);
  ambientAudio.addEventListener("pause",updateAmbientMusicUi);
  ambientAudio.addEventListener("volumechange",updateAmbientMusicUi);
- ambientAudio.addEventListener("ended",()=>playNextAmbientTrack(true));
+ ambientAudio.addEventListener("ended",()=>{void playNextAmbientTrack(true)});
  ambientAudio.addEventListener("error",()=>{
   const status=$("#musicStatus");
   if(status)status.textContent="TRACK UNAVAILABLE";
@@ -1112,15 +1132,22 @@ function ensureAmbientAudio(){
  });
  return ambientAudio;
 }
-function currentAmbientTrack(){return AMBIENT_TRACKS[ambientTrackIndex]||AMBIENT_TRACKS[0]}
+function currentAmbientTrack(){return AMBIENT_TRACKS.length?AMBIENT_TRACKS[ambientTrackIndex]||AMBIENT_TRACKS[0]:null}
 function renderAmbientTrack(){
  const track=currentAmbientTrack();
- const folder=AMBIENT_FOLDERS[track.folder]||AMBIENT_FOLDERS.cc4;
  const title=$("#musicTrackTitle"),credit=$("#musicTrackCredit"),detail=$("#musicTrackDetail"),source=$("#musicSourceLink");
+ if(!track){
+  if(title)title.textContent="Ambient soundtrack";
+  if(credit)credit.textContent="";
+  if(detail)detail.textContent="Playlist is unavailable. Check music/playlist.json.";
+  if(source){source.removeAttribute("href");source.textContent="Track source unavailable"}
+  return;
+ }
+ const folder=AMBIENT_FOLDERS[track.folder];
  if(title)title.textContent=track.title;
  if(credit)credit.textContent=folder.creditMode==="folder"?folder.credit:track.credit;
- if(detail)detail.textContent=folder.name+" · "+track.detail+" · "+folder.terms;
- if(source){source.href=track.sourceUrl;source.textContent=folder.sourceLabel+" ↗"}
+ if(detail)detail.textContent=folder.name+" · "+(track.detail||"")+" · "+folder.terms;
+ if(source){source.href=track.sourceUrl;source.textContent=(folder.sourceLabel||"Track source")+" ↗"}
 }
 function updateAmbientMusicUi(){
  const audio=ambientAudio,playButton=$("#musicPlayBtn"),soundButton=$("#soundBtn"),status=$("#musicStatus"),volume=$("#musicVolume"),volumeValue=$("#musicVolumeValue");
@@ -1131,35 +1158,43 @@ function updateAmbientMusicUi(){
  if(volume&&audio&&document.activeElement!==volume)volume.value=String(audio.volume);
  if(volumeValue)volumeValue.textContent=Math.round((audio?audio.volume:0.4)*100)+"%";
 }
-function setAmbientTrack(index,autoplay){
+async function setAmbientTrack(index,autoplay){
+ const ready=await loadAmbientPlaylist();
+ if(!ready||!AMBIENT_TRACKS.length){renderAmbientTrack();updateAmbientMusicUi();return}
  const audio=ensureAmbientAudio();
- ambientTrackIndex=(index+AMBIENT_TRACKS.length)%AMBIENT_TRACKS.length;
+ ambientTrackIndex=((index%AMBIENT_TRACKS.length)+AMBIENT_TRACKS.length)%AMBIENT_TRACKS.length;
  const track=currentAmbientTrack();
- audio.src=new URL(track.src,document.baseURI).href;
+ if(!track)return;
+ audio.src=new URL(track.src,new URL("music/",document.baseURI)).href;
  audio.load();
  renderAmbientTrack();
- if(autoplay)startAmbientMusic();
+ if(autoplay)await startAmbientMusic();
  else updateAmbientMusicUi();
 }
-function startAmbientMusic(){
+async function startAmbientMusic(){
  const audio=ensureAmbientAudio();
- if(!audio.src)setAmbientTrack(0,false);
- audio.volume=Number($("#musicVolume")?.value??0.4);
- const playPromise=audio.play();
- if(playPromise&&typeof playPromise.then==="function"){
-  playPromise.then(()=>{ambientUserStarted=true;updateAmbientMusicUi()}).catch(error=>{
-   const status=$("#musicStatus"),detail=$("#musicTrackDetail");
-   if(status)status.textContent="TAP PLAY TO START";
-   if(detail)detail.textContent="Your browser blocked automatic playback. Press Play to start the soundtrack. "+String(error&&error.message||"").slice(0,90);
-   updateAmbientMusicUi();
-  });
+ const ready=await loadAmbientPlaylist();
+ if(!ready||!AMBIENT_TRACKS.length){renderAmbientTrack();updateAmbientMusicUi();return}
+ if(!audio.src)await setAmbientTrack(ambientTrackIndex,false);
+ audio.volume=Number($("#musicVolume")?.value??AMBIENT_DEFAULT_VOLUME);
+ try{
+  await audio.play();
+  ambientUserStarted=true;
+  updateAmbientMusicUi();
+ }catch(error){
+  const status=$("#musicStatus"),detail=$("#musicTrackDetail");
+  if(status)status.textContent="TAP PLAY TO START";
+  if(detail)detail.textContent="Playback was blocked or the audio could not start. Press Play to retry. "+String(error&&error.message||"").slice(0,90);
+  updateAmbientMusicUi();
  }
 }
-function playNextAmbientTrack(autoplay){
- if(AMBIENT_TRACKS.length<2){setAmbientTrack(ambientTrackIndex,autoplay);return}
+async function playNextAmbientTrack(autoplay){
+ const ready=await loadAmbientPlaylist();
+ if(!ready||!AMBIENT_TRACKS.length)return;
+ if(AMBIENT_TRACKS.length<2){await setAmbientTrack(ambientTrackIndex,autoplay);return}
  let next=ambientTrackIndex;
  while(next===ambientTrackIndex)next=Math.floor(Math.random()*AMBIENT_TRACKS.length);
- setAmbientTrack(next,autoplay);
+ await setAmbientTrack(next,autoplay);
 }
 function toggleAmbientPlayerPanel(){
  const panel=$("#musicPanel"),button=$("#soundBtn");
@@ -1170,7 +1205,10 @@ function toggleAmbientPlayerPanel(){
 }
 function bindBackgroundMusic(){
  const audio=ensureAmbientAudio();
- setAmbientTrack(0,false);
+ void loadAmbientPlaylist().then(ready=>{
+  if(ready&&!audio.src)void setAmbientTrack(0,false);
+  updateAmbientMusicUi();
+ });
  $("#soundBtn").addEventListener("click",toggleAmbientPlayerPanel);
  $("#musicCloseBtn").addEventListener("click",()=>{
   $("#musicPanel").hidden=true;
@@ -1178,19 +1216,16 @@ function bindBackgroundMusic(){
  });
  $("#musicPlayBtn").addEventListener("click",()=>{
   const player=ensureAmbientAudio();
-  if(player.paused){if(!player.src)setAmbientTrack(0,false);startAmbientMusic()}
+  if(player.paused)void startAmbientMusic();
   else player.pause();
  });
- $("#musicNextBtn").addEventListener("click",()=>playNextAmbientTrack(true));
+ $("#musicNextBtn").addEventListener("click",()=>{void playNextAmbientTrack(true)});
  $("#musicVolume").addEventListener("input",event=>{
   audio.volume=Math.max(0,Math.min(1,Number(event.currentTarget.value)));
   $("#musicVolumeValue").textContent=Math.round(audio.volume*100)+"%";
  });
  const firstInteraction=()=>{
-  if(!ambientUserStarted){
-   if(!audio.src)setAmbientTrack(0,false);
-   startAmbientMusic();
-  }
+  if(!ambientUserStarted)void startAmbientMusic();
   document.removeEventListener("pointerdown",firstInteraction,true);
   document.removeEventListener("keydown",firstInteraction,true);
  };
