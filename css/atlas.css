@@ -37,3 +37,38 @@
 
 /* Tentative List marker/legend cue: warm orange distinct from inscribed World Heritage. */
 .legend-dot.tentative{background:#ff8a4c;box-shadow:0 0 8px #ff8a4c}
+
+
+/* Environmental intelligence panels: explicit provider labels and search-area context. */
+.intel-env-layout{display:grid;gap:10px}
+.intel-env-intro{padding:10px 11px;border:1px solid #dce9df;border-radius:9px;background:#f5faf6}
+.intel-env-intro strong{display:block;font:750 11px/1.45 Manrope;color:#24484b}
+.intel-env-intro p{font:9px/1.6 'DM Sans';color:#687e77;margin:5px 0}
+.intel-env-updated{display:inline-block;font:7px/1.5 'DM Mono';letter-spacing:.025em;color:#7c9188}
+.intel-env-source{padding:11px;border:1px solid #e0e9e3;border-radius:10px;background:#fff;min-width:0}
+.intel-env-source-header{display:flex;align-items:flex-start;justify-content:space-between;gap:9px}
+.intel-env-kicker{display:block;font:7px/1.5 'DM Mono';letter-spacing:.055em;color:#7b9287}
+.intel-env-source h4{font:750 11px/1.4 Manrope;color:#24484b;margin:4px 0 0;overflow-wrap:anywhere}
+.intel-env-chip{flex:0 0 auto;padding:5px 6px;border-radius:5px;background:#edf5ef;color:#427765;font:7px 'DM Mono';letter-spacing:.03em}
+.intel-env-weather{margin-top:9px}
+.intel-env-weather-main{display:flex;align-items:baseline;gap:9px;padding:10px;border-radius:8px;background:linear-gradient(120deg,#eaf5ef,#f5f8f1)}
+.intel-env-weather-main strong{font:800 23px/1 Manrope;color:#166b5d;letter-spacing:-.04em}
+.intel-env-weather-main span{font:700 10px 'DM Sans';color:#53756b}
+.intel-env-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:7px}
+.intel-env-metric{min-width:0;padding:8px;border:1px solid #e8eee8;border-radius:7px;background:#fbfdfb}
+.intel-env-metric span{display:block;font:7px/1.4 'DM Mono';color:#8a9991;letter-spacing:.035em}
+.intel-env-metric b{display:block;font:750 10px/1.5 Manrope;color:#31564d;margin-top:3px;overflow-wrap:anywhere}
+.intel-env-summary{display:flex;align-items:center;gap:9px;padding:9px 0 10px}
+.intel-env-summary strong{font:800 20px/1 Manrope;color:#147565;letter-spacing:-.04em}
+.intel-env-summary span{font:9px/1.5 'DM Sans';color:#70837b}
+.intel-env-items{display:grid;gap:7px}
+.intel-env-item{padding:9px;border:1px solid #e8eee8;border-radius:8px;background:#fcfdfb;min-width:0}
+.intel-env-item>div:first-child strong{display:block;font:700 10px/1.5 Manrope;color:#23464a;overflow-wrap:anywhere}
+.intel-env-item>div:first-child span{display:block;font:8px/1.5 'DM Sans';color:#778b82;margin-top:2px;overflow-wrap:anywhere}
+.intel-env-item p{font:9px/1.5 'DM Sans';color:#71837c;margin:5px 0}
+.intel-env-item-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;border-top:1px solid #edf1ed;padding-top:6px;margin-top:7px;font:8px/1.5 'DM Sans';color:#8a9992}
+.intel-env-item-meta a,.intel-env-source-links a{font:650 8px 'DM Sans';color:#087c6c;text-decoration:none}
+.intel-env-item-meta a:hover,.intel-env-source-links a:hover{text-decoration:underline}
+.intel-env-source-links{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+.intel-env-disclaimer{padding-top:7px;border-top:1px solid #e8eee8}
+@media(max-width:480px){.intel-env-source{padding:9px}.intel-env-weather-main strong{font-size:21px}.intel-env-kicker{font-size:6.5px}.intel-env-chip{font-size:6px}}
