@@ -903,7 +903,117 @@ function openSite(id,zoom){
 function answer(s,i){const ok=i===s.challenge.answer;$("#quizOptions").querySelectorAll("button").forEach((b,n)=>{b.disabled=true;if(n===s.challenge.answer)b.classList.add("correct");else if(n===i)b.classList.add("incorrect")});$("#quizFeedback").hidden=false;if(ok){if(!state.answered.has(s.id)){state.answered.add(s.id);state.xp+=100;save();progress()}$("#quizFeedback").textContent="Correct! +100 Field XP. "+s.challenge.explanation;toast("Knowledge unlocked · +100 Field XP")}else $("#quizFeedback").textContent="Not quite. "+s.challenge.explanation+" Try another challenge.";$("#visitedPill").textContent="CHALLENGE COMPLETED";$("#visitedPill").classList.add("done")}
 function visit(s){if(!state.visited.has(s.id)){state.visited.add(s.id);state.xp+=50;save();progress();toast("Discovery recorded · +50 Field XP")}$("#visitedPill").textContent="DISCOVERY RECORDED";$("#visitedPill").classList.add("done");$("#visitBtn").textContent="Discovery recorded ✓"}
 function close(id){$("#"+id).hidden=true}
-function bind(){document.querySelectorAll("[data-intel-tab]").forEach(button=>button.addEventListener("click",()=>{const site=HERITAGE_SITES.find(item=>item.id===state.selected);if(site)renderSiteIntelligence(site,button.dataset.intelTab)}));$("#programmeFilter").addEventListener("change",()=>{state.filter=$("#programmeFilter").value;state.listLimit=60;renderSites()});$("#siteSearch").addEventListener("input",()=>{state.search=$("#siteSearch").value;state.listLimit=60;renderSites()});$("#loadMoreSites").addEventListener("click",()=>{state.listLimit+=60;renderSites()});document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>close(b.dataset.close)));["siteDrawer","helpModal"].forEach(id=>$("#"+id).addEventListener("click",e=>{if(e.target.id===id)close(id)}));$("#resetViewBtn").addEventListener("click",()=>{if(state.viewer)state.viewer.camera.flyTo({destination:Cesium.Cartesian3.fromDegrees(118,-2,22500000),orientation:{heading:0,pitch:Cesium.Math.toRadians(-90),roll:0},duration:1.5});$("#coordReadout").textContent="SELECT A PIN TO BEGIN"});$("#retryMapBtn").addEventListener("click",()=>{if(state.viewer){state.viewer.destroy();state.viewer=null}$("#mapFallback").hidden=true;initMap()});$("#helpBtn").addEventListener("click",()=>$("#helpModal").hidden=false);$("#missionGoBtn").addEventListener("click",()=>{const s=HERITAGE_SITES.find(x=>!state.visited.has(x.id))||HERITAGE_SITES[0];openSite(s.id,true)});$("#locateBtn").addEventListener("click",()=>{if(!navigator.geolocation){toast("Location is not available in this browser.");return}navigator.geolocation.getCurrentPosition(p=>{if(state.viewer){state.viewer.camera.flyTo({destination:Cesium.Cartesian3.fromDegrees(p.coords.longitude,p.coords.latitude,25000),duration:1.6});$("#coordReadout").textContent=p.coords.latitude.toFixed(3)+"°, "+p.coords.longitude.toFixed(3)+"°"}},()=>toast("Location permission was not granted."),{timeout:8000})});$("#loadLocalModelBtn").addEventListener("click",loadLocal3D);$("#zoneToggleBtn").addEventListener("click",()=>toggleExplorationZone(HERITAGE_SITES.find(s=>s.id===state.selected),true));$("#zoneMapCardClose").addEventListener("click",()=>{const active=HERITAGE_SITES.find(s=>s.id===state.activeZoneId)||state.globeOverlay&&state.globeOverlay.site;if(active)toggleExplorationZone(active,false)});$("#resetLocalModelBtn").addEventListener("click",()=>{if(state.local3d){const {camera,controls}=state.local3d;camera.position.set(4.8,3.5,5.5);controls.target.set(0,1.4,0);controls.update()}});window.addEventListener("resize",()=>{resizeLocal3D();if(state.globeOverlay&&state.globeOverlay.loaded){const m=state.globeOverlay;m.renderer.render(m.scene,m.camera);updateGlobeModelOverlay()}if(state.komodoOverlay&&state.komodoOverlay.loaded){const m=state.komodoOverlay;m.renderer.render(m.scene,m.camera);updateKomodoMapOverlay()}});$("#soundBtn").addEventListener("click",()=>toast("Ambient sound is not included in this prototype."));document.addEventListener("keydown",e=>{if(e.key==="Escape"){close("siteDrawer");close("helpModal")}})}
+
+const AMBIENT_TRACKS=[
+ {id:"java",title:"Sound of Orchestra Java",src:"music/java.mp3",credit:"Music by framelens_id",detail:"Non-commercial MP3 · Composer Ridha Fahrezi · Producer Roby Ardiyansah",sourceUrl:"https://www.youtube.com/watch?v=u8ZaMQIF9uM",sourceLabel:"Framelens ID · non-commercial use"},
+ {id:"andalus",title:"Al Andalus",src:"music/🇪🇸 Free Spanish Music  Al Andalus - Shane Ivers (Traditional + Flamenco) - BreakingCopyright — Royalty Free Music.mp3",credit:"Music: Al Andalus by Shane Ivers · CC BY 4.0",detail:"Free to use with attribution under Creative Commons CC BY 4.0.",sourceUrl:"https://www.silvermansound.com/free-music/al-andalus",sourceLabel:"Silverman Sound · CC BY 4.0"}
+];
+let ambientAudio=null,ambientTrackIndex=0,ambientUserStarted=false;
+function ensureAmbientAudio(){
+ if(ambientAudio)return ambientAudio;
+ ambientAudio=new Audio();
+ ambientAudio.preload="metadata";
+ ambientAudio.volume=0.4;
+ ambientAudio.addEventListener("play",updateAmbientMusicUi);
+ ambientAudio.addEventListener("pause",updateAmbientMusicUi);
+ ambientAudio.addEventListener("volumechange",updateAmbientMusicUi);
+ ambientAudio.addEventListener("ended",()=>playNextAmbientTrack(true));
+ ambientAudio.addEventListener("error",()=>{
+  const status=$("#musicStatus");
+  if(status)status.textContent="TRACK UNAVAILABLE";
+  const detail=$("#musicTrackDetail");
+  if(detail)detail.textContent="The audio file could not be loaded. Check the file path or reload the page.";
+  updateAmbientMusicUi();
+ });
+ return ambientAudio;
+}
+function currentAmbientTrack(){return AMBIENT_TRACKS[ambientTrackIndex]||AMBIENT_TRACKS[0]}
+function renderAmbientTrack(){
+ const track=currentAmbientTrack();
+ const title=$("#musicTrackTitle"),credit=$("#musicTrackCredit"),detail=$("#musicTrackDetail"),source=$("#musicSourceLink");
+ if(title)title.textContent=track.title;
+ if(credit)credit.textContent=track.credit;
+ if(detail)detail.textContent=track.detail;
+ if(source){source.href=track.sourceUrl;source.textContent=track.sourceLabel+" ↗"}
+}
+function updateAmbientMusicUi(){
+ const audio=ambientAudio,playButton=$("#musicPlayBtn"),soundButton=$("#soundBtn"),status=$("#musicStatus"),volume=$("#musicVolume"),volumeValue=$("#musicVolumeValue");
+ const playing=!!(audio&&!audio.paused&&!audio.ended);
+ if(playButton)playButton.textContent=playing?"Ⅱ Pause":"▶ Play";
+ if(soundButton){soundButton.classList.toggle("is-playing",playing);soundButton.setAttribute("aria-label",playing?"Open background music controls (playing)":"Open background music controls");soundButton.title=playing?"Background music is playing":"Background music"}
+ if(status)status.textContent=playing?"AMBIENT MUSIC · PLAYING":audio&&audio.src&&audio.paused?"AMBIENT MUSIC · PAUSED":"AMBIENT MUSIC · READY";
+ if(volume&&audio&&document.activeElement!==volume)volume.value=String(audio.volume);
+ if(volumeValue)volumeValue.textContent=Math.round((audio?audio.volume:0.4)*100)+"%";
+}
+function setAmbientTrack(index,autoplay){
+ const audio=ensureAmbientAudio();
+ ambientTrackIndex=(index+AMBIENT_TRACKS.length)%AMBIENT_TRACKS.length;
+ const track=currentAmbientTrack();
+ audio.src=encodeURI(track.src);
+ audio.load();
+ renderAmbientTrack();
+ if(autoplay)startAmbientMusic();
+ else updateAmbientMusicUi();
+}
+function startAmbientMusic(){
+ const audio=ensureAmbientAudio();
+ if(!audio.src)setAmbientTrack(0,false);
+ audio.volume=Number($("#musicVolume")?.value??0.4);
+ const playPromise=audio.play();
+ if(playPromise&&typeof playPromise.then==="function"){
+  playPromise.then(()=>{ambientUserStarted=true;updateAmbientMusicUi()}).catch(error=>{
+   const status=$("#musicStatus"),detail=$("#musicTrackDetail");
+   if(status)status.textContent="TAP PLAY TO START";
+   if(detail)detail.textContent="Your browser blocked automatic playback. Press Play to start the soundtrack. "+String(error&&error.message||"").slice(0,90);
+   updateAmbientMusicUi();
+  });
+ }
+}
+function playNextAmbientTrack(autoplay){
+ if(AMBIENT_TRACKS.length<2){setAmbientTrack(ambientTrackIndex,autoplay);return}
+ let next=ambientTrackIndex;
+ while(next===ambientTrackIndex)next=Math.floor(Math.random()*AMBIENT_TRACKS.length);
+ setAmbientTrack(next,autoplay);
+}
+function toggleAmbientPlayerPanel(){
+ const panel=$("#musicPanel"),button=$("#soundBtn");
+ if(!panel||!button)return;
+ panel.hidden=!panel.hidden;
+ button.setAttribute("aria-expanded",panel.hidden?"false":"true");
+ if(!panel.hidden)updateAmbientMusicUi();
+}
+function bindBackgroundMusic(){
+ const audio=ensureAmbientAudio();
+ setAmbientTrack(0,false);
+ $("#soundBtn").addEventListener("click",toggleAmbientPlayerPanel);
+ $("#musicCloseBtn").addEventListener("click",()=>{
+  $("#musicPanel").hidden=true;
+  $("#soundBtn").setAttribute("aria-expanded","false");
+ });
+ $("#musicPlayBtn").addEventListener("click",()=>{
+  const player=ensureAmbientAudio();
+  if(player.paused){if(!player.src)setAmbientTrack(0,false);startAmbientMusic()}
+  else player.pause();
+ });
+ $("#musicNextBtn").addEventListener("click",()=>playNextAmbientTrack(true));
+ $("#musicVolume").addEventListener("input",event=>{
+  audio.volume=Math.max(0,Math.min(1,Number(event.currentTarget.value)));
+  $("#musicVolumeValue").textContent=Math.round(audio.volume*100)+"%";
+ });
+ const firstInteraction=()=>{
+  if(!ambientUserStarted){
+   if(!audio.src)setAmbientTrack(0,false);
+   startAmbientMusic();
+  }
+  document.removeEventListener("pointerdown",firstInteraction,true);
+  document.removeEventListener("keydown",firstInteraction,true);
+ };
+ document.addEventListener("pointerdown",firstInteraction,{capture:true});
+ document.addEventListener("keydown",firstInteraction,{capture:true});
+ updateAmbientMusicUi();
+}
+
+function bind(){document.querySelectorAll("[data-intel-tab]").forEach(button=>button.addEventListener("click",()=>{const site=HERITAGE_SITES.find(item=>item.id===state.selected);if(site)renderSiteIntelligence(site,button.dataset.intelTab)}));$("#programmeFilter").addEventListener("change",()=>{state.filter=$("#programmeFilter").value;state.listLimit=60;renderSites()});$("#siteSearch").addEventListener("input",()=>{state.search=$("#siteSearch").value;state.listLimit=60;renderSites()});$("#loadMoreSites").addEventListener("click",()=>{state.listLimit+=60;renderSites()});document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>close(b.dataset.close)));["siteDrawer","helpModal"].forEach(id=>$("#"+id).addEventListener("click",e=>{if(e.target.id===id)close(id)}));$("#resetViewBtn").addEventListener("click",()=>{if(state.viewer)state.viewer.camera.flyTo({destination:Cesium.Cartesian3.fromDegrees(118,-2,22500000),orientation:{heading:0,pitch:Cesium.Math.toRadians(-90),roll:0},duration:1.5});$("#coordReadout").textContent="SELECT A PIN TO BEGIN"});$("#retryMapBtn").addEventListener("click",()=>{if(state.viewer){state.viewer.destroy();state.viewer=null}$("#mapFallback").hidden=true;initMap()});$("#helpBtn").addEventListener("click",()=>$("#helpModal").hidden=false);$("#missionGoBtn").addEventListener("click",()=>{const s=HERITAGE_SITES.find(x=>!state.visited.has(x.id))||HERITAGE_SITES[0];openSite(s.id,true)});$("#locateBtn").addEventListener("click",()=>{if(!navigator.geolocation){toast("Location is not available in this browser.");return}navigator.geolocation.getCurrentPosition(p=>{if(state.viewer){state.viewer.camera.flyTo({destination:Cesium.Cartesian3.fromDegrees(p.coords.longitude,p.coords.latitude,25000),duration:1.6});$("#coordReadout").textContent=p.coords.latitude.toFixed(3)+"°, "+p.coords.longitude.toFixed(3)+"°"}},()=>toast("Location permission was not granted."),{timeout:8000})});$("#loadLocalModelBtn").addEventListener("click",loadLocal3D);$("#zoneToggleBtn").addEventListener("click",()=>toggleExplorationZone(HERITAGE_SITES.find(s=>s.id===state.selected),true));$("#zoneMapCardClose").addEventListener("click",()=>{const active=HERITAGE_SITES.find(s=>s.id===state.activeZoneId)||state.globeOverlay&&state.globeOverlay.site;if(active)toggleExplorationZone(active,false)});$("#resetLocalModelBtn").addEventListener("click",()=>{if(state.local3d){const {camera,controls}=state.local3d;camera.position.set(4.8,3.5,5.5);controls.target.set(0,1.4,0);controls.update()}});window.addEventListener("resize",()=>{resizeLocal3D();if(state.globeOverlay&&state.globeOverlay.loaded){const m=state.globeOverlay;m.renderer.render(m.scene,m.camera);updateGlobeModelOverlay()}if(state.komodoOverlay&&state.komodoOverlay.loaded){const m=state.komodoOverlay;m.renderer.render(m.scene,m.camera);updateKomodoMapOverlay()}});bindBackgroundMusic();document.addEventListener("keydown",e=>{if(e.key==="Escape"){close("siteDrawer");close("helpModal")}})}
 const PROGRAMMES=[
  {key:"world_heritage",label:"UNESCO World Heritage Site",short:"World Heritage",plural:"World Heritage Sites",icon:"🏛️",color:"#efbd6b",dataset:"whc001",range:14000},
  {key:"world_heritage_tentative",label:"World Heritage Tentative List",short:"Tentative List",plural:"Tentative List sites",icon:"🧭",color:"#ff8a4c",dataset:"whc_tentative_2026",range:14000},
