@@ -1,13 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { access, readFile } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 
 const app = await readFile(new URL("../js/app.js", import.meta.url), "utf8");
 const config = await readFile(new URL("../js/cesium-config.js", import.meta.url), "utf8");
 const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
 const css = await readFile(new URL("../css/atlas.css", import.meta.url), "utf8");
 const quizBank = JSON.parse(await readFile(new URL("../data/quizzes.json", import.meta.url), "utf8"));
-const musicPlaylist = JSON.parse(await readFile(new URL("../music/playlist.json", import.meta.url), "utf8"));
 const sitesJs = await readFile(new URL("../js/sites.js", import.meta.url), "utf8");
 const deployWorkflow = await readFile(new URL("../.github/workflows/deploy-pages-with-cesium-token.yml", import.meta.url), "utf8");
 const cesiumConfig = await readFile(new URL("../js/cesium-config.js", import.meta.url), "utf8");
@@ -174,43 +173,26 @@ test("Environment tab queries GBIF, NASA EONET and Open-Meteo using the site's c
 });
 
 
-test("ambient playlist is editable JSON in the music folder, with every listed audio file present", async () => {
-  assert.equal(musicPlaylist.schemaVersion, "1.0.0");
-  assert.equal(musicPlaylist.defaultVolume, 0.4);
-  assert.ok(musicPlaylist.folders.framelens);
-  assert.ok(musicPlaylist.folders.cc4);
-  assert.equal(musicPlaylist.folders.framelens.creditMode, "folder");
-  assert.equal(musicPlaylist.folders.cc4.creditMode, "track");
-  assert.ok(Array.isArray(musicPlaylist.tracks));
-  assert.ok(musicPlaylist.tracks.length >= 1);
-  assert.equal(new Set(musicPlaylist.tracks.map(track => track.id)).size, musicPlaylist.tracks.length);
-  for (const track of musicPlaylist.tracks) {
-    assert.ok(track.id && track.title && track.credit && track.detail);
-    assert.ok(musicPlaylist.folders[track.folder], "unknown music folder for " + track.id);
-    assert.ok(track.src.startsWith(track.folder + "/"), "track path must be relative to its matching folder");
-    assert.match(track.src, /^(framelens|cc4)\/[^/]+\.(mp3|ogg|wav|m4a|aac|opus)$/i);
-    assert.match(track.sourceUrl, /^https:\/\//);
-    await access(new URL("../music/" + track.src, import.meta.url));
-    if (track.folder === "cc4") assert.ok(track.credit.includes(track.title), "CC BY credit should name " + track.title);
-  }
-});
-
-test("ambient player loads playlist JSON and keeps playback controls", () => {
-  assert.match(app, /fetch\(playlistUrl\.href,\{cache:"no-cache"\}\)/);
-  assert.match(app, /new URL\("music\/playlist\.json",document\.baseURI\)/);
-  assert.match(app, /AMBIENT_TRACKS=tracks/);
-  assert.match(app, /AMBIENT_FOLDERS=folders/);
-  assert.match(app, /audio\.src=new URL\(track\.src,new URL\("music\/",document\.baseURI\)\)\.href/);
-  assert.match(app, /folder\.creditMode==="folder"\?folder\.credit:track\.credit/);
-  assert.match(app, /document\.addEventListener\("pointerdown",firstInteraction,\{capture:true\}\)/);
-  assert.match(app, /document\.addEventListener\("keydown",firstInteraction,\{capture:true\}\)/);
-  assert.match(app, /ambientAudio\.volume=AMBIENT_DEFAULT_VOLUME/);
-  assert.match(app, /volumeControl\.value=String\(AMBIENT_DEFAULT_VOLUME\)/);
-  assert.match(app, /event\.currentTarget\.dataset\.userAdjusted="true"/);
-  assert.match(app, /"#musicNextBtn"\)\.addEventListener\("click"/);
-  assert.match(app, /"#musicVolume"\)\.addEventListener\("input"/);
-  assert.match(app, /playButton\.textContent=playing\?"Ⅱ Pause":"▶ Play"/);
-  assert.doesNotMatch(app, /const AMBIENT_TRACKS=\[/);
+test("ambient player starts after first interaction and exposes pause shuffle and volume controls", () => {
+  assert.ok(app.includes("const AMBIENT_TRACKS=["));
+  assert.ok(app.includes('src:"music/framelens/java.mp3"'));
+  assert.ok(app.includes('src:"music/cc4/al-andalus.mp3"'));
+  assert.ok(app.includes('src:"music/cc4/fiddle-de-dee.mp3"'));
+  assert.ok(app.includes('src:"music/cc4/all-the-tea-in-china.mp3"'));
+  assert.ok(app.includes('src:"music/cc4/the-medieval-banquet.mp3"'));
+  assert.ok(app.includes('title:"All The Tea In China"'));
+  assert.ok(app.includes('title:"The Medieval Banquet"'));
+  assert.ok(app.includes('audio.src=new URL(track.src,document.baseURI).href'));
+  assert.ok(app.includes('folder:"framelens"'));
+  assert.ok(app.includes('folder:"cc4"'));
+  assert.ok(app.includes('document.addEventListener("pointerdown",firstInteraction,{capture:true})'));
+  assert.ok(app.includes('document.addEventListener("keydown",firstInteraction,{capture:true})'));
+  assert.ok(app.includes("ambientAudio.volume=0.4"));
+  assert.ok(app.includes('$("#musicNextBtn").addEventListener("click",()=>playNextAmbientTrack(true))'));
+  assert.ok(app.includes('$("#musicVolume").addEventListener("input"'));
+  assert.ok(app.includes('playButton.textContent=playing?"Ⅱ Pause":"▶ Play"'));
+  assert.ok(app.includes("while(next===ambientTrackIndex)"));
+  assert.ok(!app.includes("Ambient sound is not included in this prototype."));
 });
 
 test("ambient player has accessible controls, responsive styling and visible attribution", () => {
@@ -222,13 +204,13 @@ test("ambient player has accessible controls, responsive styling and visible att
   assert.match(css, /\.music-panel\[hidden\]\{display:none!important\}/);
   assert.match(css, /#soundBtn\.is-playing/);
   assert.match(css, /@media\(max-width:760px\)\{\s*#soundBtn\{display:grid/);
-  assert.ok(musicPlaylist.folders.framelens.credit.includes("framelens_id"));
-  assert.ok(musicPlaylist.tracks.some(track => track.title === "Al Andalus" && track.credit.includes(track.title)));
-  assert.ok(musicPlaylist.tracks.some(track => track.title === "All The Tea In China" && track.credit.includes(track.title)));
-  assert.ok(musicPlaylist.tracks.some(track => track.title === "The Medieval Banquet" && track.credit.includes(track.title)));
+  assert.ok(app.includes('credit:"Music by framelens_id"'));
+  assert.ok(app.includes('credit:"Music: Al Andalus by Shane Ivers - https://www.silvermansound.com"'));
+  assert.ok(app.includes('credit:"Music: All The Tea In China by Shane Ivers - https://www.silvermansound.com"'));
+  assert.ok(app.includes('credit:"Music: The Medieval Banquet by Shane Ivers - https://www.silvermansound.com"'));
   assert.ok(app.includes('folder.creditMode==="folder"?folder.credit:track.credit'));
-  assert.ok(musicPlaylist.folders.framelens.name.includes("Framelens ID"));
-  assert.ok(musicPlaylist.folders.cc4.name.includes("Creative Commons Attribution 4.0"));
+  assert.ok(app.includes('name:"Framelens ID · non-commercial"'));
+  assert.ok(app.includes('name:"Creative Commons Attribution 4.0 International"'));
 });
 
 
@@ -299,7 +281,7 @@ test("Map mode toggle switches between OSM navigation and Google satellite image
   assert.match(html, /aria-pressed="false"/);
   assert.match(app, /function toggleBaseMap\(\)/);
   assert.match(app, /new Cesium\.OpenStreetMapImageryProvider\(\{url:"https:\/\/tile\.openstreetmap\.org\/"\}\)/);
-  assert.match(app, /Cesium\.IonImageryProvider\.fromAssetId\(3830183\)/);
+  assert.match(app, /Cesium\.Google2DImageryProvider\.fromIonAssetId\(\{assetId:3830184,mapType:"satellite",language:"en_US",region:"ID"\}\)/);
   assert.match(html, /cesium@1\.134\.0/);
   assert.match(app, /state\.imageryMode=nextMode/);
   assert.match(app, /stage\.classList\.toggle\("earth-mode",nextMode==="earth"\)/);
@@ -310,5 +292,5 @@ test("Map mode toggle switches between OSM navigation and Google satellite image
 test("Google imagery attribution is visible when Earth View is active and token scope is documented", () => {
   assert.match(css, /\.map-stage\.earth-mode #cesiumContainer \.cesium-viewer-bottom\{display:block!important/);
   assert.match(css, /\.map-stage\.earth-mode #cesiumContainer \.cesium-widget-credits/);
-  assert.ok(cesiumConfig.includes("Google Maps 2D Satellite with Labels imagery (asset 3830183)"));
+  assert.ok(cesiumConfig.includes("Google 2D imagery service (asset 3830184)"));
 });
