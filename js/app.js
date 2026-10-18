@@ -71,14 +71,15 @@ function createMarkerImage(site){
  ctx.beginPath();ctx.arc(32,32,12,0,Math.PI*2);ctx.fillStyle=core;ctx.fill();
  ctx.beginPath();ctx.arc(32,32,12,0,Math.PI*2);ctx.lineWidth=3;ctx.strokeStyle=glow;ctx.stroke();
  ctx.beginPath();ctx.arc(32,32,3.1,0,Math.PI*2);ctx.fillStyle="#F9FFFC";ctx.fill();
- markerImageCache.set(cacheKey,canvas);return canvas;
+ const imgData = canvas.toDataURL(); // Konversi canvas ke gambar Base64
+ markerImageCache.set(cacheKey,imgData);return imgData;
 }
 function setSelectedMarker(id){state.entities.forEach((entity,key)=>{const active=key===id,hovered=key===state.hovered,coveredByModel=!!(((state.globeOverlays&&state.globeOverlays.get(key)&&state.globeOverlays.get(key).loaded)||(state.globeOverlay&&state.globeOverlay.loaded&&state.globeOverlay.site.id===key)||(state.komodoOverlay&&state.komodoOverlay.loaded&&state.komodoOverlay.site.id===key)));if(entity.label)entity.label.show=(active||hovered)&&!coveredByModel;if(entity.billboard){const size=active?MARKER_SIZE_SELECTED:hovered?MARKER_SIZE_HOVER:MARKER_SIZE_DEFAULT;entity.billboard.width=size;entity.billboard.height=size}})}
 function markers(){
  HERITAGE_SITES.forEach(s=>{
   if(!hasCoordinates(s))return;
   const lon=Number(s.coordinates[0]),lat=Number(s.coordinates[1]);
-  const e=state.viewer.entities.add({position:Cesium.Cartesian3.fromDegrees(lon,lat,MAP_MARKER_GROUND_CLEARANCE_METERS),billboard:{image:createMarkerImage(s),width:MARKER_SIZE_DEFAULT,height:MARKER_SIZE_DEFAULT,color:Cesium.Color.WHITE,heightReference:Cesium.HeightReference.RELATIVE_TO_GROUND,verticalOrigin:Cesium.VerticalOrigin.CENTER,horizontalOrigin:Cesium.HorizontalOrigin.CENTER,disableDepthTestDistance:18000},label:{show:false,text:s.name,font:"13px sans-serif",fillColor:Cesium.Color.WHITE,outlineColor:Cesium.Color.fromCssColorString("#08232d"),outlineWidth:3,heightReference:Cesium.HeightReference.RELATIVE_TO_GROUND,style:Cesium.LabelStyle.FILL_AND_OUTLINE,showBackground:true,backgroundColor:Cesium.Color.fromCssColorString("#08232d").withAlpha(0.94),backgroundPadding:new Cesium.Cartesian2(9,6),verticalOrigin:Cesium.VerticalOrigin.BOTTOM,pixelOffset:new Cesium.Cartesian2(0,-23),distanceDisplayCondition:new Cesium.DistanceDisplayCondition(0,450000),disableDepthTestDistance:18000}});
+  const e=state.viewer.entities.add({position:Cesium.Cartesian3.fromDegrees(lon,lat,MAP_MARKER_GROUND_CLEARANCE_METERS),billboard:{image:createMarkerImage(s),width:MARKER_SIZE_DEFAULT,height:MARKER_SIZE_DEFAULT,color:Cesium.Color.WHITE,heightReference:Cesium.HeightReference.RELATIVE_TO_GROUND,verticalOrigin:Cesium.VerticalOrigin.BOTTOM,horizontalOrigin:Cesium.HorizontalOrigin.CENTER,disableDepthTestDistance:Number.POSITIVE_INFINITY},label:{show:false,text:s.name,font:"13px sans-serif",fillColor:Cesium.Color.WHITE,outlineColor:Cesium.Color.fromCssColorString("#08232d"),outlineWidth:3,heightReference:Cesium.HeightReference.RELATIVE_TO_GROUND,style:Cesium.LabelStyle.FILL_AND_OUTLINE,showBackground:true,backgroundColor:Cesium.Color.fromCssColorString("#08232d").withAlpha(0.94),backgroundPadding:new Cesium.Cartesian2(9,6),verticalOrigin:Cesium.VerticalOrigin.BOTTOM,pixelOffset:new Cesium.Cartesian2(0,-23),distanceDisplayCondition:new Cesium.DistanceDisplayCondition(0,450000),disableDepthTestDistance:18000}});
   e.siteId=s.id;e.programmeKey=s.programmeKey||"world_heritage";state.entities.set(s.id,e);
  });
  console.info("[Heritage Atlas] rendered",state.entities.size,"glowing georeferenced markers from",HERITAGE_SITES.length,"UNESCO designation records");
