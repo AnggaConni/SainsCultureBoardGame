@@ -565,7 +565,7 @@ async function initOsmBuildings(viewer){
   state.buildingsStatus="unavailable";
   console.warn("Cesium OSM Buildings could not initialize. Check ion token, asset access, quota and network.",error);
   if(status)status.textContent="3D BUILDINGS UNAVAILABLE · CHECK ION";
-  setBuildingsUi("3D BUILDINGS UNAVAILABLE · Check token, asset access, quota and network.","error");
+  setBuildingsUi("3D BUILDINGS UNAVAILABLE · "+String(error&&error.message||"Unknown Cesium ion error").replace(/\\s+/g," ").slice(0,150), "error");
  }
 }
 async function toggleBaseMap(){
@@ -580,8 +580,8 @@ async function toggleBaseMap(){
  try{
   let provider;
   if(nextMode==="earth"){
-   if(!Cesium.Google2DImageryProvider||typeof Cesium.Google2DImageryProvider.fromIonAssetId!=="function")throw new Error("This CesiumJS build does not support Google 2D imagery.");
-   provider=await Cesium.Google2DImageryProvider.fromIonAssetId({assetId:3830184,mapType:"satellite",language:"en_US",region:"ID"});
+   if(!Cesium.IonImageryProvider||typeof Cesium.IonImageryProvider.fromAssetId!=="function")throw new Error("This CesiumJS build does not support Cesium ion imagery assets.");
+   provider=await Cesium.IonImageryProvider.fromAssetId(3830183);
   }else{
    provider=new Cesium.OpenStreetMapImageryProvider({url:"https://tile.openstreetmap.org/"});
   }
