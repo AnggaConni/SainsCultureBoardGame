@@ -141,3 +141,17 @@ test("Tentative List is a distinct selectable status, not an inscribed World Her
   assert.ok(app.includes("Tentative status means a State Party may consider a future nomination; it is not an inscription."));
   assert.ok(app.includes("no map marker is plotted until coordinates can be verified"));
 });
+
+
+test("Environment tab queries GBIF, NASA EONET and Open-Meteo using the site's coordinate", () => {
+  assert.ok(app.includes("async function fetchSiteEnvironment(site)"));
+  assert.ok(app.includes("https://api.gbif.org/v1/occurrence/search"));
+  assert.ok(app.includes('gbifUrl.searchParams.set("geo_distance","25km,"+lat+","+lon)'));
+  assert.ok(app.includes("https://eonet.gsfc.nasa.gov/api/v3/events"));
+  assert.ok(app.includes('eventsUrl.searchParams.set("days","90")'));
+  assert.ok(app.includes("https://api.open-meteo.com/v1/forecast"));
+  assert.ok(app.includes("function renderSiteEnvironment(site,payload)"));
+  assert.ok(app.includes("siteIntelCache.set(key,payload)"));
+  assert.ok(!app.includes("Environmental intelligence is next"));
+  assert.ok(app.includes("not an official UNESCO property boundary"));
+});
