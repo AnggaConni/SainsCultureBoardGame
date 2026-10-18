@@ -103,16 +103,24 @@ test("markers use dark cores with bright category-colored glow", () => {
   assert.ok(app.includes("ctx.createRadialGradient(32,32,4,32,32,31)"));
   assert.ok(app.includes("billboard:{image:createMarkerImage(s)"));
   assert.ok(app.includes("heightReference:Cesium.HeightReference.RELATIVE_TO_GROUND"));
-  assert.ok(app.includes("disableDepthTestDistance:0"));
-  assert.doesNotMatch(app, /disableDepthTestDistance:Number\.POSITIVE_INFINITY/);
+  assert.equal((app.match(/disableDepthTestDistance:Number\.POSITIVE_INFINITY/g)||[]).length,2);
+  assert.ok(app.includes("function syncFrontHemisphereMarkers()"));
+  assert.ok(app.includes("e._mapSurfacePosition=surfacePosition"));
+  assert.ok(app.includes("e._mapSurfaceNormal=surfaceNormal"));
+  assert.ok(app.includes("entity.show=entity._mapFilterVisible!==false&&frontSide"));
+  assert.ok(app.includes("v.scene.preRender.addEventListener(syncFrontHemisphereMarkers)"));
   assert.doesNotMatch(app, /disableDepthTestDistance:18000/);
   assert.ok(!app.includes("entity.point.pixelSize"));
 });
 
-test("globe occlusion hides back-side markers and prevents them from being picked through Earth", () => {
-  assert.match(app, /billboard:\{image:createMarkerImage\(s\)[^}]*disableDepthTestDistance:0/);
-  assert.match(app, /label:\{show:false[^}]*disableDepthTestDistance:0/);
-  assert.doesNotMatch(app, /disableDepthTestDistance:Number\.POSITIVE_INFINITY/);
+test("front-side markers bypass terrain artifacts while the far hemisphere is manually culled", () => {
+  assert.match(app, /billboard:\{image:createMarkerImage\(s\)[^}]*disableDepthTestDistance:Number\.POSITIVE_INFINITY/);
+  assert.match(app, /label:\{show:false[^}]*disableDepthTestDistance:Number\.POSITIVE_INFINITY/);
+  assert.match(app, /Cesium\.Ellipsoid\.WGS84\.geodeticSurfaceNormal\(surfacePosition/);
+  assert.match(app, /Cesium\.Cartesian3\.dot\(normal,markerVisibilityScratch\)>0/);
+  assert.match(app, /entity\.show=entity\._mapFilterVisible!==false&&frontSide/);
+  assert.match(app, /syncFrontHemisphereMarkers\(\);initGlobeModelOverlay\(\)/);
+  assert.doesNotMatch(app, /disableDepthTestDistance:0/);
 });
 
 test("world view fills the globe while selected site views stay oblique", () => {
