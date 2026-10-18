@@ -89,7 +89,7 @@ test("Cesium ion token is applied before the world terrain provider is created",
 
 test("terrain failures fall back to ellipsoid instead of leaving a black globe", () => {
   assert.match(app, /v\.scene\.setTerrain\(new Cesium\.Terrain\(Promise\.resolve\(new Cesium\.EllipsoidTerrainProvider\(\)\)\)\)/);
-  assert.match(app, /Globe restored with a smooth ellipsoid/);
+  assert.match(app, /Falling back to an ellipsoid to preserve the globe and OSM imagery/);
 });
 
 test("terrain and building access errors expose HTTP diagnostics and redact tokens", () => {
@@ -300,5 +300,5 @@ test("Map mode toggle switches between OSM navigation and Google satellite image
 test("Google imagery attribution is visible when Earth View is active and token scope is documented", () => {
   assert.match(css, /\.map-stage\.earth-mode #cesiumContainer \.cesium-viewer-bottom\{display:block!important/);
   assert.match(css, /\.map-stage\.earth-mode #cesiumContainer \.cesium-widget-credits/);
-  assert.ok(cesiumConfig.includes("Google 2D imagery service (asset 3830184)"));
+  assert.ok(cesiumConfig.includes("3830184 (Google 2D imagery)"));
 });
