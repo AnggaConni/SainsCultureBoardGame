@@ -27,6 +27,10 @@ Use scope "site_type" and a targetSiteTypes array with one or more programmeKey 
 
 A Tentative List record uses world_heritage_tentative and must not be treated as already inscribed on the World Heritage List.
 
+## Current coverage
+
+The JSON bank currently contains 24 `general`, 24 `specialized`, and 24 `site_type` questions. Specialized coverage initially focuses on Borobudur, Prambanan, Komodo National Park, the Cultural Landscape of Bali Province, Sangiran, and Lorentz National Park; additional site-specific questions can be added by providing the exact `site.id`.
+
 ## Example field values
 
 A general question can use:

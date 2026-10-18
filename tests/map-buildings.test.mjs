@@ -223,6 +223,7 @@ test("SEO and social metadata uses the current Pages URL and root thumbnail imag
 test("Quiz bank is external JSON with all three scopes and valid unique questions", () => {
   assert.equal(quizBank.schemaVersion, "1.0.0");
   assert.ok(Array.isArray(quizBank.quizzes));
+  assert.equal(quizBank.quizzes.length, 72);
   assert.equal(new Set(quizBank.quizzes.map(quiz => quiz.id)).size, quizBank.quizzes.length);
   for (const scope of ["general", "specialized", "site_type"]) {
     assert.ok(quizBank.quizzes.some(quiz => quiz.scope === scope), "missing quiz scope " + scope);
@@ -235,9 +236,13 @@ test("Quiz bank is external JSON with all three scopes and valid unique question
     if (quiz.scope === "specialized") assert.ok(Array.isArray(quiz.targetSiteIds) && quiz.targetSiteIds.length);
     if (quiz.scope === "site_type") assert.ok(Array.isArray(quiz.targetSiteTypes) && quiz.targetSiteTypes.length);
   }
-  assert.equal(quizBank.quizzes.filter(quiz => quiz.scope === "general").length, 12);
-  assert.equal(quizBank.quizzes.filter(quiz => quiz.scope === "specialized").length, 12);
-  assert.equal(quizBank.quizzes.filter(quiz => quiz.scope === "site_type").length, 12);
+  assert.equal(quizBank.quizzes.filter(quiz => quiz.scope === "general").length, 24);
+  assert.equal(quizBank.quizzes.filter(quiz => quiz.scope === "specialized").length, 24);
+  assert.equal(quizBank.quizzes.filter(quiz => quiz.scope === "site_type").length, 24);
+  for (const scope of ["general", "specialized", "site_type"]) {
+    const positions = quizBank.quizzes.filter(quiz => quiz.scope === scope).reduce((counts, quiz) => (counts[quiz.answerIndex]++, counts), [0, 0, 0, 0]);
+    assert.ok(positions.filter(count => count > 0).length >= 3, scope + " correct answers should not all use the same option position");
+  }
 });
 
 test("Quiz runtime targets general questions, exact site IDs, and programme types", () => {

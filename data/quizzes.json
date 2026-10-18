@@ -2,7 +2,7 @@
   "schemaVersion": "1.0.0",
   "title": "World Heritage Atlas Quiz Bank",
   "updatedAt": "2026-10-18",
-  "description": "Questions are stored separately from site records and resolved by scope. General questions apply to all sites; specialized questions target exact site IDs; site_type questions apply to programme keys.",
+  "description": "Expanded educational question bank. General questions apply across all sites; specialized questions target exact site IDs; site_type questions target UNESCO programme keys. Each record contains an answer, explanation and reference link.",
   "scopes": [
     {
       "id": "general",
@@ -55,12 +55,12 @@
       "topic": "Pollution",
       "question": "How can a plastic wrapper dropped on a street reach the ocean?",
       "options": [
-        "Rain and drains can carry it into streams and rivers",
         "It dissolves immediately in soil",
+        "Rain and drains can carry it into streams and rivers",
         "It always stays exactly where it was dropped",
         "It turns into harmless sand overnight"
       ],
-      "answerIndex": 0,
+      "answerIndex": 1,
       "explanation": "Litter can move through drains, waterways and rivers. Keeping waste out of the environment is more effective than trying to collect it later.",
       "sourceLabel": "UNEP — Beat Plastic Pollution",
       "sourceUrl": "https://www.unep.org/interactives/beat-plastic-pollution/"
@@ -71,12 +71,12 @@
       "topic": "Wildlife safety",
       "question": "What is the safest general rule when observing wild animals?",
       "options": [
-        "Keep a respectful distance and never feed them",
         "Offer food to make photos easier",
         "Touch young animals if they seem calm",
+        "Keep a respectful distance and never feed them",
         "Chase them until they move into view"
       ],
-      "answerIndex": 0,
+      "answerIndex": 2,
       "explanation": "Feeding or approaching wildlife can change behaviour and create danger for people and animals. Follow local rules and trained guides.",
       "sourceLabel": "UNESCO — World Heritage and sustainable tourism",
       "sourceUrl": "https://whc.unesco.org/en/sustainabletourism/"
@@ -87,12 +87,12 @@
       "topic": "Water stewardship",
       "question": "What is a practical way to reduce pressure on a destination's water supply?",
       "options": [
-        "Avoid unnecessary water use and report leaks",
         "Leave taps running while exploring",
         "Assume water is unlimited wherever tourists visit",
-        "Dump oils or chemicals into drains"
+        "Dump oils or chemicals into drains",
+        "Avoid unnecessary water use and report leaks"
       ],
-      "answerIndex": 0,
+      "answerIndex": 3,
       "explanation": "Water-saving behaviour helps destinations where residents, ecosystems and visitors share limited supplies.",
       "sourceLabel": "UNESCO — Education for Sustainable Development",
       "sourceUrl": "https://www.unesco.org/en/education/sustainable-development"
@@ -119,12 +119,12 @@
       "topic": "Heritage interpretation",
       "question": "What is the best way to interpret an unfamiliar heritage place?",
       "options": [
-        "Consider its history, local context and multiple sources",
         "Judge it only by modern appearance",
+        "Consider its history, local context and multiple sources",
         "Assume every monument had the same purpose",
         "Ignore the people connected with the place"
       ],
-      "answerIndex": 0,
+      "answerIndex": 1,
       "explanation": "Context helps explain why a place matters, how it changed, and how communities understand it today.",
       "sourceLabel": "UNESCO World Heritage Centre",
       "sourceUrl": "https://whc.unesco.org/en/about/"
@@ -135,12 +135,12 @@
       "topic": "Community respect",
       "question": "Before recording or sharing a community's ceremony, song or story, what should you do?",
       "options": [
-        "Follow community protocols and ask for permission where appropriate",
         "Assume public visibility means unrestricted permission",
         "Record people secretly to keep the footage authentic",
+        "Follow community protocols and ask for permission where appropriate",
         "Remove all community context from the caption"
       ],
-      "answerIndex": 0,
+      "answerIndex": 2,
       "explanation": "Living heritage belongs to the communities that practise and transmit it. Respect consent, cultural protocols, privacy and community decisions.",
       "sourceLabel": "UNESCO — What is Intangible Cultural Heritage?",
       "sourceUrl": "https://ich.unesco.org/en/what-is-intangible-heritage-00003"
@@ -151,12 +151,12 @@
       "topic": "Biodiversity biosecurity",
       "question": "Why should visitors clean mud from footwear and gear when local guidance asks them to?",
       "options": [
-        "Mud and gear can carry seeds, organisms or pathogens between places",
         "Clean footwear makes every ecosystem identical",
         "It guarantees that no species can ever spread",
-        "It is only about keeping shoes attractive"
+        "It is only about keeping shoes attractive",
+        "Mud and gear can carry seeds, organisms or pathogens between places"
       ],
-      "answerIndex": 0,
+      "answerIndex": 3,
       "explanation": "Organisms can be moved unintentionally between ecosystems. Follow destination-specific biosecurity guidance, especially on islands and protected areas.",
       "sourceLabel": "Convention on Biological Diversity — Invasive Alien Species",
       "sourceUrl": "https://www.cbd.int/invasive/"
@@ -183,12 +183,12 @@
       "topic": "Ecology",
       "question": "Why can protecting connected habitats be more effective than protecting isolated patches alone?",
       "options": [
-        "Many species need to move between feeding, breeding and shelter areas",
         "Every species remains in one tiny location for life",
+        "Many species need to move between feeding, breeding and shelter areas",
         "Connections prevent all natural change",
         "Only large animals use habitats"
       ],
-      "answerIndex": 0,
+      "answerIndex": 1,
       "explanation": "Ecological connections can support movement, genetic exchange and resilience. The best approach depends on the species and landscape.",
       "sourceLabel": "UNESCO — Biodiversity",
       "sourceUrl": "https://www.unesco.org/en/biodiversity"
@@ -199,12 +199,12 @@
       "topic": "Climate and resilience",
       "question": "A coastal site faces more frequent flooding. Which is the strongest first step for planning?",
       "options": [
-        "Combine local knowledge, risk evidence and an adaptation plan",
         "Wait for damage before collecting any information",
         "Protect one building while ignoring residents and ecosystems",
+        "Combine local knowledge, risk evidence and an adaptation plan",
         "Assume historical weather will never change"
       ],
-      "answerIndex": 0,
+      "answerIndex": 2,
       "explanation": "Risk-aware planning combines evidence, community experience and suitable adaptation options. Measures should fit local hazards and avoid shifting risk elsewhere.",
       "sourceLabel": "UNESCO — Climate change and World Heritage",
       "sourceUrl": "https://whc.unesco.org/en/climatechange/"
@@ -215,12 +215,12 @@
       "topic": "Living heritage",
       "question": "If a traditional practice changes as younger people adapt it to present-day life, does that automatically make it inauthentic?",
       "options": [
-        "No; living heritage can evolve while communities continue to recognise it",
         "Yes; every detail must remain frozen forever",
         "Yes; only museum displays count as heritage",
-        "No; communities should have no say in how it changes"
+        "No; communities should have no say in how it changes",
+        "No; living heritage can evolve while communities continue to recognise it"
       ],
-      "answerIndex": 0,
+      "answerIndex": 3,
       "explanation": "Intangible heritage is living and transmitted between generations. Communities themselves play a central role in deciding how it is continued or adapted.",
       "sourceLabel": "UNESCO — What is Intangible Cultural Heritage?",
       "sourceUrl": "https://ich.unesco.org/en/what-is-intangible-heritage-00003"
@@ -253,12 +253,12 @@
       "topic": "Borobudur",
       "question": "When studying Borobudur's relief panels, what helps a visitor interpret them responsibly?",
       "options": [
-        "Use the sequence, iconography and authoritative interpretation instead of guessing from one panel",
         "Assume every panel is a modern decoration",
+        "Use the sequence, iconography and authoritative interpretation instead of guessing from one panel",
         "Touch or rub the carvings to understand their texture",
         "Treat every panel as a record of a single literal event"
       ],
-      "answerIndex": 0,
+      "answerIndex": 1,
       "explanation": "Reliefs are part of a larger architectural and narrative programme. Context, preservation guidance and expert interpretation are more reliable than a guess from an isolated image.",
       "sourceLabel": "UNESCO World Heritage Centre — Borobudur",
       "sourceUrl": "https://whc.unesco.org/en/list/592/"
@@ -272,12 +272,12 @@
       "topic": "Prambanan",
       "question": "The principal temple at Prambanan is dedicated to which Hindu deity?",
       "options": [
-        "Shiva",
         "Poseidon",
         "Thor",
+        "Shiva",
         "Quetzalcoatl"
       ],
-      "answerIndex": 0,
+      "answerIndex": 2,
       "explanation": "Prambanan is a major Hindu temple compound; its central and largest temple is dedicated to Shiva.",
       "sourceLabel": "UNESCO World Heritage Centre — Prambanan",
       "sourceUrl": "https://whc.unesco.org/en/list/642/"
@@ -291,12 +291,12 @@
       "topic": "Prambanan",
       "question": "What is a responsible way to help conserve Prambanan's stone architecture during a visit?",
       "options": [
-        "Follow barriers and do not climb, scratch or touch fragile surfaces where prohibited",
         "Climb temple structures for a better photograph",
         "Write initials on an inconspicuous stone",
-        "Remove small fragments as souvenirs"
+        "Remove small fragments as souvenirs",
+        "Follow barriers and do not climb, scratch or touch fragile surfaces where prohibited"
       ],
-      "answerIndex": 0,
+      "answerIndex": 3,
       "explanation": "Visitor behaviour can contribute to physical wear or damage. Follow site rules and protect carved stone and structural elements.",
       "sourceLabel": "UNESCO World Heritage Centre — Prambanan",
       "sourceUrl": "https://whc.unesco.org/en/list/642/"
@@ -329,12 +329,12 @@
       "topic": "Komodo National Park",
       "question": "What is the safest response if a Komodo dragon is nearby on a trail?",
       "options": [
-        "Follow ranger instructions, keep distance and do not feed or approach it",
         "Try to feed it for a close-up photograph",
+        "Follow ranger instructions, keep distance and do not feed or approach it",
         "Separate a young animal from its group",
         "Run toward it to make it move"
       ],
-      "answerIndex": 0,
+      "answerIndex": 1,
       "explanation": "Komodo dragons are wild predators. Follow park rules and trained ranger guidance; do not approach, feed or provoke wildlife.",
       "sourceLabel": "UNESCO World Heritage Centre — Komodo National Park",
       "sourceUrl": "https://whc.unesco.org/en/list/609/"
@@ -348,12 +348,12 @@
       "topic": "Bali Cultural Landscape",
       "question": "What is the subak system best understood as?",
       "options": [
-        "A community-based cooperative system for managing irrigation water in Bali",
         "A single stone temple used only for tourism",
         "A modern factory for rice production",
+        "A community-based cooperative system for managing irrigation water in Bali",
         "A method for replacing all local farming traditions"
       ],
-      "answerIndex": 0,
+      "answerIndex": 2,
       "explanation": "Subak connects water management, farming communities and cultural-religious institutions. It is a social and landscape system, not just a canal network.",
       "sourceLabel": "UNESCO World Heritage Centre — Cultural Landscape of Bali Province",
       "sourceUrl": "https://whc.unesco.org/en/list/1194/"
@@ -367,12 +367,12 @@
       "topic": "Bali Cultural Landscape",
       "question": "Why are water temples relevant to understanding Bali's subak landscape?",
       "options": [
-        "They are part of the cultural and institutional relationships associated with water management",
         "They exist only as decorative monuments with no local context",
         "They prove irrigation never requires cooperation",
-        "They are unrelated to the landscape's cultural significance"
+        "They are unrelated to the landscape's cultural significance",
+        "They are part of the cultural and institutional relationships associated with water management"
       ],
-      "answerIndex": 0,
+      "answerIndex": 3,
       "explanation": "The nominated landscape expresses relationships among water temples, agricultural practices and cooperative water management. Local practice and historical context matter.",
       "sourceLabel": "UNESCO World Heritage Centre — Cultural Landscape of Bali Province",
       "sourceUrl": "https://whc.unesco.org/en/list/1194/"
@@ -405,12 +405,12 @@
       "topic": "Sangiran",
       "question": "Which approach is most appropriate when a new fossil discovery is reported?",
       "options": [
-        "Document its location and context, then assess it using scientific methods",
         "Move it immediately and discard location notes",
+        "Document its location and context, then assess it using scientific methods",
         "Identify its species from a social-media photo alone",
         "Assume it changes all existing scientific knowledge at once"
       ],
-      "answerIndex": 0,
+      "answerIndex": 1,
       "explanation": "Documentation and context preserve scientific value. Conclusions should follow careful analysis and comparison with existing evidence.",
       "sourceLabel": "UNESCO World Heritage Centre — Sangiran Early Man Site",
       "sourceUrl": "https://whc.unesco.org/en/list/593/"
@@ -424,12 +424,12 @@
       "topic": "Lorentz National Park",
       "question": "Why can a large protected area spanning different elevations support varied ecosystems?",
       "options": [
-        "Temperature, moisture and habitat conditions can change with elevation",
         "Elevation has no effect on habitat",
         "Every species requires exactly the same climate",
+        "Temperature, moisture and habitat conditions can change with elevation",
         "Only the highest point can support life"
       ],
-      "answerIndex": 0,
+      "answerIndex": 2,
       "explanation": "Elevation gradients can create different habitat conditions and ecological communities. The actual pattern varies across the landscape.",
       "sourceLabel": "UNESCO World Heritage Centre — Lorentz National Park",
       "sourceUrl": "https://whc.unesco.org/en/list/955/"
@@ -443,12 +443,12 @@
       "topic": "Lorentz National Park",
       "question": "What is a sound reason to combine local knowledge with biodiversity research in a landscape like Lorentz?",
       "options": [
-        "Different evidence sources can complement each other when collected and interpreted respectfully",
         "Local knowledge should automatically replace every scientific method",
         "Scientific data means local communities should not be consulted",
-        "Only observations from tourists are useful"
+        "Only observations from tourists are useful",
+        "Different evidence sources can complement each other when collected and interpreted respectfully"
       ],
-      "answerIndex": 0,
+      "answerIndex": 3,
       "explanation": "Research and local knowledge can answer different questions. Collaboration should respect rights, protocols, evidence quality and community consent.",
       "sourceLabel": "UNESCO World Heritage Centre — Lorentz National Park",
       "sourceUrl": "https://whc.unesco.org/en/list/955/"
@@ -481,12 +481,12 @@
       "topic": "World Heritage",
       "question": "What does the distinction between cultural, natural and mixed World Heritage properties describe?",
       "options": [
-        "The kinds of heritage values for which the property is recognised",
         "The number of people allowed to visit every day",
+        "The kinds of heritage values for which the property is recognised",
         "Whether a site must charge an entry fee",
         "Whether a property has a visitor centre"
       ],
-      "answerIndex": 0,
+      "answerIndex": 1,
       "explanation": "The categories reflect the basis of recognition under the World Heritage Convention; they are not visitor-service or popularity ratings.",
       "sourceLabel": "UNESCO World Heritage Centre — About World Heritage",
       "sourceUrl": "https://whc.unesco.org/en/about/"
@@ -500,12 +500,12 @@
       "topic": "Tentative List",
       "question": "Does a Tentative List entry mean a property is already inscribed on the World Heritage List?",
       "options": [
-        "No; it is a property a State Party may consider for a future nomination",
         "Yes; every Tentative List property is already inscribed",
         "Yes, but only for natural properties",
+        "No; it is a property a State Party may consider for a future nomination",
         "It means the property has been removed from heritage consideration"
       ],
-      "answerIndex": 0,
+      "answerIndex": 2,
       "explanation": "A Tentative List is an inventory of properties a State Party may consider for nomination. A Tentative List entry is not the same as inscription.",
       "sourceLabel": "UNESCO World Heritage Centre — Tentative Lists",
       "sourceUrl": "https://whc.unesco.org/en/tentativelists/"
@@ -519,12 +519,12 @@
       "topic": "Tentative List",
       "question": "Who submits and updates a country's World Heritage Tentative List?",
       "options": [
-        "The State Party, through its national processes",
         "Any visitor by adding a pin to an online map",
         "A travel company acting without the country's involvement",
-        "A local business with no official process"
+        "A local business with no official process",
+        "The State Party, through its national processes"
       ],
-      "answerIndex": 0,
+      "answerIndex": 3,
       "explanation": "Tentative Lists are submitted by States Parties. A site's presence should not be presented as an inscription or guaranteed future nomination.",
       "sourceLabel": "UNESCO World Heritage Centre — Tentative Lists",
       "sourceUrl": "https://whc.unesco.org/en/tentativelists/"
@@ -557,12 +557,12 @@
       "topic": "UNESCO Global Geoparks",
       "question": "How should a geopark's geological sites generally be managed?",
       "options": [
-        "Conserve their geological heritage while supporting education and responsible local development",
         "Encourage visitors to remove representative rocks",
+        "Conserve their geological heritage while supporting education and responsible local development",
         "Treat geology as unrelated to local culture and livelihoods",
         "Promote unlimited access regardless of site sensitivity"
       ],
-      "answerIndex": 0,
+      "answerIndex": 1,
       "explanation": "Geoconservation, education and sustainable development are complementary goals. Local rules and site-specific conservation needs still apply.",
       "sourceLabel": "UNESCO — Global Geoparks",
       "sourceUrl": "https://www.unesco.org/en/iggp/geoparks"
@@ -576,12 +576,12 @@
       "topic": "Biosphere Reserves",
       "question": "What is the purpose of the core, buffer and transition areas in a biosphere reserve model?",
       "options": [
-        "They help combine conservation with compatible research, activities and sustainable development",
         "They rank areas from most famous to least famous",
         "They mean every activity is allowed in every zone",
+        "They help combine conservation with compatible research, activities and sustainable development",
         "They separate people from nature in all circumstances"
       ],
-      "answerIndex": 0,
+      "answerIndex": 2,
       "explanation": "Biosphere reserves use zonation to support conservation in core areas while allowing compatible activities, cooperation and sustainable development in surrounding zones.",
       "sourceLabel": "UNESCO — Man and the Biosphere Programme",
       "sourceUrl": "https://www.unesco.org/en/mab"
@@ -595,12 +595,12 @@
       "topic": "Biosphere Reserves",
       "question": "Which approach best reflects the Man and the Biosphere Programme?",
       "options": [
-        "Connect biodiversity conservation with research, learning and sustainable livelihoods",
         "Protect nature while ignoring how local people live",
         "Focus only on visitor numbers",
-        "Replace every local management institution with tourism operators"
+        "Replace every local management institution with tourism operators",
+        "Connect biodiversity conservation with research, learning and sustainable livelihoods"
       ],
-      "answerIndex": 0,
+      "answerIndex": 3,
       "explanation": "The programme promotes approaches that connect people and nature, conservation and sustainable development, with learning and cooperation across landscapes.",
       "sourceLabel": "UNESCO — Man and the Biosphere Programme",
       "sourceUrl": "https://www.unesco.org/en/mab"
@@ -633,12 +633,12 @@
       "topic": "Intangible Cultural Heritage",
       "question": "Who should play a central role in safeguarding a living heritage practice?",
       "options": [
-        "The communities and practitioners who recognise and transmit it",
         "Only outside researchers",
+        "The communities and practitioners who recognise and transmit it",
         "Only a tourism company",
         "Visitors who have no connection with the practice"
       ],
-      "answerIndex": 0,
+      "answerIndex": 1,
       "explanation": "Safeguarding should respect the people who practise and transmit the heritage, including their rights, consent and choices about how it continues.",
       "sourceLabel": "UNESCO — What is Intangible Cultural Heritage?",
       "sourceUrl": "https://ich.unesco.org/en/what-is-intangible-heritage-00003"
@@ -652,12 +652,12 @@
       "topic": "UNESCO Creative Cities Network",
       "question": "What is the broad aim of the UNESCO Creative Cities Network?",
       "options": [
-        "Use creativity and cultural industries as part of sustainable urban development",
         "Rank cities only by the number of historic monuments",
         "Replace local culture with a single global style",
+        "Use creativity and cultural industries as part of sustainable urban development",
         "Certify that every business in a city is creative"
       ],
-      "answerIndex": 0,
+      "answerIndex": 2,
       "explanation": "The network encourages cooperation among cities that place culture and creativity within sustainable development strategies.",
       "sourceLabel": "UNESCO — Creative Cities Network",
       "sourceUrl": "https://www.unesco.org/en/creative-cities"
@@ -671,13 +671,661 @@
       "topic": "UNESCO Creative Cities Network",
       "question": "Which action fits the idea of a creative city best?",
       "options": [
-        "Support local creators and connect culture with inclusive urban development",
         "Measure success only by souvenir sales",
         "Exclude community artists from city planning",
-        "Treat creativity as unrelated to jobs or public life"
+        "Treat creativity as unrelated to jobs or public life",
+        "Support local creators and connect culture with inclusive urban development"
+      ],
+      "answerIndex": 3,
+      "explanation": "Creative-city approaches connect cultural activity with social, economic and urban development, while respecting local diversity and community participation.",
+      "sourceLabel": "UNESCO — Creative Cities Network",
+      "sourceUrl": "https://www.unesco.org/en/creative-cities"
+    },
+    {
+      "id": "general-disaster-ready-13",
+      "scope": "general",
+      "topic": "Disaster preparedness",
+      "question": "A heritage site is closed because local authorities issue a severe-weather warning. What should a visitor do?",
+      "options": [
+        "Follow official instructions and choose a safe alternative",
+        "Enter through a side gate before it gets busy",
+        "Ignore the warning if the sky looks clear",
+        "Ask other visitors to vote on whether the closure matters"
       ],
       "answerIndex": 0,
-      "explanation": "Creative-city approaches connect cultural activity with social, economic and urban development, while respecting local diversity and community participation.",
+      "explanation": "Preparedness and coordinated response help protect visitors, communities and heritage. Follow current official guidance rather than judging the hazard from appearances.",
+      "sourceLabel": "UNESCO — Reducing Disaster Risks at World Heritage Properties",
+      "sourceUrl": "https://whc.unesco.org/en/disaster-risk-reduction/"
+    },
+    {
+      "id": "general-ewaste-14",
+      "scope": "general",
+      "topic": "Waste and circularity",
+      "question": "Where should an old phone or spent battery go when a destination offers a dedicated e-waste collection point?",
+      "options": [
+        "Into a river so the materials can separate",
+        "To the designated collection or approved take-back service",
+        "Into any mixed litter bin",
+        "Buried beside a walking trail"
+      ],
+      "answerIndex": 1,
+      "explanation": "Electronics and batteries may contain materials that require specialised handling. Use a collection or take-back route provided by the local system.",
+      "sourceLabel": "UNEP — Global E-waste Monitor",
+      "sourceUrl": "https://www.unep.org/"
+    },
+    {
+      "id": "general-food-waste-15",
+      "scope": "general",
+      "topic": "Responsible consumption",
+      "question": "Which action helps prevent food waste during a trip?",
+      "options": [
+        "Order more than needed because leftovers always disappear",
+        "Leave perishable food in the sun for the next visitor",
+        "Plan portions, store food safely and take suitable leftovers when permitted",
+        "Throw edible food away before checking local options"
+      ],
+      "answerIndex": 2,
+      "explanation": "Prevention is usually preferable to managing waste later. Food safety and local rules still apply when storing or sharing leftovers.",
+      "sourceLabel": "FAO — Food Loss and Food Waste",
+      "sourceUrl": "https://www.fao.org/food-loss-and-food-waste/en/"
+    },
+    {
+      "id": "general-sensitive-trails-16",
+      "scope": "general",
+      "topic": "Low-impact visits",
+      "question": "Why should visitors stay on marked paths in fragile dunes or vegetation?",
+      "options": [
+        "So that every visitor sees exactly the same scenery",
+        "Because trails are only for people who walk quickly",
+        "To avoid learning about nearby habitats",
+        "To reduce trampling, erosion and damage to sensitive plants"
+      ],
+      "answerIndex": 3,
+      "explanation": "Marked routes can help limit pressure on fragile ground and guide people away from sensitive or hazardous areas.",
+      "sourceLabel": "UNESCO World Heritage Centre — Sustainable Tourism",
+      "sourceUrl": "https://whc.unesco.org/en/sustainabletourism/"
+    },
+    {
+      "id": "general-citizen-science-17",
+      "scope": "general",
+      "topic": "Evidence and observation",
+      "question": "You record a wildlife observation for a citizen-science platform. Which information makes the record more useful?",
+      "options": [
+        "An exact location when safe to share, date, evidence and an honest confidence level",
+        "A dramatic species name even when uncertain",
+        "A copied location from an unrelated post",
+        "An edited image with no explanation"
+      ],
+      "answerIndex": 0,
+      "explanation": "Observation records are more useful when their evidence and context can be assessed. Avoid sharing precise locations of vulnerable species when doing so could put them at risk.",
+      "sourceLabel": "GBIF — What is GBIF?",
+      "sourceUrl": "https://www.gbif.org/what-is-gbif"
+    },
+    {
+      "id": "general-energy-efficiency-18",
+      "scope": "general",
+      "topic": "Climate action",
+      "question": "Which approach best reduces the energy impact of a visitor facility over time?",
+      "options": [
+        "Run equipment at full power even when unused",
+        "Improve energy efficiency and use cleaner energy where feasible",
+        "Replace maintenance with decorative lighting",
+        "Keep doors open while air-conditioning runs"
+      ],
+      "answerIndex": 1,
+      "explanation": "Efficiency reduces unnecessary demand; cleaner energy can further reduce emissions depending on the energy system and project.",
+      "sourceLabel": "International Energy Agency — Energy Efficiency",
+      "sourceUrl": "https://www.iea.org/topics/energy-efficiency"
+    },
+    {
+      "id": "general-sacred-space-19",
+      "scope": "general",
+      "topic": "Cultural respect",
+      "question": "A sign asks visitors to remain outside a sacred room during a ceremony. What is the respectful response?",
+      "options": [
+        "Enter quietly because ceremonies are public",
+        "Film through the doorway without asking",
+        "Respect the restriction and ask site staff about appropriate ways to learn",
+        "Move the sign to take a photograph"
+      ],
+      "answerIndex": 2,
+      "explanation": "Cultural protocols can govern access, recording and participation. Follow local guidance and do not assume every space or practice is open to visitors.",
+      "sourceLabel": "UNESCO — Ethics and Intangible Cultural Heritage",
+      "sourceUrl": "https://ich.unesco.org/en/ethics-and-ich-00866"
+    },
+    {
+      "id": "general-community-benefit-20",
+      "scope": "general",
+      "topic": "Sustainable tourism",
+      "question": "Which is the strongest sign that tourism may be contributing to local wellbeing?",
+      "options": [
+        "Visitor numbers rise but local people have no voice",
+        "All local products are replaced by imported souvenirs",
+        "Visitors are encouraged to bypass local services",
+        "Local people participate in decisions and can benefit through fair opportunities"
+      ],
+      "answerIndex": 3,
+      "explanation": "Sustainable tourism should account for community participation, local values and the distribution of benefits—not just the number of arrivals.",
+      "sourceLabel": "UNESCO World Heritage Centre — Sustainable Tourism",
+      "sourceUrl": "https://whc.unesco.org/en/sustainabletourism/"
+    },
+    {
+      "id": "general-accessibility-21",
+      "scope": "general",
+      "topic": "Inclusive visitor experience",
+      "question": "What is a useful first step when improving access for visitors with different disabilities?",
+      "options": [
+        "Consult people with disabilities and identify practical barriers across information, routes and services",
+        "Assume one ramp solves every access need",
+        "Publish access information only after visitors arrive",
+        "Remove seating so paths look wider"
+      ],
+      "answerIndex": 0,
+      "explanation": "Accessibility works best when people with different needs are consulted and information is clear before a visit. Solutions should respond to the actual site context.",
+      "sourceLabel": "UN Tourism — Accessible Tourism",
+      "sourceUrl": "https://www.unwto.org/accessibility"
+    },
+    {
+      "id": "general-reef-care-22",
+      "scope": "general",
+      "topic": "Marine ecosystems",
+      "question": "When snorkelling near a coral reef, what should you do?",
+      "options": [
+        "Stand on coral for a better view",
+        "Keep fins and hands away from coral and avoid disturbing marine life",
+        "Touch or collect small coral fragments",
+        "Feed fish to gather them for a photograph"
+      ],
+      "answerIndex": 1,
+      "explanation": "Coral and associated marine life can be damaged by contact and disturbance. Follow local marine-protection rules and guide instructions.",
+      "sourceLabel": "UNESCO — Ocean",
+      "sourceUrl": "https://www.unesco.org/en/ocean"
+    },
+    {
+      "id": "general-heritage-records-23",
+      "scope": "general",
+      "topic": "Documentation and provenance",
+      "question": "A photograph of a historical object circulates online with no date or location. What is the most responsible caption?",
+      "options": [
+        "State its exact origin based on a guess",
+        "Copy a confident comment as the source",
+        "Describe what is visible and mark the date, origin and attribution as unverified until checked",
+        "Remove uncertainty so the post looks authoritative"
+      ],
+      "answerIndex": 2,
+      "explanation": "Clear provenance distinguishes observation from interpretation. Do not turn an uncertain attribution into a verified fact.",
+      "sourceLabel": "UNESCO — Media and Information Literacy",
+      "sourceUrl": "https://www.unesco.org/en/media-information-literacy"
+    },
+    {
+      "id": "general-risk-register-24",
+      "scope": "general",
+      "topic": "Risk management",
+      "question": "Why should a site manager regularly review a risk register instead of preparing one only once?",
+      "options": [
+        "Risks never change after a plan is written",
+        "A risk register is mainly a marketing document",
+        "Old risks should be hidden from new staff",
+        "Hazards, exposure, site conditions and mitigation measures can change over time"
+      ],
+      "answerIndex": 3,
+      "explanation": "Risk monitoring supports preparedness and helps teams adapt plans as conditions, knowledge and responsibilities change.",
+      "sourceLabel": "UNESCO — Reducing Disaster Risks at World Heritage Properties",
+      "sourceUrl": "https://whc.unesco.org/en/disaster-risk-reduction/"
+    },
+    {
+      "id": "site-borobudur-03",
+      "scope": "specialized",
+      "targetSiteIds": [
+        "borobudur"
+      ],
+      "topic": "Monument architecture",
+      "question": "Which sequence best describes Borobudur's broad physical structure?",
+      "options": [
+        "A pyramidal base with square terraces, circular platforms and a monumental stupa",
+        "A single flat courtyard with no upper platform",
+        "Five circular courtyards and a separate palace",
+        "A tower surrounded by defensive walls"
+      ],
+      "answerIndex": 0,
+      "explanation": "UNESCO describes Borobudur as a monument arranged in three broad tiers, crowned by a monumental stupa.",
+      "sourceLabel": "UNESCO World Heritage Centre — Borobudur",
+      "sourceUrl": "https://whc.unesco.org/en/list/592/"
+    },
+    {
+      "id": "site-borobudur-04",
+      "scope": "specialized",
+      "targetSiteIds": [
+        "borobudur"
+      ],
+      "topic": "Monument architecture",
+      "question": "How many openwork stupas stand around Borobudur's three circular platforms, according to the UNESCO World Heritage description?",
+      "options": [
+        "24",
+        "72",
+        "108",
+        "365"
+      ],
+      "answerIndex": 1,
+      "explanation": "The World Heritage Centre describes 72 openwork stupas around the circular platforms, each containing a Buddha statue.",
+      "sourceLabel": "UNESCO World Heritage Centre — Borobudur",
+      "sourceUrl": "https://whc.unesco.org/en/list/592/"
+    },
+    {
+      "id": "site-prambanan-03",
+      "scope": "specialized",
+      "targetSiteIds": [
+        "prambanan"
+      ],
+      "topic": "Epic narratives",
+      "question": "Which epic is illustrated by reliefs on Prambanan's temples?",
+      "options": [
+        "The Epic of Gilgamesh",
+        "The Odyssey",
+        "The Ramayana",
+        "The Mahabharata only"
+      ],
+      "answerIndex": 2,
+      "explanation": "UNESCO's description notes reliefs illustrating the Ramayana on the temples within the compound.",
+      "sourceLabel": "UNESCO World Heritage Centre — Prambanan",
+      "sourceUrl": "https://whc.unesco.org/en/list/642/"
+    },
+    {
+      "id": "site-prambanan-04",
+      "scope": "specialized",
+      "targetSiteIds": [
+        "prambanan"
+      ],
+      "topic": "Hindu traditions",
+      "question": "Which three great Hindu divinities are associated with Prambanan's principal temples?",
+      "options": [
+        "Zeus, Hera and Athena",
+        "Odin, Thor and Freyja",
+        "Isis, Osiris and Horus",
+        "Shiva, Vishnu and Brahma"
+      ],
+      "answerIndex": 3,
+      "explanation": "The Prambanan compound includes temples dedicated to Shiva, Vishnu and Brahma, as described by UNESCO.",
+      "sourceLabel": "UNESCO World Heritage Centre — Prambanan",
+      "sourceUrl": "https://whc.unesco.org/en/list/642/"
+    },
+    {
+      "id": "site-komodo-03",
+      "scope": "specialized",
+      "targetSiteIds": [
+        "komodo"
+      ],
+      "topic": "Biogeography",
+      "question": "Which biogeographical region is associated with Komodo National Park in the UNESCO description?",
+      "options": [
+        "Wallacea, between the Australian and Sunda ecosystems",
+        "The Arctic tundra",
+        "The Amazon basin",
+        "The Himalayan plateau"
+      ],
+      "answerIndex": 0,
+      "explanation": "UNESCO highlights the park's location in the Wallacea biogeographical region, between the Australian and Sunda ecosystems.",
+      "sourceLabel": "UNESCO World Heritage Centre — Komodo National Park",
+      "sourceUrl": "https://whc.unesco.org/en/list/609/"
+    },
+    {
+      "id": "site-komodo-04",
+      "scope": "specialized",
+      "targetSiteIds": [
+        "komodo"
+      ],
+      "topic": "Island ecosystems",
+      "question": "Which combination best reflects the ecological variety described for Komodo National Park?",
+      "options": [
+        "Only a single urban habitat",
+        "Dry savannah and other terrestrial habitats alongside coral-rich marine waters",
+        "Only permanent snow and glaciers",
+        "An ecosystem without terrestrial animals"
+      ],
+      "answerIndex": 1,
+      "explanation": "The UNESCO description links rugged dry island habitats with rich coastal and marine ecosystems; both are part of the property's conservation value.",
+      "sourceLabel": "UNESCO World Heritage Centre — Komodo National Park",
+      "sourceUrl": "https://whc.unesco.org/en/list/609/"
+    },
+    {
+      "id": "site-bali-subak-03",
+      "scope": "specialized",
+      "targetSiteIds": [
+        "bali-cultural-landscape"
+      ],
+      "topic": "Cultural landscape",
+      "question": "The UNESCO title connects Bali's subak system with which philosophy?",
+      "options": [
+        "Ubuntu",
+        "Wabi-sabi",
+        "Tri Hita Karana",
+        "Stoicism"
+      ],
+      "answerIndex": 2,
+      "explanation": "The property's official name describes the subak system as a manifestation of the Tri Hita Karana philosophy.",
+      "sourceLabel": "UNESCO World Heritage Centre — Cultural Landscape of Bali Province",
+      "sourceUrl": "https://whc.unesco.org/en/list/1194/"
+    },
+    {
+      "id": "site-bali-subak-04",
+      "scope": "specialized",
+      "targetSiteIds": [
+        "bali-cultural-landscape"
+      ],
+      "topic": "Property components",
+      "question": "Why is the Bali designation best understood as a cultural landscape rather than one isolated temple?",
+      "options": [
+        "It refers only to a single hotel",
+        "It has no relationship to farming or water management",
+        "It represents only a natural volcano with no human history",
+        "It brings together water temples, lakes, watersheds and subak landscapes as a connected property"
+      ],
+      "answerIndex": 3,
+      "explanation": "The listed property includes several components that express relationships among water, farming, temples and the wider landscape.",
+      "sourceLabel": "UNESCO World Heritage Centre — Cultural Landscape of Bali Province",
+      "sourceUrl": "https://whc.unesco.org/en/list/1194/"
+    },
+    {
+      "id": "site-sangiran-03",
+      "scope": "specialized",
+      "targetSiteIds": [
+        "sangiran"
+      ],
+      "topic": "Scientific evidence",
+      "question": "Why should a fossil find from Sangiran be documented together with its geological and archaeological context?",
+      "options": [
+        "Context can help interpret age, environment and how the evidence relates to other finds",
+        "Context is unimportant once a specimen is photographed",
+        "Every fossil from the same site must have the same age",
+        "A social-media label is enough to establish a fossil's age"
+      ],
+      "answerIndex": 0,
+      "explanation": "Sangiran's significance relates to fossil and geological evidence. Context helps researchers build and test interpretations rather than relying on an isolated object.",
+      "sourceLabel": "UNESCO World Heritage Centre — Sangiran",
+      "sourceUrl": "https://whc.unesco.org/en/list/593/"
+    },
+    {
+      "id": "site-sangiran-04",
+      "scope": "specialized",
+      "targetSiteIds": [
+        "sangiran"
+      ],
+      "topic": "Scientific interpretation",
+      "question": "Which statement is most responsible when sharing a claim about a new fossil discovery?",
+      "options": [
+        "It definitely rewrites all human history",
+        "A strong claim needs documented provenance and scientific assessment",
+        "Its age can be known from colour alone",
+        "The most dramatic online explanation is always the most reliable"
+      ],
+      "answerIndex": 1,
+      "explanation": "Evidence, context and review are necessary before turning a fossil discovery into a broad claim about human evolution.",
+      "sourceLabel": "UNESCO World Heritage Centre — Sangiran",
+      "sourceUrl": "https://whc.unesco.org/en/list/593/"
+    },
+    {
+      "id": "site-lorentz-03",
+      "scope": "specialized",
+      "targetSiteIds": [
+        "lorentz"
+      ],
+      "topic": "Elevation and ecosystems",
+      "question": "What helps explain the range of habitats associated with Lorentz National Park?",
+      "options": [
+        "All parts of the park share identical environmental conditions",
+        "Only the park boundary creates biodiversity",
+        "Its broad landscape spans very different elevations and environmental conditions",
+        "The park contains no significant elevation change"
+      ],
+      "answerIndex": 2,
+      "explanation": "Lorentz covers a vast and varied landscape, so elevation and environmental gradients help explain its different habitats.",
+      "sourceLabel": "UNESCO World Heritage Centre — Lorentz National Park",
+      "sourceUrl": "https://whc.unesco.org/en/list/955/"
+    },
+    {
+      "id": "site-lorentz-04",
+      "scope": "specialized",
+      "targetSiteIds": [
+        "lorentz"
+      ],
+      "topic": "Community and conservation",
+      "question": "Which approach is most appropriate when research or conservation activities could affect Indigenous communities connected to a landscape?",
+      "options": [
+        "Collect knowledge without explaining how it will be used",
+        "Assume outsiders should make every decision",
+        "Publish sensitive cultural information automatically",
+        "Engage communities respectfully, recognise rights and follow applicable consent and local protocols"
+      ],
+      "answerIndex": 3,
+      "explanation": "Conservation and research should respect communities' rights, knowledge, participation and protocols, especially where activities may affect cultural practices or access.",
+      "sourceLabel": "UNESCO — Ethics and Intangible Cultural Heritage",
+      "sourceUrl": "https://ich.unesco.org/en/ethics-and-ich-00866"
+    },
+    {
+      "id": "type-wh-03",
+      "scope": "site_type",
+      "targetSiteTypes": [
+        "world_heritage"
+      ],
+      "topic": "Protection and management",
+      "question": "Does World Heritage inscription mean that no further site management is needed?",
+      "options": [
+        "No; protection, conservation and management remain ongoing responsibilities",
+        "Yes, inscription protects a property automatically forever",
+        "Yes, unless visitor numbers increase",
+        "No; the site must be converted into a museum"
+      ],
+      "answerIndex": 0,
+      "explanation": "Inscription recognises a property's significance, but States Parties and site managers still need effective protection, monitoring and management.",
+      "sourceLabel": "UNESCO World Heritage Centre — About World Heritage",
+      "sourceUrl": "https://whc.unesco.org/en/about/"
+    },
+    {
+      "id": "type-wh-04",
+      "scope": "site_type",
+      "targetSiteTypes": [
+        "world_heritage"
+      ],
+      "topic": "Boundaries and setting",
+      "question": "Why might the wider setting of a World Heritage property matter?",
+      "options": [
+        "It matters only if it contains a gift shop",
+        "Changes outside a mapped boundary can still affect views, relationships or attributes that contribute to the property's value",
+        "It can never affect the property's values",
+        "A buffer zone is always identical to the property itself"
+      ],
+      "answerIndex": 1,
+      "explanation": "UNESCO notes that development in the wider setting can threaten the relationship between a property and its surroundings; exact effects depend on the site.",
+      "sourceLabel": "UNESCO World Heritage Centre — Borobudur",
+      "sourceUrl": "https://whc.unesco.org/en/list/592/"
+    },
+    {
+      "id": "type-tentative-03",
+      "scope": "site_type",
+      "targetSiteTypes": [
+        "world_heritage_tentative"
+      ],
+      "topic": "Nomination process",
+      "question": "Can the World Heritage Committee examine a nomination for a property that has never been included on the State Party's Tentative List?",
+      "options": [
+        "Yes, every local proposal goes directly to the Committee",
+        "Yes, if a travel operator supports it",
+        "No; inclusion on the Tentative List is a prerequisite for consideration",
+        "Only if a social-media campaign is sufficiently large"
+      ],
+      "answerIndex": 2,
+      "explanation": "UNESCO states that a property must already be included on the State Party's Tentative List before its nomination can be considered.",
+      "sourceLabel": "UNESCO World Heritage Centre — Tentative Lists",
+      "sourceUrl": "https://whc.unesco.org/en/tentativelists/"
+    },
+    {
+      "id": "type-tentative-04",
+      "scope": "site_type",
+      "targetSiteTypes": [
+        "world_heritage_tentative"
+      ],
+      "topic": "Participation and updates",
+      "question": "What is a sound way for a State Party to prepare or revise its Tentative List?",
+      "options": [
+        "Treat it as a permanent list that cannot change",
+        "Let visitors add sites directly without review",
+        "Include only sites already inscribed on the World Heritage List",
+        "Involve relevant stakeholders and rights-holders and update the list through national processes"
+      ],
+      "answerIndex": 3,
+      "explanation": "UNESCO encourages participation by site managers, local and regional governments, communities, Indigenous peoples and other stakeholders in Tentative List processes.",
+      "sourceLabel": "UNESCO World Heritage Centre — Nominations",
+      "sourceUrl": "https://whc.unesco.org/en/nominations"
+    },
+    {
+      "id": "type-geopark-03",
+      "scope": "site_type",
+      "targetSiteTypes": [
+        "global_geopark"
+      ],
+      "topic": "Local participation",
+      "question": "What does a bottom-up approach mean in the context of a UNESCO Global Geopark?",
+      "options": [
+        "Local communities take part in shaping initiatives alongside protection, education and sustainable development",
+        "All decisions are made by visiting tourists",
+        "Only international scientists may contribute",
+        "Geological heritage is separated from local life"
+      ],
+      "answerIndex": 0,
+      "explanation": "UNESCO describes Global Geoparks as using a bottom-up approach that involves local communities alongside protection, education and sustainable development.",
+      "sourceLabel": "UNESCO — UNESCO Global Geoparks",
+      "sourceUrl": "https://www.unesco.org/en/iggp/geoparks/about"
+    },
+    {
+      "id": "type-geopark-04",
+      "scope": "site_type",
+      "targetSiteTypes": [
+        "global_geopark"
+      ],
+      "topic": "Geoconservation",
+      "question": "Which visitor behaviour best supports geoconservation in a geopark?",
+      "options": [
+        "Chip pieces from an outcrop to take home",
+        "Leave geological features in place and follow site guidance",
+        "Write names on fossil-bearing rocks",
+        "Create new shortcuts through sensitive formations"
+      ],
+      "answerIndex": 1,
+      "explanation": "Geological features are part of the heritage being protected and interpreted. Visitors should follow site rules and avoid damaging or removing material.",
+      "sourceLabel": "UNESCO — UNESCO Global Geoparks",
+      "sourceUrl": "https://www.unesco.org/en/iggp/geoparks/about"
+    },
+    {
+      "id": "type-biosphere-03",
+      "scope": "site_type",
+      "targetSiteTypes": [
+        "biosphere_reserve"
+      ],
+      "topic": "Zonation",
+      "question": "In a typical biosphere-reserve zonation model, which area is generally associated with sustainable human activities and development across the wider landscape?",
+      "options": [
+        "The core area only, where all development is the primary purpose",
+        "An area outside every biosphere reserve",
+        "The transition area",
+        "A zone reserved only for souvenir sales"
+      ],
+      "answerIndex": 2,
+      "explanation": "The transition area is where communities, authorities and partners can work toward sustainable resource use and development compatible with the reserve's goals; arrangements vary by place.",
+      "sourceLabel": "UNESCO — Man and the Biosphere Programme",
+      "sourceUrl": "https://www.unesco.org/en/mab"
+    },
+    {
+      "id": "type-biosphere-04",
+      "scope": "site_type",
+      "targetSiteTypes": [
+        "biosphere_reserve"
+      ],
+      "topic": "Learning and cooperation",
+      "question": "Why are biosphere reserves often described as places for learning about sustainable development?",
+      "options": [
+        "They exist only to restrict research",
+        "They remove communities from all decisions",
+        "They guarantee that no environmental problem can occur",
+        "They connect conservation, research, education and collaboration with communities and partners"
+      ],
+      "answerIndex": 3,
+      "explanation": "The Man and the Biosphere Programme promotes places where people can test and demonstrate approaches that connect biodiversity conservation with sustainable development.",
+      "sourceLabel": "UNESCO — Man and the Biosphere Programme",
+      "sourceUrl": "https://www.unesco.org/en/mab"
+    },
+    {
+      "id": "type-ich-03",
+      "scope": "site_type",
+      "targetSiteTypes": [
+        "intangible_cultural_heritage"
+      ],
+      "topic": "Living heritage domains",
+      "question": "Which is an example of intangible cultural heritage under the 2003 Convention?",
+      "options": [
+        "Knowledge and practices concerning nature and the universe, transmitted by communities",
+        "Only a newly built visitor centre",
+        "Only a printed map",
+        "Only an object separated from its community"
+      ],
+      "answerIndex": 0,
+      "explanation": "The Convention covers living practices, expressions, knowledge and skills recognised by communities, including knowledge concerning nature and the universe.",
+      "sourceLabel": "UNESCO — What is Intangible Cultural Heritage?",
+      "sourceUrl": "https://ich.unesco.org/en/what-is-intangible-heritage-00003"
+    },
+    {
+      "id": "type-ich-04",
+      "scope": "site_type",
+      "targetSiteTypes": [
+        "intangible_cultural_heritage"
+      ],
+      "topic": "Inventories and safeguarding",
+      "question": "What is a responsible approach to documenting a living heritage practice for an inventory?",
+      "options": [
+        "Publish every detail even when the community objects",
+        "Work with the community, describe it in context and respect consent and local protocols",
+        "Treat the inventory as an outsider's ranking of cultures",
+        "Assume a recorded video alone guarantees the practice will continue"
+      ],
+      "answerIndex": 1,
+      "explanation": "UNESCO emphasises the participation of communities in identifying and defining intangible heritage; documentation supports safeguarding but does not replace living transmission.",
+      "sourceLabel": "UNESCO — Involvement of Communities",
+      "sourceUrl": "https://ich.unesco.org/en/involvement-of-communities-0033"
+    },
+    {
+      "id": "type-creative-03",
+      "scope": "site_type",
+      "targetSiteTypes": [
+        "creative_cities"
+      ],
+      "topic": "Creative fields",
+      "question": "Which option is one of the UNESCO Creative Cities Network's recognised creative fields?",
+      "options": [
+        "Glacier engineering",
+        "World Heritage inscription status",
+        "Gastronomy",
+        "Airport management"
+      ],
+      "answerIndex": 2,
+      "explanation": "The Network's seven creative fields include Crafts and Folk Art, Design, Film, Gastronomy, Literature, Media Arts and Music.",
+      "sourceLabel": "UNESCO — Creative Cities Network",
+      "sourceUrl": "https://www.unesco.org/en/creative-cities"
+    },
+    {
+      "id": "type-creative-04",
+      "scope": "site_type",
+      "targetSiteTypes": [
+        "creative_cities"
+      ],
+      "topic": "International cooperation",
+      "question": "What is a key purpose of the UNESCO Creative Cities Network?",
+      "options": [
+        "To certify every building in a city as World Heritage",
+        "To replace local cultural organisations with one global institution",
+        "To rank cities only by annual tourist arrivals",
+        "To help cities cooperate and use culture and creativity in sustainable urban development"
+      ],
+      "answerIndex": 3,
+      "explanation": "The Network promotes cooperation among cities that place culture and creativity within sustainable development strategies; it is a distinct designation from World Heritage inscription.",
       "sourceLabel": "UNESCO — Creative Cities Network",
       "sourceUrl": "https://www.unesco.org/en/creative-cities"
     }
