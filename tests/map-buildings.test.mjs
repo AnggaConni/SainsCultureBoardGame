@@ -6,6 +6,8 @@ const app = await readFile(new URL("../js/app.js", import.meta.url), "utf8");
 const config = await readFile(new URL("../js/cesium-config.js", import.meta.url), "utf8");
 const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
 const css = await readFile(new URL("../css/atlas.css", import.meta.url), "utf8");
+const quizBank = JSON.parse(await readFile(new URL("../data/quizzes.json", import.meta.url), "utf8"));
+const sitesJs = await readFile(new URL("../js/sites.js", import.meta.url), "utf8");
 const deployWorkflow = await readFile(new URL("../.github/workflows/deploy-pages-with-cesium-token.yml", import.meta.url), "utf8");
 
 test("Cesium OSM Buildings layer is requested during map initialization", () => {
@@ -215,4 +217,47 @@ test("SEO and social metadata uses the current Pages URL and root thumbnail imag
   assert.ok(html.includes('<meta name="twitter:image" content="' + thumbnailUrl + '">'));
   assert.ok(html.includes('name="description"'));
   assert.ok(html.includes('name="robots" content="index,follow,max-image-preview:large"'));
+});
+
+
+test("Quiz bank is external JSON with all three scopes and valid unique questions", () => {
+  assert.equal(quizBank.schemaVersion, "1.0.0");
+  assert.ok(Array.isArray(quizBank.quizzes));
+  assert.equal(new Set(quizBank.quizzes.map(quiz => quiz.id)).size, quizBank.quizzes.length);
+  for (const scope of ["general", "specialized", "site_type"]) {
+    assert.ok(quizBank.quizzes.some(quiz => quiz.scope === scope), "missing quiz scope " + scope);
+  }
+  for (const quiz of quizBank.quizzes) {
+    assert.ok(quiz.id && quiz.question && quiz.explanation);
+    assert.ok(Array.isArray(quiz.options) && quiz.options.length >= 2);
+    assert.ok(Number.isInteger(quiz.answerIndex) && quiz.answerIndex >= 0 && quiz.answerIndex < quiz.options.length);
+    assert.match(quiz.sourceUrl, /^https:\/\//);
+    if (quiz.scope === "specialized") assert.ok(Array.isArray(quiz.targetSiteIds) && quiz.targetSiteIds.length);
+    if (quiz.scope === "site_type") assert.ok(Array.isArray(quiz.targetSiteTypes) && quiz.targetSiteTypes.length);
+  }
+  assert.equal(quizBank.quizzes.filter(quiz => quiz.scope === "general").length, 12);
+  assert.equal(quizBank.quizzes.filter(quiz => quiz.scope === "specialized").length, 12);
+  assert.equal(quizBank.quizzes.filter(quiz => quiz.scope === "site_type").length, 12);
+});
+
+test("Quiz runtime targets general questions, exact site IDs, and programme types", () => {
+  assert.ok(app.includes('fetch("data/quizzes.json",{cache:"no-cache"})'));
+  assert.ok(app.includes('quiz.scope==="general"'));
+  assert.ok(app.includes('quiz.targetSiteIds.includes(site.id)'));
+  assert.ok(app.includes('quiz.targetSiteTypes.includes(site.programmeKey)'));
+  assert.ok(app.includes("function advanceSiteQuiz(site)"));
+  assert.ok(app.includes("function answerSiteQuiz(site,quiz,selectedIndex)"));
+  assert.ok(app.includes('state.answered.has(quiz.id)'));
+  assert.ok(app.includes('state.xp+=100'));
+});
+
+test("Inline site challenges are removed and quiz scope/navigation metadata is rendered", () => {
+  assert.doesNotMatch(sitesJs, /challenge:\{/);
+  assert.match(app, /renderSiteQuiz\(s\)/);
+  assert.match(html, /id="quizScopeBadge"/);
+  assert.match(html, /id="quizCounter"/);
+  assert.match(html, /id="quizSource"/);
+  assert.match(html, /id="quizNextBtn"/);
+  assert.match(css, /\.quiz-scope-badge/);
+  assert.match(css, /\.quiz-next-btn/);
 });

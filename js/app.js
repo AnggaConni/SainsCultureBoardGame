@@ -1,5 +1,5 @@
 (() => {"use strict";
-const $=s=>document.querySelector(s),SITE_INTEL_API_URL="https://civilaegis-tinyfish-proxy.conniezz-cool.workers.dev/site-intel",state={filter:"all",search:"",listLimit:60,selected:null,visited:new Set(),xp:0,answered:new Set(),viewer:null,buildingsTileset:null,buildingsStatus:"idle",terrainStatus:"idle",entities:new Map(),globeModelEntities:new Map(),catalog:null,registryMeta:null,hovered:null,globeOverlay:null,globeOverlays:new Map(),globeOverlayReady:false,globeOverlayCleanup:null,globeOverlayCleanups:[],komodoOverlay:null,komodoOverlayCleanup:null,explorationZones:new Map(),activeZoneId:null,siteIntelCache:new Map(),siteIntelPending:new Map(),siteIntelTab:"overview",toastTimer:null,local3d:null,local3dFrame:null,local3dModel:null},KEY="world-heritage-atlas-progress-v1",cat={culture:"CULTURE",nature:"NATURE",mixed:"MIXED"};
+const $=s=>document.querySelector(s),SITE_INTEL_API_URL="https://civilaegis-tinyfish-proxy.conniezz-cool.workers.dev/site-intel",state={filter:"all",search:"",listLimit:60,selected:null,visited:new Set(),xp:0,answered:new Set(),quizBank:[],quizCurrentBySite:new Map(),viewer:null,buildingsTileset:null,buildingsStatus:"idle",terrainStatus:"idle",entities:new Map(),globeModelEntities:new Map(),catalog:null,registryMeta:null,hovered:null,globeOverlay:null,globeOverlays:new Map(),globeOverlayReady:false,globeOverlayCleanup:null,globeOverlayCleanups:[],komodoOverlay:null,komodoOverlayCleanup:null,explorationZones:new Map(),activeZoneId:null,siteIntelCache:new Map(),siteIntelPending:new Map(),siteIntelTab:"overview",toastTimer:null,local3d:null,local3dFrame:null,local3dModel:null},KEY="world-heritage-atlas-progress-v1",cat={culture:"CULTURE",nature:"NATURE",mixed:"MIXED"};
 const LOCAL_MODEL_GROUND_CLEARANCE_METERS=1.2;
 const MAP_MARKER_GROUND_CLEARANCE_METERS=12;
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
@@ -895,20 +895,132 @@ function openSite(id,zoom){
  const official=s.official||s.sourceRecord&&s.sourceRecord.officialUrl||s.sourceUrl||"https://data.unesco.org/";
  $("#officialLink").href=official;
  $("#citationLine").textContent="Source: "+(s.sourceAttribution||"UNESCO World Heritage Centre")+" · "+(s.sourceUrl||official)+" · Check the original record for full context.";
- const challenge=s.challenge||{question:"Explore the official record for this place.",options:["Open the official source record"],answer:0,explanation:"The linked source provides the record for this place."};
- $("#quizQuestion").textContent=challenge.question;
- $("#quizFeedback").hidden=true;
- const done=state.answered.has(id);
- $("#quizOptions").innerHTML=challenge.options.map((o,i)=>'<button type="button" class="quiz-option" data-answer="'+i+'" '+(done?"disabled":"")+'>'+String.fromCharCode(65+i)+". "+esc(o)+'</button>').join("");
- if(done){$("#quizFeedback").hidden=false;$("#quizFeedback").textContent="Challenge already completed. Explore another site to keep earning discoveries."}
- $("#quizOptions").querySelectorAll("[data-answer]").forEach(b=>b.addEventListener("click",()=>answer(s,Number(b.dataset.answer))));
+ renderSiteQuiz(s);
  $("#visitBtn").textContent=state.visited.has(id)?"Discovery recorded ✓":"Start exploration →";
  $("#visitBtn").onclick=()=>visit(s);
  $("#siteDrawer").hidden=false;renderSites();
  if(zoom&&hasPoint)fly(s);
  else if(zoom&&!hasPoint)toast("This record has no mapped point yet; the source link is available in the journal.");
 }
-function answer(s,i){const ok=i===s.challenge.answer;$("#quizOptions").querySelectorAll("button").forEach((b,n)=>{b.disabled=true;if(n===s.challenge.answer)b.classList.add("correct");else if(n===i)b.classList.add("incorrect")});$("#quizFeedback").hidden=false;if(ok){if(!state.answered.has(s.id)){state.answered.add(s.id);state.xp+=100;save();progress()}$("#quizFeedback").textContent="Correct! +100 Field XP. "+s.challenge.explanation;toast("Knowledge unlocked · +100 Field XP")}else $("#quizFeedback").textContent="Not quite. "+s.challenge.explanation+" Try another challenge.";$("#visitedPill").textContent="CHALLENGE COMPLETED";$("#visitedPill").classList.add("done")}
+function quizScopePriority(scope){return scope==="specialized"?0:scope==="site_type"?1:2}
+function getSiteQuizPool(site){
+ const quizzes=Array.isArray(state.quizBank)?state.quizBank:[];
+ return quizzes.filter(quiz=>{
+  if(quiz.scope==="general")return true;
+  if(quiz.scope==="specialized")return Array.isArray(quiz.targetSiteIds)&&quiz.targetSiteIds.includes(site.id);
+  if(quiz.scope==="site_type")return Array.isArray(quiz.targetSiteTypes)&&quiz.targetSiteTypes.includes(site.programmeKey);
+  return false;
+ }).sort((a,b)=>quizScopePriority(a.scope)-quizScopePriority(b.scope));
+}
+function quizScopeLabel(quiz,site){
+ if(quiz.scope==="general")return "GENERAL · ALL SITES";
+ if(quiz.scope==="specialized")return "SPECIALIZED · "+String(site.name||site.id).toUpperCase();
+ const labels={
+  world_heritage:"WORLD HERITAGE",
+  world_heritage_tentative:"TENTATIVE LIST",
+  global_geopark:"GLOBAL GEOPARK",
+  biosphere_reserve:"BIOSPHERE RESERVE",
+  intangible_cultural_heritage:"INTANGIBLE HERITAGE",
+  creative_cities:"CREATIVE CITIES"
+ };
+ return "SITE TYPE · "+(labels[site.programmeKey]||String(site.programmeLabel||site.programmeKey||"SITE").toUpperCase());
+}
+function chooseSiteQuiz(site,advance=false){
+ const pool=getSiteQuizPool(site);
+ if(!pool.length)return null;
+ const currentId=state.quizCurrentBySite.get(site.id);
+ const currentIndex=pool.findIndex(quiz=>quiz.id===currentId);
+ if(advance&&pool.length>1){
+  const start=currentIndex<0?-1:currentIndex;
+  for(let step=1;step<=pool.length;step++){
+   const candidate=pool[(start+step+pool.length)%pool.length];
+   if(!state.answered.has(candidate.id))return candidate;
+  }
+  return pool[((currentIndex<0?0:currentIndex)+1)%pool.length];
+ }
+ if(currentIndex>=0&&!state.answered.has(pool[currentIndex].id))return pool[currentIndex];
+ return pool.find(quiz=>!state.answered.has(quiz.id))||pool[currentIndex>=0?currentIndex:0];
+}
+function renderQuizSource(quiz){
+ const source=$("#quizSource");
+ if(!source)return;
+ source.replaceChildren();
+ if(!quiz||!quiz.sourceUrl){source.hidden=true;return}
+ const label=document.createElement("span");
+ label.textContent="Source: ";
+ const link=document.createElement("a");
+ link.href=quiz.sourceUrl;
+ link.target="_blank";
+ link.rel="noopener noreferrer";
+ link.textContent=quiz.sourceLabel||"Read the source";
+ source.append(label,link);
+ source.hidden=false;
+}
+function renderSiteQuiz(site,requestedQuiz=null){
+ const pool=getSiteQuizPool(site);
+ const badge=$("#quizScopeBadge"),counter=$("#quizCounter"),question=$("#quizQuestion"),options=$("#quizOptions"),feedback=$("#quizFeedback"),next=$("#quizNextBtn");
+ if(!state.quizBank.length||!pool.length){
+  if(badge)badge.textContent="JSON QUIZ BANK";
+  if(counter)counter.textContent="UNAVAILABLE";
+  if(question)question.textContent="Quiz questions could not be loaded.";
+  if(options)options.replaceChildren();
+  if(feedback){feedback.textContent="Check data/quizzes.json and reload the page. Site information remains available.";feedback.hidden=false}
+  if(next){next.disabled=true;next.hidden=true}
+  renderQuizSource(null);
+  return;
+ }
+ const quiz=requestedQuiz||chooseSiteQuiz(site,false);
+ if(!quiz){if(question)question.textContent="No matching questions for this site.";return}
+ state.quizCurrentBySite.set(site.id,quiz.id);
+ const index=pool.findIndex(item=>item.id===quiz.id);
+ const done=state.answered.has(quiz.id);
+ const completed=pool.filter(item=>state.answered.has(item.id)).length;
+ if(badge)badge.textContent=quizScopeLabel(quiz,site);
+ if(counter)counter.textContent="QUESTION "+(Math.max(0,index)+1)+" / "+pool.length+" · "+completed+" COMPLETED";
+ if(question)question.textContent=quiz.question;
+ if(options){
+  options.innerHTML=quiz.options.map((option,i)=>'<button type="button" class="quiz-option" data-quiz-answer="'+i+'" '+(done?"disabled":"")+'>'+String.fromCharCode(65+i)+". "+esc(option)+'</button>').join("");
+  options.querySelectorAll("[data-quiz-answer]").forEach(button=>button.addEventListener("click",()=>answerSiteQuiz(site,quiz,Number(button.dataset.quizAnswer))));
+  if(done)options.querySelectorAll("[data-quiz-answer]").forEach((button,i)=>{button.classList.toggle("correct",i===quiz.answerIndex)});
+ }
+ if(feedback){
+  feedback.hidden=!done;
+  feedback.textContent=done?"Already completed · no extra XP. "+quiz.explanation:"";
+ }
+ if(next){
+  next.hidden=pool.length<2;
+  next.disabled=pool.length<2;
+  next.textContent=pool.some(item=>!state.answered.has(item.id)&&item.id!==quiz.id)?"Next question →":"Review next question ↻";
+ }
+ renderQuizSource(quiz);
+}
+function advanceSiteQuiz(site){
+ const next=chooseSiteQuiz(site,true);
+ if(next)renderSiteQuiz(site,next);
+}
+function answerSiteQuiz(site,quiz,selectedIndex){
+ const options=$("#quizOptions"),feedback=$("#quizFeedback");
+ const correct=selectedIndex===quiz.answerIndex;
+ if(options){
+  options.querySelectorAll("[data-quiz-answer]").forEach((button,i)=>{
+   button.disabled=true;
+   button.classList.toggle("correct",i===quiz.answerIndex);
+   button.classList.toggle("incorrect",i===selectedIndex&&!correct);
+  });
+ }
+ if(correct){
+  if(!state.answered.has(quiz.id)){
+   state.answered.add(quiz.id);
+   state.xp+=100;
+   save();
+   progress();
+   toast("Knowledge unlocked · +100 Field XP");
+  }
+  if(feedback){feedback.textContent="Correct! +100 Field XP. "+quiz.explanation;feedback.hidden=false}
+ }else{
+  if(feedback){feedback.textContent="Not quite. The correct answer is highlighted. "+quiz.explanation;feedback.hidden=false}
+ }
+}
 function visit(s){if(!state.visited.has(s.id)){state.visited.add(s.id);state.xp+=50;save();progress();toast("Discovery recorded · +50 Field XP")}$("#visitedPill").textContent="DISCOVERY RECORDED";$("#visitedPill").classList.add("done");$("#visitBtn").textContent="Discovery recorded ✓"}
 function close(id){$("#"+id).hidden=true}
 
@@ -1039,7 +1151,7 @@ function bindBackgroundMusic(){
  updateAmbientMusicUi();
 }
 
-function bind(){document.querySelectorAll("[data-intel-tab]").forEach(button=>button.addEventListener("click",()=>{const site=HERITAGE_SITES.find(item=>item.id===state.selected);if(site)renderSiteIntelligence(site,button.dataset.intelTab)}));$("#programmeFilter").addEventListener("change",()=>{state.filter=$("#programmeFilter").value;state.listLimit=60;renderSites()});$("#siteSearch").addEventListener("input",()=>{state.search=$("#siteSearch").value;state.listLimit=60;renderSites()});$("#loadMoreSites").addEventListener("click",()=>{state.listLimit+=60;renderSites()});document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>close(b.dataset.close)));["siteDrawer","helpModal"].forEach(id=>$("#"+id).addEventListener("click",e=>{if(e.target.id===id)close(id)}));$("#resetViewBtn").addEventListener("click",()=>{if(state.viewer)state.viewer.camera.flyTo({destination:Cesium.Cartesian3.fromDegrees(118,-2,22500000),orientation:{heading:0,pitch:Cesium.Math.toRadians(-90),roll:0},duration:1.5});$("#coordReadout").textContent="SELECT A PIN TO BEGIN"});$("#retryMapBtn").addEventListener("click",()=>{if(state.viewer){state.viewer.destroy();state.viewer=null}$("#mapFallback").hidden=true;initMap()});$("#helpBtn").addEventListener("click",()=>$("#helpModal").hidden=false);$("#missionGoBtn").addEventListener("click",()=>{const s=HERITAGE_SITES.find(x=>!state.visited.has(x.id))||HERITAGE_SITES[0];openSite(s.id,true)});$("#locateBtn").addEventListener("click",()=>{if(!navigator.geolocation){toast("Location is not available in this browser.");return}navigator.geolocation.getCurrentPosition(p=>{if(state.viewer){state.viewer.camera.flyTo({destination:Cesium.Cartesian3.fromDegrees(p.coords.longitude,p.coords.latitude,25000),duration:1.6});$("#coordReadout").textContent=p.coords.latitude.toFixed(3)+"°, "+p.coords.longitude.toFixed(3)+"°"}},()=>toast("Location permission was not granted."),{timeout:8000})});$("#loadLocalModelBtn").addEventListener("click",loadLocal3D);$("#zoneToggleBtn").addEventListener("click",()=>toggleExplorationZone(HERITAGE_SITES.find(s=>s.id===state.selected),true));$("#zoneMapCardClose").addEventListener("click",()=>{const active=HERITAGE_SITES.find(s=>s.id===state.activeZoneId)||state.globeOverlay&&state.globeOverlay.site;if(active)toggleExplorationZone(active,false)});$("#resetLocalModelBtn").addEventListener("click",()=>{if(state.local3d){const {camera,controls}=state.local3d;camera.position.set(4.8,3.5,5.5);controls.target.set(0,1.4,0);controls.update()}});window.addEventListener("resize",()=>{resizeLocal3D();if(state.globeOverlay&&state.globeOverlay.loaded){const m=state.globeOverlay;m.renderer.render(m.scene,m.camera);updateGlobeModelOverlay()}if(state.komodoOverlay&&state.komodoOverlay.loaded){const m=state.komodoOverlay;m.renderer.render(m.scene,m.camera);updateKomodoMapOverlay()}});bindBackgroundMusic();document.addEventListener("keydown",e=>{if(e.key==="Escape"){close("siteDrawer");close("helpModal")}})}
+function bind(){$("#quizNextBtn").addEventListener("click",()=>{const site=HERITAGE_SITES.find(item=>item.id===state.selected);if(site)advanceSiteQuiz(site)});document.querySelectorAll("[data-intel-tab]").forEach(button=>button.addEventListener("click",()=>{const site=HERITAGE_SITES.find(item=>item.id===state.selected);if(site)renderSiteIntelligence(site,button.dataset.intelTab)}));$("#programmeFilter").addEventListener("change",()=>{state.filter=$("#programmeFilter").value;state.listLimit=60;renderSites()});$("#siteSearch").addEventListener("input",()=>{state.search=$("#siteSearch").value;state.listLimit=60;renderSites()});$("#loadMoreSites").addEventListener("click",()=>{state.listLimit+=60;renderSites()});document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>close(b.dataset.close)));["siteDrawer","helpModal"].forEach(id=>$("#"+id).addEventListener("click",e=>{if(e.target.id===id)close(id)}));$("#resetViewBtn").addEventListener("click",()=>{if(state.viewer)state.viewer.camera.flyTo({destination:Cesium.Cartesian3.fromDegrees(118,-2,22500000),orientation:{heading:0,pitch:Cesium.Math.toRadians(-90),roll:0},duration:1.5});$("#coordReadout").textContent="SELECT A PIN TO BEGIN"});$("#retryMapBtn").addEventListener("click",()=>{if(state.viewer){state.viewer.destroy();state.viewer=null}$("#mapFallback").hidden=true;initMap()});$("#helpBtn").addEventListener("click",()=>$("#helpModal").hidden=false);$("#missionGoBtn").addEventListener("click",()=>{const s=HERITAGE_SITES.find(x=>!state.visited.has(x.id))||HERITAGE_SITES[0];openSite(s.id,true)});$("#locateBtn").addEventListener("click",()=>{if(!navigator.geolocation){toast("Location is not available in this browser.");return}navigator.geolocation.getCurrentPosition(p=>{if(state.viewer){state.viewer.camera.flyTo({destination:Cesium.Cartesian3.fromDegrees(p.coords.longitude,p.coords.latitude,25000),duration:1.6});$("#coordReadout").textContent=p.coords.latitude.toFixed(3)+"°, "+p.coords.longitude.toFixed(3)+"°"}},()=>toast("Location permission was not granted."),{timeout:8000})});$("#loadLocalModelBtn").addEventListener("click",loadLocal3D);$("#zoneToggleBtn").addEventListener("click",()=>toggleExplorationZone(HERITAGE_SITES.find(s=>s.id===state.selected),true));$("#zoneMapCardClose").addEventListener("click",()=>{const active=HERITAGE_SITES.find(s=>s.id===state.activeZoneId)||state.globeOverlay&&state.globeOverlay.site;if(active)toggleExplorationZone(active,false)});$("#resetLocalModelBtn").addEventListener("click",()=>{if(state.local3d){const {camera,controls}=state.local3d;camera.position.set(4.8,3.5,5.5);controls.target.set(0,1.4,0);controls.update()}});window.addEventListener("resize",()=>{resizeLocal3D();if(state.globeOverlay&&state.globeOverlay.loaded){const m=state.globeOverlay;m.renderer.render(m.scene,m.camera);updateGlobeModelOverlay()}if(state.komodoOverlay&&state.komodoOverlay.loaded){const m=state.komodoOverlay;m.renderer.render(m.scene,m.camera);updateKomodoMapOverlay()}});bindBackgroundMusic();document.addEventListener("keydown",e=>{if(e.key==="Escape"){close("siteDrawer");close("helpModal")}})}
 const PROGRAMMES=[
  {key:"world_heritage",label:"UNESCO World Heritage Site",short:"World Heritage",plural:"World Heritage Sites",icon:"🏛️",color:"#efbd6b",dataset:"whc001",range:14000},
  {key:"world_heritage_tentative",label:"World Heritage Tentative List",short:"Tentative List",plural:"Tentative List sites",icon:"🧭",color:"#ff8a4c",dataset:"whc_tentative_2026",range:14000},
@@ -1065,12 +1177,11 @@ function makeRegistrySite(record){
  const coords=record.coordinates&&Number.isFinite(Number(record.coordinates.longitude))&&Number.isFinite(Number(record.coordinates.latitude))&&Math.abs(Number(record.coordinates.latitude))<=90&&Math.abs(Number(record.coordinates.longitude))<=180?[Number(record.coordinates.longitude),Number(record.coordinates.latitude)]:null;
  const country=countryLabel(record.country);
  const category=normalizedCategory(record,programme.key);
- const options=PROGRAMMES.map(p=>p.label);
  const year=record.year?String(record.year):(programme.key==="world_heritage_tentative"?"Tentative · as of 15 Apr 2026":"Not provided");
  const isTentative=programme.key==="world_heritage_tentative";
  const sourceAttribution=record.source&&record.source.attribution||(isTentative?"UNESCO World Heritage Centre":"UNESCO DataHub");
  const sourceUrl=record.source&&(record.source.datasetUrl||record.source.sourceUrl)||"https://data.unesco.org/";
- const challenge=isTentative?{question:"What does a World Heritage Tentative List entry mean?",options:["Already inscribed as World Heritage","A potential future nomination","A Biosphere Reserve"],answer:1,explanation:"A Tentative List is an inventory of sites a State Party may consider for nomination. It is not an inscription on the World Heritage List."}:{question:"Which UNESCO programme is this record associated with?",options,answer:Math.max(0,PROGRAMMES.findIndex(p=>p.key===programme.key)),explanation:programme.label+" is a distinct UNESCO designation/list. It should not be conflated with the other programmes shown in this explorer."};
+
  return {
   id:record.id,name:record.name||"Unnamed UNESCO record",country,location:country||"Location not specified",region:country||"UNESCO designation",
   programmeKey:programme.key,programmeLabel:programme.label,programmeShort:programme.short,designation:programme.label,category,icon:programme.icon,color:programme.color,
@@ -1081,9 +1192,23 @@ function makeRegistrySite(record){
   description:isTentative?"This property appears in the official World Heritage Tentative List snapshot as of 15 April 2026. Tentative status means a State Party may consider a future nomination; it is not an inscription. The report does not provide a central point coordinate here, so no map marker is plotted until coordinates can be verified.":"This entry comes from the UNESCO DataHub registry. Use the linked source record for authoritative designation details; coordinate availability and record completeness vary by programme.",
   why:isTentative?"Candidate category in the official Tentative List: "+record.category:(record.category?"Source category: "+record.category:"Programme record: "+programme.label),
   fact:isTentative?"Status: Tentative List (snapshot as of 15 April 2026), not inscribed.":(record.year?"Year in source dataset: "+record.year:"The source record does not provide a year."),
-  challenge,
   catalogRecord:null,models:[]
  };
+}
+async function loadQuizBank(){
+ try{
+  const response=await fetch("data/quizzes.json",{cache:"no-cache"});
+  if(!response.ok)throw new Error("quiz bank HTTP "+response.status);
+  const payload=await response.json();
+  if(!payload||!Array.isArray(payload.quizzes))throw new Error("data/quizzes.json has no quizzes array");
+  const valid=payload.quizzes.filter(quiz=>quiz&&typeof quiz.id==="string"&&typeof quiz.question==="string"&&Array.isArray(quiz.options)&&quiz.options.length>=2&&Number.isInteger(quiz.answerIndex)&&quiz.answerIndex>=0&&quiz.answerIndex<quiz.options.length&&["general","specialized","site_type"].includes(quiz.scope));
+  if(!valid.length)throw new Error("quiz bank contains no valid questions");
+  state.quizBank=valid;
+  console.info("[Heritage Atlas] loaded",valid.length,"JSON quiz questions");
+ }catch(error){
+  state.quizBank=[];
+  console.error("[Heritage Atlas] Could not load data/quizzes.json.",error);
+ }
 }
 async function loadSiteCatalog(){
  const curatedFallback=[...HERITAGE_SITES];
@@ -1146,6 +1271,6 @@ function updateProgrammeFilterOptions(){
  const all=select.querySelector('option[value="all"]');
  if(all)all.textContent="All programmes ("+Number(state.registryMeta&&state.registryMeta.totalRecords||HERITAGE_SITES.length).toLocaleString()+")";
 }
-async function boot(){load();bind();await loadSiteCatalog();renderSites();progress();initMap()}
+async function boot(){load();bind();await Promise.all([loadSiteCatalog(),loadQuizBank()]);renderSites();progress();initMap()}
 boot();
 })();

@@ -109,3 +109,21 @@
  .music-panel{top:65px;right:9px;width:min(340px,calc(100vw - 18px));padding:13px}
  .music-panel-heading strong{font-size:13px}
 }
+
+
+/* Three-scope JSON quiz bank. */
+.quiz-heading-copy{min-width:0;flex:1}
+.quiz-meta{display:flex;align-items:center;justify-content:space-between;gap:7px;flex-wrap:wrap;margin:7px 0 5px}
+.quiz-scope-badge{display:inline-flex;max-width:100%;padding:5px 7px;border-radius:5px;background:#dff3e9;color:#21735d;font:700 7px/1.4 'DM Mono';letter-spacing:.055em;overflow-wrap:anywhere}
+.quiz-counter{font:8px/1.4 'DM Mono';color:#80918b}
+.quiz-heading-copy h3{margin:5px 0 12px}
+.quiz-source{font:9px/1.6 'DM Sans';color:#80918b;margin:10px 0 0;overflow-wrap:anywhere}
+.quiz-source[hidden]{display:none!important}
+.quiz-source a{color:#0c806b;text-decoration:none;font-weight:650}
+.quiz-source a:hover{text-decoration:underline}
+.quiz-next-btn{display:block;margin:12px 0 0 auto;border:1px solid #0d766b;background:#0d766b;color:#fff;border-radius:8px;padding:10px 12px;font:700 10px 'DM Sans'}
+.quiz-next-btn:hover:not(:disabled){background:#095e56}
+.quiz-next-btn:disabled{opacity:.45;cursor:not-allowed}
+.quiz-next-btn[hidden]{display:none!important}
+.quiz-feedback{white-space:normal}
+@media(max-width:480px){.quiz-meta{align-items:flex-start;flex-direction:column;gap:5px}.quiz-scope-badge{font-size:6.5px}.quiz-next-btn{width:100%}}

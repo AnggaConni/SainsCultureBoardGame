@@ -11,7 +11,7 @@ Live preview: https://anggaconni.github.io/UNESCO-Designated-Site-Explorer/
 - Interactive CesiumJS 3D globe with map pins for six Indonesian World Heritage properties, plus a streamed Cesium OSM Buildings layer for 3D building geometry where OpenStreetMap data is available.
 - Filter locations by culture, nature or cultural landscape.
 - Short learning notes, inscription year, coordinates, why-it-matters cards and links to official UNESCO records.
-- Site-specific knowledge checks with explanations.
+- JSON-based quiz bank with general questions for all sites, site-specific questions, and UNESCO programme/type questions; answers include explanations and source links.
 - Field XP, discovery tracking and badge progression saved locally in the browser.
 - Responsive desktop/mobile interface.
 
