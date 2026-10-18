@@ -202,3 +202,17 @@ test("ambient player has accessible controls, responsive styling and visible att
   assert.ok(app.includes('name:"Framelens ID · non-commercial"'));
   assert.ok(app.includes('name:"Creative Commons Attribution 4.0 International"'));
 });
+
+
+test("SEO and social metadata uses the current Pages URL and root thumbnail image", () => {
+  const siteUrl = "https://anggaconni.github.io/UNESCO-Designated-Site-Explorer/";
+  const thumbnailUrl = siteUrl + "thumbnail.png";
+  assert.ok(html.includes('<link rel="canonical" href="' + siteUrl + '">'));
+  assert.ok(html.includes('<meta property="og:url" content="' + siteUrl + '">'));
+  assert.ok(html.includes('<meta property="og:image" content="' + thumbnailUrl + '">'));
+  assert.ok(html.includes('<meta property="og:image:type" content="image/png">'));
+  assert.ok(html.includes('<meta name="twitter:card" content="summary_large_image">'));
+  assert.ok(html.includes('<meta name="twitter:image" content="' + thumbnailUrl + '">'));
+  assert.ok(html.includes('name="description"'));
+  assert.ok(html.includes('name="robots" content="index,follow,max-image-preview:large"'));
+});
