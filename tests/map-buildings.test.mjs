@@ -61,6 +61,8 @@ test("Pages deployment injects the GitHub secret only into the generated artifac
   assert.match(deployWorkflow, /JSON\.stringify\(token\)/);
   assert.match(deployWorkflow, /actions\/upload-pages-artifact@v4/);
   assert.match(deployWorkflow, /actions\/deploy-pages@v4/);
+  assert.match(deployWorkflow, /name: github-pages-\$\{\{ github\.run_id \}\}-\$\{\{ github\.run_attempt \}\}/);
+  assert.match(deployWorkflow, /artifact_name: github-pages-\$\{\{ github\.run_id \}\}-\$\{\{ github\.run_attempt \}\}/);
   assert.match(deployWorkflow, /value will not be printed/);
 });
 
