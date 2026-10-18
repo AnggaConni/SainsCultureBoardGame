@@ -1100,6 +1100,8 @@ function loadAmbientPlaylist(){
    AMBIENT_FOLDERS=folders;
    AMBIENT_TRACKS=tracks;
    AMBIENT_DEFAULT_VOLUME=Number.isFinite(Number(payload.defaultVolume))?Math.max(0,Math.min(1,Number(payload.defaultVolume))):0.4;
+   const volumeControl=$("#musicVolume");
+   if(volumeControl&&!volumeControl.dataset.userAdjusted){volumeControl.value=String(AMBIENT_DEFAULT_VOLUME);if(ambientAudio)ambientAudio.volume=AMBIENT_DEFAULT_VOLUME}
    console.info("[Heritage Atlas] loaded",AMBIENT_TRACKS.length,"music tracks from music/playlist.json");
    return true;
   }catch(error){
@@ -1222,6 +1224,7 @@ function bindBackgroundMusic(){
  $("#musicNextBtn").addEventListener("click",()=>{void playNextAmbientTrack(true)});
  $("#musicVolume").addEventListener("input",event=>{
   audio.volume=Math.max(0,Math.min(1,Number(event.currentTarget.value)));
+  event.currentTarget.dataset.userAdjusted="true";
   $("#musicVolumeValue").textContent=Math.round(audio.volume*100)+"%";
  });
  const firstInteraction=()=>{
