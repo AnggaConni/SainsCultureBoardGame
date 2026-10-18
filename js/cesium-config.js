@@ -5,7 +5,7 @@
  * This file is served to browsers, so the token is public: do not use an admin/private token.
  * Recommended restrictions:
  *   - Scope: assets:read only
- *   - Allowed URL: https://anggaconni.github.io/SainsCultureBoardGame/
+ *   - Allowed URL: https://anggaconni.github.io/UNESCO-Designated-Site-Explorer/
  *   - Allowed assets: Cesium World Terrain (asset 1) and Cesium OSM Buildings (asset 96188)
  *
  * Leave empty until a restricted token has been created. The app will show a visible
