@@ -116,8 +116,9 @@ test("globe occlusion hides back-side markers and prevents them from being picke
 });
 
 test("world view fills the globe while selected site views stay oblique", () => {
-  assert.ok(app.includes("pitch:Cesium.Math.toRadians(-88),roll:0}});markers();"));
-  assert.ok(app.includes('$("#resetViewBtn").addEventListener("click",()=>{if(state.viewer)state.viewer.camera.flyTo({destination:Cesium.Cartesian3.fromDegrees(112,4,22500000),orientation:{heading:0,pitch:Cesium.Math.toRadians(-88),roll:0},duration:1.5})'));
+  assert.ok(app.includes("pitch:Cesium.Math.toRadians(-90),roll:0}});markers();"));
+  assert.ok(app.includes("Cesium.Cartesian3.fromDegrees(118,-2,22500000)"));
+  assert.ok(app.includes('$("#resetViewBtn").addEventListener("click",()=>{if(state.viewer)state.viewer.camera.flyTo({destination:Cesium.Cartesian3.fromDegrees(118,-2,22500000),orientation:{heading:0,pitch:Cesium.Math.toRadians(-90),roll:0},duration:1.5})'));
   assert.ok(app.includes("new Cesium.HeadingPitchRange(Cesium.Math.toRadians(24),Cesium.Math.toRadians(-38),range)"));
 });
 
