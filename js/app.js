@@ -654,6 +654,133 @@ function renderIntelResults(scope,payload){
   return '<article class="intel-result-card"><div class="intel-result-meta"><span>'+esc(item.source||item.type||"Scholarly work")+'</span><span>'+(item.year?esc(item.year):"Year not provided")+'</span></div><h4><a href="'+esc(mainUrl||"https://openalex.org/")+'" target="_blank" rel="noopener noreferrer">'+esc(item.title||"Untitled work")+'</a></h4>'+(authors?'<p class="intel-authors">'+esc(authors)+(item.authors&&item.authors.length===4?" et al.":"")+'</p>':"")+'<div class="intel-result-footer"><span>'+Number(item.citedByCount||0).toLocaleString()+" citations"+(item.isOpenAccess?" · Open access":"")+'</span><span class="intel-result-links">'+(oa&&oa!==mainUrl?'<a href="'+esc(oa)+'" target="_blank" rel="noopener noreferrer">Read open copy ↗</a>':"")+(safeHttpUrl(item.doi)?'<a href="'+esc(item.doi)+'" target="_blank" rel="noopener noreferrer">DOI ↗</a>':"")+'</span></div></article>';
  }).join("")+'</div><p class="intel-small-note">Search relevance is approximate; verify each title and abstract to confirm it concerns this specific site. OpenAlex indexes scholarly metadata, not necessarily full text.</p>';
 }
+function envDistanceKm(lat1,lon1,lat2,lon2){
+ const rad=value=>value*Math.PI/180;
+ const dLat=rad(lat2-lat1),dLon=rad(lon2-lon1);
+ const a=Math.sin(dLat/2)**2+Math.cos(rad(lat1))*Math.cos(rad(lat2))*Math.sin(dLon/2)**2;
+ return 6371*2*Math.atan2(Math.sqrt(a),Math.sqrt(Math.max(0,1-a)));
+}
+function collectEnvCoordinates(node,out){
+ if(!Array.isArray(node))return;
+ if(node.length>=2&&typeof node[0]==="number"&&typeof node[1]==="number"&&Number.isFinite(node[0])&&Number.isFinite(node[1])&&Math.abs(node[0])<=180&&Math.abs(node[1])<=90){
+  out.push({lon:node[0],lat:node[1]});return;
+ }
+ node.forEach(child=>collectEnvCoordinates(child,out));
+}
+function envWeatherLabel(code){
+ const labels={0:"Clear sky",1:"Mainly clear",2:"Partly cloudy",3:"Overcast",45:"Fog",48:"Depositing rime fog",51:"Light drizzle",53:"Drizzle",55:"Dense drizzle",56:"Freezing drizzle",57:"Dense freezing drizzle",61:"Light rain",63:"Moderate rain",65:"Heavy rain",66:"Freezing rain",67:"Heavy freezing rain",71:"Light snow",73:"Snow",75:"Heavy snow",77:"Snow grains",80:"Light rain showers",81:"Rain showers",82:"Violent rain showers",85:"Snow showers",86:"Heavy snow showers",95:"Thunderstorm",96:"Thunderstorm with hail",99:"Thunderstorm with heavy hail"};
+ return labels[Number(code)]||"Weather code "+String(code);
+}
+async function fetchEnvironmentJson(url,label){
+ const response=await fetch(url,{method:"GET",headers:{Accept:"application/json"},signal:AbortSignal.timeout(18000)});
+ if(!response.ok)throw new Error(label+" returned HTTP "+response.status);
+ return response.json();
+}
+async function fetchSiteEnvironment(site){
+ const lon=Number(site.coordinates[0]),lat=Number(site.coordinates[1]);
+ const gbifUrl=new URL("https://api.gbif.org/v1/occurrence/search");
+ gbifUrl.searchParams.set("geo_distance","25km,"+lat+","+lon);
+ gbifUrl.searchParams.set("hasCoordinate","true");
+ gbifUrl.searchParams.set("limit","12");
+ gbifUrl.searchParams.set("offset","0");
+ gbifUrl.searchParams.set("sort","eventDate");
+ gbifUrl.searchParams.set("order","desc");
+ const weatherUrl=new URL("https://api.open-meteo.com/v1/forecast");
+ weatherUrl.searchParams.set("latitude",String(lat));
+ weatherUrl.searchParams.set("longitude",String(lon));
+ weatherUrl.searchParams.set("current","temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,wind_direction_10m,weather_code");
+ weatherUrl.searchParams.set("timezone","auto");
+ const eventRadiusKm=100,latDelta=eventRadiusKm/111.32,lonDelta=Math.min(180,eventRadiusKm/(111.32*Math.max(.01,Math.cos(lat*Math.PI/180))));
+ const west=Math.max(-180,lon-lonDelta),east=Math.min(180,lon+lonDelta),north=Math.min(90,lat+latDelta),south=Math.max(-90,lat-latDelta);
+ const eventsUrl=new URL("https://eonet.gsfc.nasa.gov/api/v3/events");
+ eventsUrl.searchParams.set("status","open");
+ eventsUrl.searchParams.set("days","90");
+ eventsUrl.searchParams.set("limit","200");
+ eventsUrl.searchParams.set("bbox",[west,north,east,south].map(value=>value.toFixed(4)).join(","));
+ const outcomes=await Promise.allSettled([
+  fetchEnvironmentJson(gbifUrl.toString(),"GBIF"),
+  fetchEnvironmentJson(eventsUrl.toString(),"NASA EONET"),
+  fetchEnvironmentJson(weatherUrl.toString(),"Open-Meteo")
+ ]);
+ const unavailable=(outcome)=>({status:"unavailable",message:String(outcome.reason&&outcome.reason.message||"Provider request failed").slice(0,180)});
+ let gbif={status:"unavailable"},events={status:"unavailable"},weather={status:"unavailable"};
+ if(outcomes[0].status==="fulfilled"){
+  const data=outcomes[0].value;
+  gbif={status:"ok",provider:"GBIF",sourceUrl:gbifUrl.toString(),total:Number(data.count)||0,items:(Array.isArray(data.results)?data.results:[]).slice(0,12).map(row=>({
+   id:String(row.key||row.gbifID||row.occurrenceID||row.scientificName||""),
+   gbifID:row.key||row.gbifID||null,
+   scientificName:row.scientificName||row.acceptedScientificName||row.taxon||"Unidentified organism",
+   vernacularName:row.vernacularName||null,
+   eventDate:row.eventDate||row.dateIdentified||null,
+   basisOfRecord:row.basisOfRecord||null,
+   country:row.country||null,
+   datasetTitle:row.datasetTitle||row.datasetName||null
+  }))};
+ }else gbif=unavailable(outcomes[0]);
+ if(outcomes[1].status==="fulfilled"){
+  const data=outcomes[1].value;
+  const candidates=Array.isArray(data.events)?data.events:[];
+  const items=candidates.map(event=>{
+   const geometries=Array.isArray(event.geometry)?event.geometry:[];
+   let nearest=Infinity,latestGeometry=null;
+   geometries.forEach(geometry=>{
+    if(geometry&&geometry.date)latestGeometry=geometry;
+    const points=[];collectEnvCoordinates(geometry&&geometry.coordinates,points);
+    points.forEach(point=>{nearest=Math.min(nearest,envDistanceKm(lat,lon,point.lat,point.lon))});
+   });
+   return {id:String(event.id||event.title||""),title:event.title||"Untitled environmental event",description:event.description||"",date:(latestGeometry&&latestGeometry.date)||event.closed||null,closed:event.closed||null,distanceKm:Number.isFinite(nearest)?nearest:null,categories:(Array.isArray(event.categories)?event.categories:[]).map(item=>item.title||item.id).filter(Boolean),url:"https://eonet.gsfc.nasa.gov/api/v3/events/"+encodeURIComponent(String(event.id||""))};
+  }).filter(item=>item.distanceKm!==null&&item.distanceKm<=eventRadiusKm).sort((a,b)=>a.distanceKm-b.distanceKm).slice(0,8);
+  events={status:"ok",provider:"NASA EONET",sourceUrl:eventsUrl.toString(),radiusKm:eventRadiusKm,windowDays:90,total:items.length,candidateCount:candidates.length,items};
+ }else events=unavailable(outcomes[1]);
+ if(outcomes[2].status==="fulfilled"){
+  const data=outcomes[2].value;
+  if(!data.current)weather={status:"unavailable",message:"The provider did not return current model values."};
+  else weather={status:"ok",provider:"Open-Meteo",sourceUrl:weatherUrl.toString(),timezone:data.timezone||null,units:data.current_units||{},current:data.current};
+ }else weather=unavailable(outcomes[2]);
+ const good=[gbif,events,weather].filter(source=>source.status==="ok").length;
+ return {status:good===3?"ok":good>0?"partial":"unavailable",fetchedAt:new Date().toISOString(),site:{name:site.name||site.id,country:site.country||site.location||null,latitude:lat,longitude:lon},searchAreas:{gbifRadiusKm:25,eonetRadiusKm:eventRadiusKm,eonetWindowDays:90},providers:{gbif,events,weather}};
+}
+function renderEnvironmentSourceLink(url,label){
+ const href=safeHttpUrl(url);
+ return href?'<a href="'+esc(href)+'" target="_blank" rel="noopener noreferrer">'+esc(label)+' ↗</a>':"";
+}
+function renderSiteEnvironment(site,payload){
+ if(!hasCoordinates(site))return renderIntelMessage("No reliable site coordinate","This record has no verified point coordinate, so nearby biodiversity and environmental context cannot be queried. No map point is not evidence of no environmental value.","warn");
+ if(!payload||!payload.providers)return renderIntelMessage("Environmental data unavailable","No environmental provider returned a usable response. Retry the tab later.","warn");
+ const providers=payload.providers,weather=providers.weather||{},gbif=providers.gbif||{},events=providers.events||{};
+ const lon=Number(site.coordinates[0]),lat=Number(site.coordinates[1]);
+ let html='<div class="intel-env-layout">';
+ html+='<div class="intel-env-intro"><strong>Environmental context around '+esc(site.name||"this site")+'</strong><p>Map anchor: '+lat.toFixed(4)+'°, '+lon.toFixed(4)+'°. Search radii vary by provider; this coordinate is not an official UNESCO property boundary.</p><span class="intel-env-updated">Fetched '+esc(formatIntelDate(payload.fetchedAt))+' · session cached</span></div>';
+ html+='<section class="intel-env-source"><div class="intel-env-source-header"><div><span class="intel-env-kicker">LOCAL MODEL CONDITIONS</span><h4>Weather near the map anchor</h4></div><span class="intel-env-chip">OPEN-METEO</span></div>';
+ if(weather.status==="ok"&&weather.current){
+  const current=weather.current,units=weather.units||{};
+  const metric=(key,fallback)=>current[key]===null||current[key]===undefined?"—":esc(String(current[key]))+" "+esc(units[key]||fallback||"");
+  html+='<div class="intel-env-weather"><div class="intel-env-weather-main"><strong>'+metric("temperature_2m","°C")+'</strong><span>'+esc(envWeatherLabel(current.weather_code))+'</span></div><div class="intel-env-metrics"><div class="intel-env-metric"><span>RELATIVE HUMIDITY</span><b>'+metric("relative_humidity_2m","%")+'</b></div><div class="intel-env-metric"><span>PRECIPITATION</span><b>'+metric("precipitation","mm")+'</b></div><div class="intel-env-metric"><span>WIND SPEED</span><b>'+metric("wind_speed_10m","km/h")+'</b></div><div class="intel-env-metric"><span>WIND DIRECTION</span><b>'+metric("wind_direction_10m","°")+'</b></div></div></div><p class="intel-small-note">Model-based current conditions at a point, not an on-site sensor reading. '+esc(current.time||"Time not supplied")+(weather.timezone?" · "+esc(weather.timezone):"")+'</p>';
+ }else html+=renderIntelMessage("Weather source unavailable",weather.message||"Open-Meteo did not return current values.","warn");
+ html+='<div class="intel-env-source-links">'+renderEnvironmentSourceLink(weather.sourceUrl||"https://open-meteo.com/","Open-Meteo source")+'</div></section>';
+ html+='<section class="intel-env-source"><div class="intel-env-source-header"><div><span class="intel-env-kicker">BIODIVERSITY OBSERVATIONS · APPROX. 25 KM</span><h4>Nearby species records</h4></div><span class="intel-env-chip">GBIF</span></div>';
+ if(gbif.status==="ok"){
+  html+='<div class="intel-env-summary"><strong>'+Number(gbif.total||0).toLocaleString()+'</strong><span>indexed occurrence records in the search radius</span></div>';
+  if(gbif.items&&gbif.items.length){
+   html+='<div class="intel-env-items">'+gbif.items.slice(0,8).map(item=>{
+    const recordUrl=item.gbifID?'https://www.gbif.org/occurrence/'+encodeURIComponent(String(item.gbifID)):"https://www.gbif.org/occurrence/search";
+    return '<article class="intel-env-item"><div><strong>'+esc(item.vernacularName||item.scientificName||"Unidentified organism")+'</strong><span>'+esc(item.vernacularName&&item.scientificName&&item.vernacularName!==item.scientificName?item.scientificName:(item.basisOfRecord||"Occurrence record"))+'</span></div><div class="intel-env-item-meta"><span>'+esc(item.eventDate?formatIntelDate(item.eventDate):"Observation date unconfirmed")+(item.country?" · "+esc(item.country):"")+'</span>'+renderEnvironmentSourceLink(recordUrl,"Record")+'</div></article>';
+   }).join("")+'</div>';
+  }else html+=renderIntelMessage("No records returned","GBIF returned no sample records for this search. This does not mean the area has no species.","empty");
+ }else html+=renderIntelMessage("GBIF unavailable",gbif.message||"Nearby occurrence records could not be retrieved.","warn");
+ html+='<p class="intel-small-note">GBIF occurrence records reflect submitted, georeferenced observations and collections—not a complete inventory of species or proof that a species currently lives at the site.</p><div class="intel-env-source-links">'+renderEnvironmentSourceLink(gbif.sourceUrl||"https://www.gbif.org/occurrence/search","Browse GBIF records")+'</div></section>';
+ html+='<section class="intel-env-source"><div class="intel-env-source-header"><div><span class="intel-env-kicker">ACTIVE NATURAL EVENTS · APPROX. 100 KM · 90 DAYS</span><h4>Environmental event context</h4></div><span class="intel-env-chip">NASA EONET</span></div>';
+ if(events.status==="ok"){
+  html+='<div class="intel-env-summary"><strong>'+Number(events.total||0).toLocaleString()+'</strong><span>active events with mapped geometry within '+Number(events.radiusKm||100)+' km in the queried period</span></div>';
+  if(events.items&&events.items.length){
+   html+='<div class="intel-env-items">'+events.items.slice(0,6).map(item=>'<article class="intel-env-item"><div><strong>'+esc(item.title)+'</strong><span>'+esc(item.categories.join(" · ")||"Natural event")+(item.distanceKm!==null?" · "+Number(item.distanceKm).toFixed(1)+" km from anchor":"")+'</span>'+(item.description?'<p>'+esc(item.description)+'</p>':"")+'</div><div class="intel-env-item-meta"><span>'+esc(item.date?formatIntelDate(item.date):"Event date not confirmed")+'</span>'+renderEnvironmentSourceLink(item.url,"NASA EONET record")+'</div></article>').join("")+'</div>';
+  }else html+=renderIntelMessage("No matching active events returned","No NASA EONET events with mapped geometry matched this search radius in the previous 90 days. This is not a hazard-free certification and does not cover every local or slow-onset environmental issue.","empty");
+ }else html+=renderIntelMessage("NASA EONET unavailable",events.message||"Environmental event data could not be retrieved.","warn");
+ html+='<p class="intel-small-note">EONET events are global event records and may be regional context, not an incident inside the designated property. Event coverage varies by category and source.</p><div class="intel-env-source-links">'+renderEnvironmentSourceLink(events.sourceUrl||"https://eonet.gsfc.nasa.gov/","Browse NASA EONET")+'</div></section>';
+ html+='<p class="intel-small-note intel-env-disclaimer">Interpretation: proximity to the site’s curated point is approximate. UNESCO-designated properties can be large, coastal, marine, serial, or multi-component. Do not treat these results as official site-boundary intersections, an ecological assessment, or an operational emergency alert.</p></div>';
+ return html;
+}
+
 function renderSiteIntelligence(site,tab){
  state.siteIntelTab=tab||"overview";
  const content=$("#siteIntelContent"),status=$("#siteIntelStatus");
@@ -668,8 +795,31 @@ function renderSiteIntelligence(site,tab){
   return;
  }
  if(state.siteIntelTab==="environment"){
-  status.textContent="PHASE 2 CONNECTORS";
-  content.innerHTML='<div class="intel-roadmap"><div class="intel-roadmap-icon">🌿</div><h4>Environmental intelligence is next</h4><p>The dossier already knows this site’s curated coordinates. The next connector can retrieve nearby biodiversity observations from GBIF and event context from NASA EONET, with each result labelled by its search area and the provider’s data date.</p><p><strong>Important:</strong> the current map anchor is approximate for large or multi-component properties. Environmental matches should not be described as inside an official boundary until a validated site polygon is available.</p><span class="intel-roadmap-badge">CONNECTOR NOT YET ENABLED</span></div>';
+  const key=site.id+":environment",cached=state.siteIntelCache.get(key);
+  if(!hasCoordinates(site)){
+   status.textContent="NO RELIABLE COORDINATE";
+   content.innerHTML=renderSiteEnvironment(site,null);
+   return;
+  }
+  if(cached){
+   status.textContent=cached.status==="ok"?"LIVE SOURCES · 3/3":cached.status==="partial"?"PARTIAL ENVIRONMENT DATA":"ENVIRONMENT SOURCES UNAVAILABLE";
+   content.innerHTML=renderSiteEnvironment(site,cached);
+   return;
+  }
+  status.textContent="QUERYING LIVE ENVIRONMENT DATA";
+  content.innerHTML='<div class="intel-loading"><span class="intel-spinner"></span><div><strong>Retrieving environmental context…</strong><p>Checking nearby GBIF records, NASA EONET events, and point weather. Each source is handled independently.</p></div></div>';
+  if(state.siteIntelPending.has(key))return;
+  const pending=fetchSiteEnvironment(site).then(payload=>{
+   state.siteIntelCache.set(key,payload);
+   if(state.selected!==site.id||state.siteIntelTab!=="environment")return;
+   status.textContent=payload.status==="ok"?"LIVE SOURCES · 3/3":payload.status==="partial"?"PARTIAL ENVIRONMENT DATA":"ENVIRONMENT SOURCES UNAVAILABLE";
+   content.innerHTML=renderSiteEnvironment(site,payload);
+  }).catch(error=>{
+   if(state.selected!==site.id||state.siteIntelTab!=="environment")return;
+   status.textContent="ENVIRONMENT SOURCES UNAVAILABLE";
+   content.innerHTML=renderIntelMessage("Environmental data could not be loaded",String(error&&error.message||error).slice(0,180)+". Check network access and retry the tab.","warn");
+  }).finally(()=>state.siteIntelPending.delete(key));
+  state.siteIntelPending.set(key,pending);
   return;
  }
  const scope=state.siteIntelTab;
