@@ -904,9 +904,26 @@ function answer(s,i){const ok=i===s.challenge.answer;$("#quizOptions").querySele
 function visit(s){if(!state.visited.has(s.id)){state.visited.add(s.id);state.xp+=50;save();progress();toast("Discovery recorded · +50 Field XP")}$("#visitedPill").textContent="DISCOVERY RECORDED";$("#visitedPill").classList.add("done");$("#visitBtn").textContent="Discovery recorded ✓"}
 function close(id){$("#"+id).hidden=true}
 
+const AMBIENT_FOLDERS={
+ framelens:{
+  name:"Framelens ID · non-commercial",
+  credit:"Music by framelens_id",
+  sourceLabel:"Framelens ID · non-commercial terms",
+  terms:"Creator-confirmed non-commercial use of the standard MP3 only. Do not use the paid HD/commercial version.",
+  creditMode:"folder"
+ },
+ cc4:{
+  name:"Creative Commons Attribution 4.0 International",
+  sourceLabel:"CC BY 4.0 · track source",
+  terms:"Attribution 4.0 International (CC BY 4.0); keep the track-specific credit shown here.",
+  licenseUrl:"https://creativecommons.org/licenses/by/4.0/",
+  creditMode:"track"
+ }
+};
 const AMBIENT_TRACKS=[
- {id:"java",title:"Sound of Orchestra Java",src:"music/java.mp3",credit:"Music by framelens_id",detail:"Non-commercial MP3 · Composer Ridha Fahrezi · Producer Roby Ardiyansah",sourceUrl:"https://www.youtube.com/watch?v=u8ZaMQIF9uM",sourceLabel:"Framelens ID · non-commercial use"},
- {id:"andalus",title:"Al Andalus",src:"music/🇪🇸 Free Spanish Music  Al Andalus - Shane Ivers (Traditional + Flamenco) - BreakingCopyright — Royalty Free Music.mp3",credit:"Music: Al Andalus by Shane Ivers · CC BY 4.0",detail:"Free to use with attribution under Creative Commons CC BY 4.0.",sourceUrl:"https://www.silvermansound.com/free-music/al-andalus",sourceLabel:"Silverman Sound · CC BY 4.0"}
+ {id:"java",folder:"framelens",title:"Sound of Orchestra Java",src:"music/framelens/java.mp3",credit:"Music by framelens_id",detail:"Composer Ridha Fahrezi · Producer Roby Ardiyansah",sourceUrl:"https://www.youtube.com/watch?v=u8ZaMQIF9uM"},
+ {id:"fiddle",folder:"cc4",title:"Fiddle-De-Dee",src:"music/cc4/fiddle-de-dee.mp3",credit:"Music: Fiddle-De-Dee by Shane Ivers – https://silvermansound.com",detail:"Composer Shane Ivers · credit required",sourceUrl:"https://www.silvermansound.com/free-music/fiddle-de-dee"},
+ {id:"andalus",folder:"cc4",title:"Al Andalus",src:"music/cc4/al-andalus.mp3",credit:"Music: Al Andalus by Shane Ivers – https://www.silvermansound.com",detail:"Composer Shane Ivers · credit required",sourceUrl:"https://www.silvermansound.com/free-music/al-andalus"}
 ];
 let ambientAudio=null,ambientTrackIndex=0,ambientUserStarted=false;
 function ensureAmbientAudio(){
@@ -930,11 +947,12 @@ function ensureAmbientAudio(){
 function currentAmbientTrack(){return AMBIENT_TRACKS[ambientTrackIndex]||AMBIENT_TRACKS[0]}
 function renderAmbientTrack(){
  const track=currentAmbientTrack();
+ const folder=AMBIENT_FOLDERS[track.folder]||AMBIENT_FOLDERS.cc4;
  const title=$("#musicTrackTitle"),credit=$("#musicTrackCredit"),detail=$("#musicTrackDetail"),source=$("#musicSourceLink");
  if(title)title.textContent=track.title;
- if(credit)credit.textContent=track.credit;
- if(detail)detail.textContent=track.detail;
- if(source){source.href=track.sourceUrl;source.textContent=track.sourceLabel+" ↗"}
+ if(credit)credit.textContent=folder.creditMode==="folder"?folder.credit:track.credit;
+ if(detail)detail.textContent=folder.name+" · "+track.detail+" · "+folder.terms;
+ if(source){source.href=track.sourceUrl;source.textContent=folder.sourceLabel+" ↗"}
 }
 function updateAmbientMusicUi(){
  const audio=ambientAudio,playButton=$("#musicPlayBtn"),soundButton=$("#soundBtn"),status=$("#musicStatus"),volume=$("#musicVolume"),volumeValue=$("#musicVolumeValue");

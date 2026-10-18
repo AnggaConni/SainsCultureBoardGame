@@ -168,8 +168,11 @@ test("Environment tab queries GBIF, NASA EONET and Open-Meteo using the site's c
 
 test("ambient player starts after first interaction and exposes pause shuffle and volume controls", () => {
   assert.ok(app.includes("const AMBIENT_TRACKS=["));
-  assert.ok(app.includes('src:"music/java.mp3"'));
-  assert.ok(app.includes("music/🇪🇸 Free Spanish Music"));
+  assert.ok(app.includes('src:"music/framelens/java.mp3"'));
+  assert.ok(app.includes('src:"music/cc4/al-andalus.mp3"'));
+  assert.ok(app.includes('src:"music/cc4/fiddle-de-dee.mp3"'));
+  assert.ok(app.includes('folder:"framelens"'));
+  assert.ok(app.includes('folder:"cc4"'));
   assert.ok(app.includes('document.addEventListener("pointerdown",firstInteraction,{capture:true})'));
   assert.ok(app.includes('document.addEventListener("keydown",firstInteraction,{capture:true})'));
   assert.ok(app.includes("ambientAudio.volume=0.4"));
@@ -190,5 +193,8 @@ test("ambient player has accessible controls, responsive styling and visible att
   assert.match(css, /#soundBtn\.is-playing/);
   assert.match(css, /@media\(max-width:760px\)\{\s*#soundBtn\{display:grid/);
   assert.ok(app.includes('credit:"Music by framelens_id"'));
-  assert.ok(app.includes('credit:"Music: Al Andalus by Shane Ivers · CC BY 4.0"'));
+  assert.ok(app.includes('credit:"Music: Al Andalus by Shane Ivers – https://www.silvermansound.com"'));
+  assert.ok(app.includes('folder.creditMode==="folder"?folder.credit:track.credit'));
+  assert.ok(app.includes('name:"Framelens ID · non-commercial"'));
+  assert.ok(app.includes('name:"Creative Commons Attribution 4.0 International"'));
 });
