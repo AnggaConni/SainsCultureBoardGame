@@ -177,9 +177,12 @@ test("Tentative List is a distinct selectable status, not an inscribed World Her
 test("Environment tab queries GBIF, NASA EONET and Open-Meteo using the site's coordinate", () => {
   assert.ok(app.includes("async function fetchSiteEnvironment(site)"));
   assert.ok(app.includes("https://api.gbif.org/v1/occurrence/search"));
-  assert.ok(app.includes('gbifUrl.searchParams.set("decimalLatitude",String(lat))'));
-  assert.ok(app.includes('gbifUrl.searchParams.set("decimalLongitude",String(lon))'));
-  assert.ok(app.includes('gbifUrl.searchParams.set("geo_distance","25km,"+lat+","+lon)'));
+  assert.ok(app.includes("function gbifRadiusGeometry(lat,lon,radiusKm=25,segments=32)"));
+  assert.ok(app.includes('gbifUrl.searchParams.set("geometry",gbifRadiusGeometry(lat,lon,25))'));
+  assert.ok(app.includes('"POLYGON (("+points.join(", ")+"))"'));
+  assert.ok(app.includes('if(!Number.isFinite(lat)||lat< -90||lat>90||!Number.isFinite(lon)||lon< -180||lon>180)'));
+  assert.ok(!app.includes('gbifUrl.searchParams.set("geo_distance"'));
+  assert.ok(!app.includes('gbifUrl.searchParams.set("decimalLatitude"'));
   assert.ok(app.includes('const body=await response.text()'));
   assert.ok(app.includes('String(detail).replace(/\\s+/g," ").slice(0,160)'));
   assert.ok(app.includes("https://eonet.gsfc.nasa.gov/api/v3/events"));

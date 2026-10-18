@@ -753,13 +753,27 @@ async function fetchEnvironmentJson(url,label){
  }
  try{return JSON.parse(body)}catch(e){throw new Error(label+" returned an invalid JSON response")}
 }
+function gbifRadiusGeometry(lat,lon,radiusKm=25,segments=32){
+ if(!Number.isFinite(lat)||lat< -90||lat>90||!Number.isFinite(lon)||lon< -180||lon>180)throw new Error("GBIF search requires valid site latitude and longitude.");
+ const safeSegments=Math.max(12,Math.min(64,Math.round(segments)));
+ const latRadius=radiusKm/111.32;
+ const lonRadius=Math.min(180,radiusKm/(111.32*Math.max(0.01,Math.cos(lat*Math.PI/180))));
+ const points=[];
+ for(let i=0;i<safeSegments;i++){
+  const angle=2*Math.PI*i/safeSegments;
+  const pointLon=Math.max(-180,Math.min(180,lon+lonRadius*Math.cos(angle)));
+  const pointLat=Math.max(-90,Math.min(90,lat+latRadius*Math.sin(angle)));
+  points.push(pointLon.toFixed(5)+" "+pointLat.toFixed(5));
+ }
+ points.push(points[0]);
+ return "POLYGON (("+points.join(", ")+"))";
+}
 async function fetchSiteEnvironment(site){
  const lon=Number(site.coordinates[0]),lat=Number(site.coordinates[1]);
+ if(!Number.isFinite(lat)||lat< -90||lat>90||!Number.isFinite(lon)||lon< -180||lon>180)throw new Error("This site's coordinates are not valid for environmental lookups.");
  const gbifUrl=new URL("https://api.gbif.org/v1/occurrence/search");
- // GBIF expects the decimal latitude/longitude context alongside geo_distance.
- gbifUrl.searchParams.set("decimalLatitude",String(lat));
- gbifUrl.searchParams.set("decimalLongitude",String(lon));
- gbifUrl.searchParams.set("geo_distance","25km,"+lat+","+lon);
+ // GBIF's geometry filter accepts WKT polygons. Use an approximate 25 km-radius search area.
+ gbifUrl.searchParams.set("geometry",gbifRadiusGeometry(lat,lon,25));
  gbifUrl.searchParams.set("hasCoordinate","true");
  gbifUrl.searchParams.set("limit","12");
  gbifUrl.searchParams.set("offset","0");
