@@ -605,7 +605,7 @@ async function toggleBaseMap(){
   if(nextLayer&&state.viewer===viewer&&nextLayer!==state.baseImageryLayer)viewer.imageryLayers.remove(nextLayer,true);
   console.warn("[Heritage Atlas] Could not switch map imagery; keeping the current base layer.",error);
   const message=String(error&&error.message||error);
-  toast(nextMode==="earth"?"Earth view unavailable. Check the Cesium ion token includes Google imagery asset 3830184.":"Street map could not be restored. Try again.");
+  toast(nextMode==="earth"?"Earth view failed: "+message.slice(0,150):"Street map could not be restored. Try again.");
   button.textContent=state.imageryMode==="earth"?"▦ STREET MAP":"◉ EARTH VIEW";
   button.setAttribute("aria-pressed",state.imageryMode==="earth"?"true":"false");
  }finally{

@@ -275,6 +275,7 @@ test("Map mode toggle switches between OSM navigation and Google satellite image
   assert.match(app, /function toggleBaseMap\(\)/);
   assert.match(app, /new Cesium\.OpenStreetMapImageryProvider\(\{url:"https:\/\/tile\.openstreetmap\.org\/"\}\)/);
   assert.match(app, /Cesium\.Google2DImageryProvider\.fromIonAssetId\(\{assetId:3830184,mapType:"satellite",language:"en_US",region:"ID"\}\)/);
+  assert.match(html, /cesium@1\.134\.0/);
   assert.match(app, /state\.imageryMode=nextMode/);
   assert.match(app, /stage\.classList\.toggle\("earth-mode",nextMode==="earth"\)/);
   assert.match(app, /#baseMapToggleBtn"\)\.addEventListener\("click",toggleBaseMap\)/);
@@ -284,5 +285,5 @@ test("Map mode toggle switches between OSM navigation and Google satellite image
 test("Google imagery attribution is visible when Earth View is active and token scope is documented", () => {
   assert.match(css, /\.map-stage\.earth-mode #cesiumContainer \.cesium-viewer-bottom\{display:block!important/);
   assert.match(css, /\.map-stage\.earth-mode #cesiumContainer \.cesium-widget-credits/);
-  assert.match(cesiumConfig, /Google 2D Satellite imagery \(asset 3830184\)/);
+  assert.match(cesiumConfig, /Google 2D imagery service (asset 3830184)/);
 });
