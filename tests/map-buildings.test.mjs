@@ -9,6 +9,7 @@ const css = await readFile(new URL("../css/atlas.css", import.meta.url), "utf8")
 const quizBank = JSON.parse(await readFile(new URL("../data/quizzes.json", import.meta.url), "utf8"));
 const sitesJs = await readFile(new URL("../js/sites.js", import.meta.url), "utf8");
 const deployWorkflow = await readFile(new URL("../.github/workflows/deploy-pages-with-cesium-token.yml", import.meta.url), "utf8");
+const cesiumConfig = await readFile(new URL("../js/cesium-config.js", import.meta.url), "utf8");
 
 test("Cesium OSM Buildings layer is requested during map initialization", () => {
   assert.match(app, /async function initOsmBuildings\(viewer\)/);
@@ -265,4 +266,23 @@ test("Inline site challenges are removed and quiz scope/navigation metadata is r
   assert.match(html, /id="quizNextBtn"/);
   assert.match(css, /\.quiz-scope-badge/);
   assert.match(css, /\.quiz-next-btn/);
+});
+
+
+test("Map mode toggle switches between OSM navigation and Google satellite imagery", () => {
+  assert.match(html, /id="baseMapToggleBtn"/);
+  assert.match(html, /aria-pressed="false"/);
+  assert.match(app, /function toggleBaseMap\(\)/);
+  assert.match(app, /new Cesium\.OpenStreetMapImageryProvider\(\{url:"https:\/\/tile\.openstreetmap\.org\/"\}\)/);
+  assert.match(app, /Cesium\.Google2DImageryProvider\.fromIonAssetId\(\{assetId:3830184,mapType:"satellite",language:"en_US",region:"ID"\}\)/);
+  assert.match(app, /state\.imageryMode=nextMode/);
+  assert.match(app, /stage\.classList\.toggle\("earth-mode",nextMode==="earth"\)/);
+  assert.match(app, /#baseMapToggleBtn"\)\.addEventListener\("click",toggleBaseMap\)/);
+  assert.match(app, /keeping the current base layer/);
+});
+
+test("Google imagery attribution is visible when Earth View is active and token scope is documented", () => {
+  assert.match(css, /\.map-stage\.earth-mode #cesiumContainer \.cesium-viewer-bottom\{display:block!important/);
+  assert.match(css, /\.map-stage\.earth-mode #cesiumContainer \.cesium-widget-credits/);
+  assert.match(cesiumConfig, /Google 2D Satellite imagery \(asset 3830184\)/);
 });

@@ -8,7 +8,8 @@ Live preview: https://anggaconni.github.io/UNESCO-Designated-Site-Explorer/
 `redesign/unesco-sites-explorer`. The existing `main` branch and its 3D board-game prototype are preserved.
 
 ## Features
-- Interactive CesiumJS 3D globe with map pins for six Indonesian World Heritage properties, plus a streamed Cesium OSM Buildings layer for 3D building geometry where OpenStreetMap data is available.
+- Interactive CesiumJS 3D globe with map pins for UNESCO-designated places. Switch between the default OpenStreetMap navigation map and Google satellite imagery through Cesium ion; Cesium World Terrain and the UNESCO overlays remain active. See `docs/MAP_VIEW_MODES.md` for the token requirement and the distinction from Google's full Photorealistic 3D Tiles.
+- Streamed Cesium OSM Buildings layer for 3D building geometry where OpenStreetMap data is available.
 - Filter locations by culture, nature or cultural landscape.
 - Short learning notes, inscription year, coordinates, why-it-matters cards and links to official UNESCO records.
 - JSON-based quiz bank with general questions for all sites, site-specific questions, and UNESCO programme/type questions; answers include explanations and source links.
