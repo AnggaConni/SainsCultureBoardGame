@@ -1089,7 +1089,9 @@ const AMBIENT_FOLDERS={
 const AMBIENT_TRACKS=[
  {id:"java",folder:"framelens",title:"Sound of Orchestra Java",src:"music/framelens/java.mp3",credit:"Music by framelens_id",detail:"Composer Ridha Fahrezi · Producer Roby Ardiyansah",sourceUrl:"https://www.youtube.com/watch?v=u8ZaMQIF9uM"},
  {id:"fiddle",folder:"cc4",title:"Fiddle-De-Dee",src:"music/cc4/fiddle-de-dee.mp3",credit:"Music: Fiddle-De-Dee by Shane Ivers – https://silvermansound.com",detail:"Composer Shane Ivers · credit required",sourceUrl:"https://www.silvermansound.com/free-music/fiddle-de-dee"},
- {id:"andalus",folder:"cc4",title:"Al Andalus",src:"music/cc4/al-andalus.mp3",credit:"Music: Al Andalus by Shane Ivers – https://www.silvermansound.com",detail:"Composer Shane Ivers · credit required",sourceUrl:"https://www.silvermansound.com/free-music/al-andalus"}
+ {id:"andalus",folder:"cc4",title:"Al Andalus",src:"music/cc4/al-andalus.mp3",credit:"Music: Al Andalus by Shane Ivers - https://www.silvermansound.com",detail:"Composer Shane Ivers · CC BY 4.0 attribution required",sourceUrl:"https://www.silvermansound.com/free-music/al-andalus"},
+ {id:"tea-china",folder:"cc4",title:"All The Tea In China",src:"music/cc4/all-the-tea-in-china.mp3",credit:"Music: All The Tea In China by Shane Ivers - https://www.silvermansound.com",detail:"Composer Shane Ivers · CC BY 4.0 attribution required",sourceUrl:"https://www.silvermansound.com/free-music/all-the-tea-in-china"},
+ {id:"medieval-banquet",folder:"cc4",title:"The Medieval Banquet",src:"music/cc4/the-medieval-banquet.mp3",credit:"Music: The Medieval Banquet by Shane Ivers - https://www.silvermansound.com",detail:"Composer Shane Ivers · CC BY 4.0 attribution required",sourceUrl:"https://www.silvermansound.com/free-music/the-medieval-banquet"}
 ];
 let ambientAudio=null,ambientTrackIndex=0,ambientUserStarted=false;
 function ensureAmbientAudio(){
@@ -1133,7 +1135,7 @@ function setAmbientTrack(index,autoplay){
  const audio=ensureAmbientAudio();
  ambientTrackIndex=(index+AMBIENT_TRACKS.length)%AMBIENT_TRACKS.length;
  const track=currentAmbientTrack();
- audio.src=encodeURI(track.src);
+ audio.src=new URL(track.src,document.baseURI).href;
  audio.load();
  renderAmbientTrack();
  if(autoplay)startAmbientMusic();

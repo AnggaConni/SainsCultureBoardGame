@@ -178,6 +178,11 @@ test("ambient player starts after first interaction and exposes pause shuffle an
   assert.ok(app.includes('src:"music/framelens/java.mp3"'));
   assert.ok(app.includes('src:"music/cc4/al-andalus.mp3"'));
   assert.ok(app.includes('src:"music/cc4/fiddle-de-dee.mp3"'));
+  assert.ok(app.includes('src:"music/cc4/all-the-tea-in-china.mp3"'));
+  assert.ok(app.includes('src:"music/cc4/the-medieval-banquet.mp3"'));
+  assert.ok(app.includes('title:"All The Tea In China"'));
+  assert.ok(app.includes('title:"The Medieval Banquet"'));
+  assert.ok(app.includes('audio.src=new URL(track.src,document.baseURI).href'));
   assert.ok(app.includes('folder:"framelens"'));
   assert.ok(app.includes('folder:"cc4"'));
   assert.ok(app.includes('document.addEventListener("pointerdown",firstInteraction,{capture:true})'));
@@ -200,7 +205,9 @@ test("ambient player has accessible controls, responsive styling and visible att
   assert.match(css, /#soundBtn\.is-playing/);
   assert.match(css, /@media\(max-width:760px\)\{\s*#soundBtn\{display:grid/);
   assert.ok(app.includes('credit:"Music by framelens_id"'));
-  assert.ok(app.includes('credit:"Music: Al Andalus by Shane Ivers – https://www.silvermansound.com"'));
+  assert.ok(app.includes('credit:"Music: Al Andalus by Shane Ivers - https://www.silvermansound.com"'));
+  assert.ok(app.includes('credit:"Music: All The Tea In China by Shane Ivers - https://www.silvermansound.com"'));
+  assert.ok(app.includes('credit:"Music: The Medieval Banquet by Shane Ivers - https://www.silvermansound.com"'));
   assert.ok(app.includes('folder.creditMode==="folder"?folder.credit:track.credit'));
   assert.ok(app.includes('name:"Framelens ID · non-commercial"'));
   assert.ok(app.includes('name:"Creative Commons Attribution 4.0 International"'));

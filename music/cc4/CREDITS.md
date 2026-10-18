@@ -15,3 +15,17 @@ Tracks in this folder must be available under Creative Commons Attribution 4.0 I
 - Track page: https://www.silvermansound.com/free-music/al-andalus
 
 When adding tracks, retain the creator's requested credit, keep the track page in the player, and verify that the individual recording is licensed under CC BY 4.0.
+
+## All The Tea In China
+- File: all-the-tea-in-china.mp3
+- Creator: Shane Ivers
+- Required attribution: Music: All The Tea In China by Shane Ivers - https://www.silvermansound.com
+- Licence: CC BY 4.0
+- Source: https://www.silvermansound.com/free-music/all-the-tea-in-china
+
+## The Medieval Banquet
+- File: the-medieval-banquet.mp3
+- Creator: Shane Ivers
+- Required attribution: Music: The Medieval Banquet by Shane Ivers - https://www.silvermansound.com
+- Licence: CC BY 4.0
+- Source: https://www.silvermansound.com/free-music/the-medieval-banquet
