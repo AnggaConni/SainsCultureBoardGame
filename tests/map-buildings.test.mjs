@@ -164,3 +164,31 @@ test("Environment tab queries GBIF, NASA EONET and Open-Meteo using the site's c
   assert.ok(!app.includes("Environmental intelligence is next"));
   assert.ok(app.includes("not an official UNESCO property boundary"));
 });
+
+
+test("ambient player starts after first interaction and exposes pause shuffle and volume controls", () => {
+  assert.ok(app.includes("const AMBIENT_TRACKS=["));
+  assert.ok(app.includes('src:"music/java.mp3"'));
+  assert.ok(app.includes("music/🇪🇸 Free Spanish Music"));
+  assert.ok(app.includes('document.addEventListener("pointerdown",firstInteraction,{capture:true})'));
+  assert.ok(app.includes('document.addEventListener("keydown",firstInteraction,{capture:true})'));
+  assert.ok(app.includes("audio.volume=0.4"));
+  assert.ok(app.includes('$("#musicNextBtn").addEventListener("click",()=>playNextAmbientTrack(true))'));
+  assert.ok(app.includes('$("#musicVolume").addEventListener("input"'));
+  assert.ok(app.includes('playButton.textContent=playing?"Ⅱ Pause":"▶ Play"'));
+  assert.ok(app.includes("while(next===ambientTrackIndex)"));
+  assert.ok(!app.includes("Ambient sound is not included in this prototype."));
+});
+
+test("ambient player has accessible controls, responsive styling and visible attribution", () => {
+  assert.match(html, /id="musicPanel"[^>]*aria-label="Background music player"/);
+  assert.match(html, /id="musicPlayBtn"/);
+  assert.match(html, /id="musicNextBtn"/);
+  assert.match(html, /id="musicVolume"[^>]*value="0\.4"/);
+  assert.match(html, /id="musicSourceLink"/);
+  assert.match(css, /\.music-panel\[hidden\]\{display:none!important\}/);
+  assert.match(css, /#soundBtn\.is-playing/);
+  assert.match(css, /@media\(max-width:760px\)\{\s*#soundBtn\{display:grid/);
+  assert.ok(app.includes('credit:"Music by framelens_id"'));
+  assert.ok(app.includes('credit:"Music: Al Andalus by Shane Ivers · CC BY 4.0"'));
+});
