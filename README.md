@@ -117,20 +117,31 @@ The uploaded `komodo_dragon.glb` is now the primary on-map model for Komodo Nati
 
 
 ## Site Intelligence dossier
-The site drawer now contains a lazily loaded Site Intelligence dossier. **Overview** uses curated catalogue metadata and official source links; **News** searches via a dedicated Cloudflare Worker + TinyFish; **Research** queries OpenAlex; **Environment** is a clearly marked next-phase connector slot. External calls only run when a user opens News or Research. Provider output is shown with provenance and direct links, and news leads are explicitly not treated as verified facts.
+The site drawer now contains a lazily loaded Site Intelligence dossier. **Overview** uses curated catalogue metadata and official source links; **News** searches via a dedicated Cloudflare Worker + TinyFish; **Research** queries OpenAlex; **Environment** queries nearby biodiversity records from GBIF, mapped natural events from NASA EONET, and current model weather from Open-Meteo. External calls run only when a user opens News, Research, or Environment. Provider output is shown with provenance and direct links, and news leads are explicitly not treated as verified facts.
 
 Deploy the shared Worker from the Aegis repository with `npx wrangler deploy --config wrangler.jsonc` after updating its route, then configure `TINYFISH_API_KEY` and optional `OPENALEX_API_KEY` as Cloudflare Worker secrets. See `SITE_INTELLIGENCE_SETUP.md`. The public app never contains provider keys.
 
 
 ## Site Intelligence dossier
-The site drawer includes a lazily loaded Site Intelligence dossier. **Overview** uses curated catalogue metadata and official source links; **News** searches via a dedicated Cloudflare Worker + TinyFish; **Research** queries OpenAlex; **Environment** is a clearly marked next-phase connector slot. External calls only run when a user opens News or Research. Provider output is shown with provenance and direct links, and news leads are explicitly not treated as verified facts.
+The site drawer includes a lazily loaded Site Intelligence dossier. **Overview** uses curated catalogue metadata and official source links; **News** searches via a dedicated Cloudflare Worker + TinyFish; **Research** queries OpenAlex; **Environment** queries nearby biodiversity records from GBIF, mapped natural events from NASA EONET, and current model weather from Open-Meteo. External calls run only when a user opens News, Research, or Environment. Provider output is shown with provenance and direct links, and news leads are explicitly not treated as verified facts.
 
 Deploy the shared Worker from the Aegis repository with `npx wrangler deploy --config wrangler.jsonc` after updating its route, then configure `TINYFISH_API_KEY` and optional `OPENALEX_API_KEY` as Cloudflare Worker secrets. See `SITE_INTELLIGENCE_SETUP.md`. The public app never contains provider keys.
 
 
 ### Deploy Site Intelligence Worker
-The News and Research dossier tabs use the shared CivilAegis TinyFish proxy via `/site-intel`; the existing CivilAegis `/nearby-intel` safety endpoint remains unchanged. The News and Research tabs call the shared CivilAegis Worker route. Follow `SITE_INTELLIGENCE_SETUP.md` to deploy and verify the shared endpoint, and diagnose endpoint/CORS errors. The Environment tab is still a Phase 2 placeholder.
+The News and Research dossier tabs use the shared CivilAegis TinyFish proxy via `/site-intel`; the existing CivilAegis `/nearby-intel` safety endpoint remains unchanged. The News and Research tabs call the shared CivilAegis Worker route. Follow `SITE_INTELLIGENCE_SETUP.md` to deploy and verify the shared endpoint, and diagnose endpoint/CORS errors. The Environment tab calls GBIF, NASA EONET and Open-Meteo directly; it does not require a Worker secret.
 
 
 ## GLB runtime compatibility
 The curated GLB uploads use different glTF extensions: Borobudur requires `KHR_draco_mesh_compression`, Prambanan requires `EXT_meshopt_compression`, and the Komodo dragon model uses `KHR_materials_pbrSpecularGlossiness`. The app pins Three.js r146 because it supports the two geometry decoder workflows while retaining the legacy specular/glossiness material extension; the loader is configured with both the Draco and Meshopt decoders. See the GLB validation step in GitHub Actions.
+
+
+## Environmental intelligence connectors
+The Environment tab loads live public APIs only when opened for a site with a curated map coordinate:
+- **GBIF Occurrence Search** — indexed occurrence records within approximately 25 km of the map anchor, with individual occurrence links.
+- **NASA EONET v3** — active events from the previous 90 days, searched around an approximately 100 km bounding area and filtered by distance to the anchor.
+- **Open-Meteo Forecast API** — model-based current weather context at the map coordinate (temperature, relative humidity, precipitation, and wind).
+
+The data is fetched directly in the browser and cached for the current session; these environmental calls require no API key or Worker deployment. Provider failures are handled separately. Results are contextual signals, not an official site-boundary intersection, species inventory, ecological assessment, or emergency alert. Large, marine, serial and multi-component designated properties may be poorly represented by one curated point. A zero-result response is not proof of absence.
+
+Provider references: [GBIF API](https://techdocs.gbif.org/en/openapi/v1/occurrence), [NASA EONET API v3](https://eonet.gsfc.nasa.gov/docs/v3), and [Open-Meteo API](https://open-meteo.com/en/docs).
