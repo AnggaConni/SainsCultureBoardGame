@@ -155,7 +155,11 @@ test("Tentative List is a distinct selectable status, not an inscribed World Her
 test("Environment tab queries GBIF, NASA EONET and Open-Meteo using the site's coordinate", () => {
   assert.ok(app.includes("async function fetchSiteEnvironment(site)"));
   assert.ok(app.includes("https://api.gbif.org/v1/occurrence/search"));
+  assert.ok(app.includes('gbifUrl.searchParams.set("decimalLatitude",String(lat))'));
+  assert.ok(app.includes('gbifUrl.searchParams.set("decimalLongitude",String(lon))'));
   assert.ok(app.includes('gbifUrl.searchParams.set("geo_distance","25km,"+lat+","+lon)'));
+  assert.ok(app.includes('const body=await response.text()'));
+  assert.ok(app.includes('String(detail).replace(/\\s+/g," ").slice(0,160)'));
   assert.ok(app.includes("https://eonet.gsfc.nasa.gov/api/v3/events"));
   assert.ok(app.includes('eventsUrl.searchParams.set("days","90")'));
   assert.ok(app.includes("https://api.open-meteo.com/v1/forecast"));
