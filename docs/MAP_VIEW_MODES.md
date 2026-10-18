@@ -1,21 +1,29 @@
 # Map view modes
 
-The map boots in **Street Map** mode using OpenStreetMap imagery with Cesium World Terrain and the existing UNESCO point overlays. The toolbar button **Earth View** switches only the base imagery to Google's satellite map tiles distributed through Cesium ion; terrain and UNESCO markers remain in the same Cesium scene. Press **Street Map** to return.
+The map boots in **Street Map** mode using OpenStreetMap imagery with Cesium World Terrain and the existing UNESCO point overlays. The toolbar button **Earth View** switches only the base imagery to **Google Maps 2D Satellite with Labels** served through Cesium ion; terrain and UNESCO markers remain in the same Cesium scene. Press **Street Map** to return.
 
 ## Enabling Earth View
 
-**Prerequisite:** CesiumJS 1.134.0 or newer. The previous 1.132.0 build does not contain `Google2DImageryProvider`.
+The app uses `Cesium.IonImageryProvider.fromAssetId(3830183)`, the documented Cesium ion asset for Google Maps 2D Satellite with Labels. The public site pins CesiumJS 1.134.0.
 
-The toggle calls \`Cesium.Google2DImageryProvider.fromIonAssetId({ assetId: 3830184, mapType: "satellite", language: "en_US", region: "ID" })\`. The app pins CesiumJS 1.134.0 for the current viewer. The token URL restriction should use the site origin `https://anggaconni.github.io`, not a path-specific URL, because browser `Origin` headers omit URL paths. The provider uses the documented Google 2D imagery service asset ID 3830184 with `mapType: "satellite"`; do not confuse this service ID with the separate fixed imagery layers listed in the ion imagery-assets sample. It uses the deployed Cesium ion token; the token must be allowed to access the Google 2D imagery asset 3830184 as well as the existing World Terrain and OSM Buildings assets. If access is restricted to a fixed asset list, add asset 3830183 to that allowlist in the Cesium ion dashboard. If it is not allowed, the toggle retains the current base imagery and shows the provider error message. The button error text includes the actual error detail so you can distinguish unsupported CesiumJS versions from token/asset access failures.
+The deployed Cesium ion token needs the public `assets:read` scope. For a public site, restrict its Allowed URL to the origin `https://anggaconni.github.io`. **Do not add the project path** unless the browser sends a matching path in its Referer header: Cesium ion URL restrictions require a Referer header, and the browser's default cross-origin referrer policy can send only the origin when requesting Cesium ion. Cesium's documentation describes URL restrictions and the need for a Referer header: https://cesium.com/learn/ion/cesium-ion-access-tokens/
 
-The Google imagery attribution/logo in Cesium's credit display is kept visible while Earth View is active. Do not hide, crop, or obscure this required attribution.
+Leave **All assets** enabled while testing. If using **Selected assets**, permit:
+- Cesium World Terrain — asset `1`
+- Cesium OSM Buildings — asset `96188`
+- Google Maps 2D Satellite with Labels — asset `3830183`
+
+If the provider cannot load, the toggle keeps the existing base imagery and shows the provider's error. The OSM Buildings setup also displays an error detail when the tileset fails to initialise.
+
+The Google Maps attribution/logo supplied by Cesium must remain visible while Earth View is active. Do not hide, crop, or obscure the attribution.
 
 ## Important distinction
 
-This mode provides Google satellite imagery with Cesium's existing terrain. It is not the full Google Maps Platform **Photorealistic 3D Tiles** experience. That product requires a Google Maps Platform project, Map Tiles API enabled, a restricted Google API key and billing configuration. To add that 3D city mesh later, configure a separate Google Maps API key, follow the applicable Google Maps Platform policies, and display all returned attributions. Do not treat an ordinary Google imagery toggle as the complete Google Earth desktop application.
+This mode provides Google satellite imagery with Cesium terrain. It is not the full Google Maps Platform **Photorealistic 3D Tiles** experience. That product requires a Google Maps Platform project, Map Tiles API enabled, a restricted Google API key and billing configuration. To add that 3D city mesh later, follow the applicable Google Maps Platform policies and display all returned attributions.
 
 References:
-- CesiumJS Google 2D imagery provider: https://cesium.com/learn/cesiumjs/ref-doc/Google2DImageryProvider.html
+- Cesium ion access tokens: https://cesium.com/learn/ion/cesium-ion-access-tokens/
+- Google Maps 2D Satellite with Labels asset 3830183: https://cesium.com/learn/cesiumjs-learn/cesiumjs-imagery/
 - CesiumJS imagery layers: https://cesium.com/learn/cesiumjs-learn/cesiumjs-imagery/
 - Google Photorealistic 3D Tiles: https://developers.google.com/maps/documentation/tile/3d-tiles
 - Google Map Tiles policies: https://developers.google.com/maps/documentation/tile/policies

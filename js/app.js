@@ -565,7 +565,7 @@ async function initOsmBuildings(viewer){
   state.buildingsStatus="unavailable";
   console.warn("Cesium OSM Buildings could not initialize. Check ion token, asset access, quota and network.",error);
   if(status)status.textContent="3D BUILDINGS UNAVAILABLE · CHECK ION";
-  setBuildingsUi("3D BUILDINGS UNAVAILABLE · "+String(error&&error.message||"Unknown Cesium ion error").replace(/\\s+/g," ").slice(0,150), "error");
+  setBuildingsUi("3D BUILDINGS UNAVAILABLE · "+String(error&&error.message||"Unknown Cesium ion error").replace(/\s+/g," ").slice(0,150), "error");
  }
 }
 async function toggleBaseMap(){
