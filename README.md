@@ -107,6 +107,68 @@ Choose the scenario that matches your intended use:
 
 If you are only replacing an existing model, keeping its current filename is the simplest approach. If you rename a model, search for and update every reference in `data/sites.json`, `js/sites.js`, `js/app.js`, `js/board.js`, and `data/asset_manifest.json` as applicable.
 
+### 3A. Choose the correct site ID and fit the model
+
+**Yes: every site record has its own stable site `id`, but that does not mean every site already has a 3D model.** The generated registry may contain thousands of UNESCO-related records; only add a model to a site when you have the correct asset and enough reliable information to place it.
+
+- **Site ID** identifies the place and should remain stable, for example `borobudur`, `prambanan`, or `komodo`.
+- **Model ID** identifies one specific model belonging to that site and must be unique within the site's `models` list, for example `borobudur-main` or `borobudur-relief-detail`. A site can have multiple models.
+- Do not use a model ID as the site ID, and do not create a new site record just because you have another model for the same place.
+
+#### Find and edit the right record
+
+1. Open `data/sites.json` and search for the site's `id` or official name.
+2. Add the new model to that site's existing `models` array. Copy a working entry from the same intended display mode; do not replace the whole site record.
+3. Keep the site's `id` unchanged. Give the new model a unique `id` and point `file` to the exact GLB path.
+4. If the site is also defined in the fallback/runtime catalogue in `js/sites.js`, update the matching entry there when that UI path uses it. Search for the site ID and model filename across the repository to find all references.
+
+Example model entry for a **globe preview** (illustrative values only; replace dimensions and offsets with measurements appropriate to your asset):
+
+```json
+{
+  "id": "borobudur-main",
+  "label": "Borobudur temple — local GLB",
+  "file": "assets/models/borobudur_temple.glb",
+  "format": "glb",
+  "placement": "globe",
+  "status": "available",
+  "scale": 1,
+  "targetSizeMeters": {
+    "width": 123,
+    "depth": 123,
+    "height": 35
+  },
+  "headingDegrees": 0,
+  "offsetMeters": {
+    "east": 0,
+    "north": 0,
+    "up": 0
+  }
+}
+```
+
+#### What each placement setting means
+
+| Field | How to choose it |
+|---|---|
+| `placement` | Use `"globe"` only for a model intended for the on-map overlay. Use `"detail"` for a model shown in the site's detail viewer. A model marked `"detail"` will not automatically appear on the globe. |
+| `status` | Use the existing catalogue's status convention. Set `"available"` only when the local file exists and is ready to use; keep unfinished/planned models clearly marked as planned. |
+| `targetSizeMeters` | Approximate real-world width, depth and height in metres, where known. These values are metadata for the app's supported sizing logic, not a guarantee of exact geospatial scale. Check the actual loader before assuming every field is applied. |
+| `scale` | Additional model scale multiplier. Start at `1`; adjust only after previewing the model. |
+| `headingDegrees` | Horizontal rotation/orientation. Start at `0` and adjust in small increments if the model faces the wrong direction. |
+| `offsetMeters` | Small east/north/up visual offsets relative to the anchor, if supported by the current overlay implementation. Start at zero; do not use offsets to disguise unknown coordinates. |
+
+#### Fit and position it safely
+
+1. **Check the asset in a 3D viewer first.** Confirm it is upright, faces the expected direction, has its origin/bounds in a sensible place, and does not contain unexpected extra geometry.
+2. **Start with scale 1 and zero offsets.** Use a known working model configuration as the baseline; change one setting at a time and refresh the browser after each change.
+3. **Use a verified site anchor.** A site ID does not provide coordinates by itself. Use the curated coordinate for the matching property only when it represents the correct component/entrance/monument; large, serial, island or cultural-landscape properties may need a more specific anchor.
+4. **Compare proportions and orientation at close zoom.** For `targetSizeMeters`, use documented dimensions where available. If the model is only an artistic illustration or its dimensions are unknown, label it as illustrative rather than presenting its scale as authoritative.
+5. **Test both globe and detail views.** Confirm the model appears only in the intended view and does not cover the wrong marker or drift badly as the camera moves. The current globe overlay is a visual preview: it does not provide survey-grade placement or full terrain occlusion.
+6. **Keep the data consistent.** If the model is renamed, update every reference in `data/sites.json`, `js/sites.js`, `js/app.js`, `js/board.js` (if used there), and `data/asset_manifest.json` as applicable.
+
+**Important:** `data/asset_manifest.json` is an asset inventory/audit manifest, not the source of site identity or model placement. Registering a file there alone will not connect it to a site. Likewise, adding a model entry to `data/sites.json` will not make it appear on the globe unless the current runtime loader recognises its placement and status.
+
 ### 4. Validate the model
 
 Run the repository's asset audit locally:
