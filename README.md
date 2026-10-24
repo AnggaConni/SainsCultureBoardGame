@@ -35,6 +35,102 @@ A token from your own Cesium ion account is required for the buildings layer. St
 
 The Cesium ion Community plan is free for individual personal/non-commercial use and has a streaming quota; check [current plan and quotas](https://cesium.com/platform/cesium-ion/pricing/) before wider distribution. Cesium automatically provides the required OpenStreetMap attribution for this asset; see [Cesium OSM Buildings terms](https://cesium.com/platform/cesium-ion/content/cesium-osm-buildings/).
 
+## How to add music
+
+The ambient player uses a hard-coded track list named `AMBIENT_TRACKS` in `js/app.js`. **Uploading an audio file alone does not add it to the player**: you must upload the file and register it in that array.
+
+### Add a new track
+
+1. Upload your audio file into an existing music folder, or create a clearly named folder under `music/`. Supported paths already used by the app include `music/framelens/` and `music/cc4/`. Prefer MP3 for compatibility and keep files reasonably compressed.
+2. Open `js/app.js` and find `const AMBIENT_TRACKS = [` (near the ambient-player code).
+3. Add a new object inside the array. Example (replace the example values and path with your own):
+
+```js
+{
+  id: "my-track",
+  folder: "cc4",
+  title: "My Track Title",
+  src: "music/cc4/my-track.mp3",
+  credit: "Music: My Track Title by Creator — source/licence link",
+  detail: "Creator · licence and attribution notes",
+  sourceUrl: "https://example.com/source"
+}
+```
+
+4. Make sure `src` exactly matches the committed file path (paths are case-sensitive on GitHub Pages), and make `id` unique.
+5. Record or update attribution in the relevant credits file, for example `music/cc4/CREDITS.md`, and check that the licence permits your intended use. “Free download” does not automatically mean redistribution is allowed.
+6. Commit both the audio file and the `js/app.js` update, deploy, then reload the live page and test play/next/volume.
+
+To replace a track without adding another playlist item, upload the replacement file and update the matching object's `src`, `title`, and credit fields as needed. The browser may cache the previous file; hard-refresh if the old audio still plays.
+
+## How to add a 3D model
+
+The app expects local **binary glTF files with the `.glb` extension** in one canonical folder: `assets/models/`. Uploading a new GLB makes it available at a URL, but does not automatically tell the site when or where to display it. The next steps depend on how you want to use the model.
+
+### 1. Prepare and upload the file
+
+1. Download/export the model as one self-contained `.glb` file. If the download contains `.gltf`, `.bin` and separate textures, open it in Blender and use **File → Export → glTF 2.0 → Format: GLB** so the dependencies are embedded.
+2. Use a descriptive lowercase `snake_case.glb` filename without spaces, for example `borobudur_relief_detail.glb`.
+3. Upload it directly into `assets/models/` (not a new subfolder).
+4. Aim for **under 5 MiB** per model where possible. Large meshes/textures can slow down loading; decimate geometry and reduce texture dimensions in Blender when needed.
+5. Confirm that you have permission to use and redistribute the model. Record creator, source URL, licence, and any required attribution.
+
+### 2. Register the asset in the manifest
+
+Edit `data/asset_manifest.json` and add an entry to its `assets` array. Follow the existing schema; for example:
+
+```json
+{
+  "id": "borobudur_relief_detail",
+  "label": "Borobudur relief detail",
+  "path": "assets/models/borobudur_relief_detail.glb",
+  "group": "unesco_site",
+  "requirement": "optional",
+  "requiredForRuntime": false,
+  "referencedBy": ["data/sites.json"],
+  "creator": "Creator name",
+  "license": "Licence name/version",
+  "sourceUrl": "https://example.com/model-source",
+  "notes": "Illustrative model; describe any limitations."
+}
+```
+
+This manifest lets the asset audit track the file; **it does not by itself display the model in the app**.
+
+### 3. Connect it to the app
+
+Choose the scenario that matches your intended use:
+
+- **Open it in the site's 3D detail viewer:** edit `data/sites.json` and add the model to the matching site's `models` array. Copy the structure used by an existing model in that file, set a unique model `id`, the correct `file` path (for example `assets/models/borobudur_relief_detail.glb`), a human-readable `label`, `format: "glb"`, and the appropriate `placement`/status fields. Also update the matching site's `models` entry in `js/sites.js` if the current UI's selector uses that dataset. Keep the two catalogues consistent.
+- **Show it automatically on the 3D globe:** the globe overlay is configured from the curated site/model metadata in `data/sites.json` and the runtime site data in `js/sites.js` / `js/app.js`. Copy an existing working site's model configuration rather than inventing a schema. Set the intended placement, coordinates/anchor and display scale/heading metadata as appropriate. Globe overlays are visual previews, not survey-grade placement, and do not have full terrain occlusion.
+- **Use it in the board-game scene:** edit `js/board.js`. Add a `loadLandmark("assets/models/your_model.glb", position, scale, rotationY)` call near the existing environment-model calls, or update the relevant player's `asset` path if replacing a player token. The board loader normalizes model size, but position and rotation still need visual testing.
+
+If you are only replacing an existing model, keeping its current filename is the simplest approach. If you rename a model, search for and update every reference in `data/sites.json`, `js/sites.js`, `js/app.js`, `js/board.js`, and `data/asset_manifest.json` as applicable.
+
+### 4. Validate the model
+
+Run the repository's asset audit locally:
+
+```bash
+python scripts/audit_assets.py
+```
+
+To force a fresh inventory/checksum scan:
+
+```bash
+python scripts/audit_assets.py --force
+```
+
+Review `ASSET_AUDIT_REPORT.md` for missing files, unregistered GLBs, invalid containers, filename issues, and size warnings. Then test the relevant model viewer/board scene in a browser. A successful audit checks file presence and basic GLB structure; it does not guarantee that the model renders correctly, is scaled/positioned well, or has a valid licence.
+
+### Quick checklist
+
+- [ ] File uploaded to the correct folder with exact case-sensitive path
+- [ ] Model added to `data/asset_manifest.json`
+- [ ] Model registered in the relevant site catalogue or `js/board.js` (if it must appear in the UI)
+- [ ] Creator, source, licence, and attribution recorded
+- [ ] Asset audit passes and the model tested in the browser
+
 ## Run locally
 Serve the repository root over HTTP (e.g. `python -m http.server 8000`) and open `http://localhost:8000`.
 
